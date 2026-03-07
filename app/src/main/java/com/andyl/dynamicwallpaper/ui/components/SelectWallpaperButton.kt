@@ -52,7 +52,6 @@ fun SelectWallpaperButton(
     val context = LocalContext.current
     val state by viewModel.uiState.collectAsState()
 
-    // Usamos el formatKey que definimos en el ViewModel para ser consistentes
     val key = "${weather.toKey()} - $timeOfDay"
     val currentUri = state.rules[key]
 
@@ -81,7 +80,6 @@ fun SelectWallpaperButton(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(currentUri)
                         .crossfade(true)
-                        // ESTO ES LO QUE TE SALVA LA RAM:
                         .size(Size(300, 500))
                         .precision(Precision.INEXACT)
                         .build(),
@@ -89,7 +87,6 @@ fun SelectWallpaperButton(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                // Overlay oscuro para legibilidad
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = Color.Black.copy(alpha = 0.4f)

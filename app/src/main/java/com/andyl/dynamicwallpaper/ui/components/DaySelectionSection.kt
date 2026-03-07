@@ -66,7 +66,7 @@ fun DaySelectionSection(viewModel: DynamicWallpaperViewModel) {
     var selectedDayForPicker by remember { mutableStateOf<String?>(null) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument(), // Cambiamos esto
+        contract = ActivityResultContracts.OpenDocument(),
         onResult = { uri ->
             uri?.let {
                 selectedDayForPicker?.let { day ->
@@ -155,15 +155,14 @@ fun DayImageCard(
                     ContentScale.Crop
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(imageUri) // o la URI que estés usando
+                            .data(imageUri)
                             .crossfade(true)
-                            // ESTO ES LO QUE TE SALVA LA RAM:
-                            .size(Size(300, 300)) // <--- Limitamos la resolución en memoria
+                            .size(Size(300, 300))
                             .precision(Precision.INEXACT)
                             .build(),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        contentScale = ContentScale.Crop
                     )
                 } else {
                     Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)

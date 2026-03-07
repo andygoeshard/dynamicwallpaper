@@ -46,7 +46,6 @@ fun FixedTimeSection(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    // Launcher para la imagen del horario fijo
     var pendingTime by remember { mutableStateOf<String?>(null) }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
@@ -69,10 +68,8 @@ fun FixedTimeSection(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Lista de horarios ya seteados
         state.fixedRules.forEach { (time, uri) ->
             TimeRuleItem(time, uri) {
-                // Opción para borrar si querés agregarla después
             }
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -109,7 +106,6 @@ fun TimeRuleItem(
             modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Miniatura redonda
             AsyncImage(
                 model = uri,
                 contentDescription = null,

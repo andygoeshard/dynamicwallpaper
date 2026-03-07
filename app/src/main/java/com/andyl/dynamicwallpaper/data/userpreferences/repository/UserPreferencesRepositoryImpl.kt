@@ -26,7 +26,6 @@ class UserPreferencesRepositoryImpl(
         "user_preferences",
         Context.MODE_PRIVATE
     )
-
     private val json = Json { encodeDefaults = true }
 
     override suspend fun getWallpaperConfig(packId: String?): WallpaperConfig {
@@ -34,11 +33,9 @@ class UserPreferencesRepositoryImpl(
         val rawPack = prefs.getString("${KEY_PACK_DATA}_$targetId", null)
 
         return if (rawPack != null) {
-            // Caso 1: Ya existe el formato nuevo
             val dto = json.decodeFromString<WallpaperPackDto>(rawPack)
             dto.toDomain(targetId)
         } else {
-            // Caso 2: Migración o Pack Nuevo
             val legacyRules = loadLegacyRules(targetId)
             val rules = legacyRules.ifEmpty { defaultRules() }
 
@@ -168,10 +165,9 @@ class UserPreferencesRepositoryImpl(
 
     override suspend fun getAllPacks(): List<PackInfo> {
         val activeId = getActivePackId()
-
         val allEntries = prefs.all
 
-        return allEntries.filter { (key, _) ->
+        val savedPacks = allEntries.filter { (key, _) ->
             key.startsWith(KEY_PACK_DATA)
         }.map { (key, value) ->
             val packId = key.removePrefix("${KEY_PACK_DATA}_")
@@ -192,6 +188,15 @@ class UserPreferencesRepositoryImpl(
                 isActive = packId == activeId
             )
         }.sortedBy { it.id }
+
+        return savedPacks.ifEmpty {
+            val defaultPacks = listOf(
+                PackInfo("1", "Pack 1", isActive = true),
+                PackInfo("2", "Pack 2", isActive = false),
+                PackInfo("3", "Pack 3", isActive = false)
+            )
+            defaultPacks
+        }
     }
 
 
@@ -204,3 +209,4 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_CITY_NAME = "last_city_name"
     }
 }
+

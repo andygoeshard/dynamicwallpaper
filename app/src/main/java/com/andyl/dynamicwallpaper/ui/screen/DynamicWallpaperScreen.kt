@@ -1,5 +1,12 @@
 package com.andyl.dynamicwallpaper.ui.screen
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,7 +39,6 @@ fun DynamicWallpaperScreen(
     val context = LocalContext.current
     var showPermissionDialog by remember { mutableStateOf(false) }
 
-    // --- Lógica de Permisos Exactos (Sin cambios) ---
     LaunchedEffect(Unit) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             val alarmManager = context.getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager
@@ -93,69 +99,76 @@ fun DynamicWallpaperScreen(
                 CircularProgressIndicator()
             }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp)
             ) {
-                item {
-                    PackSelectorSection(
-                        viewModel = viewModel,
-                    )
-                }
+                PackSelectorSection(viewModel = viewModel)
 
-                item { HorizontalDivider() }
+                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
-                item {
-                    DaySelectionSection(viewModel = viewModel)
-                }
+                AnimatedContent(
+                    targetState = state.editingPackId,
+                    transitionSpec = {
+                        if (state.slideDirection > 0) {
+                            (slideInHorizontally { it } + fadeIn()) togetherWith
+                                    (slideOutHorizontally { -it } + fadeOut())
+                        } else {
+                            (slideInHorizontally { -it } + fadeIn()) togetherWith
+                                    (slideOutHorizontally { it } + fadeOut())
+                        }.using(SizeTransform(clip = false))
+                    },
+                    label = "PackContentTransition",
+                    modifier = Modifier.weight(1f)
+                ) { id ->
+                    key(id){
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            item {
+                                DaySelectionSection(viewModel = viewModel)
+                            }
 
-                item { HorizontalDivider() }
+                            item { HorizontalDivider() }
 
-                item {
-                    Text("Configuración por Clima", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Text("Mutea climas para mantener el fondo anterior", style = MaterialTheme.typography.bodySmall)
-                }
+                            item {
+                                Text(
+                                    "Configuración por Clima",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    "Mutea climas para mantener el fondo anterior",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
 
-                val weathers = listOf(
-                    Weather.Clear, Weather.Cloudy, Weather.Rain,
-                    Weather.Snow, Weather.Fog, Weather.Storm
-                )
+                            val weathers = listOf(
+                                Weather.Clear, Weather.Cloudy, Weather.Rain,
+                                Weather.Snow, Weather.Fog, Weather.Storm
+                            )
 
-                items(weathers) { weather ->
-                    WeatherConfigCard(
-                        weather = weather,
-                        isEnabled = state.enabledWeathers.contains(weather),
-                        onToggle = { viewModel.toggleWeatherEnabled(weather) }
-                    )
-                }
+                            items(weathers) { weather ->
+                                WeatherConfigCard(
+                                    weather = weather,
+                                    isEnabled = state.enabledWeathers.contains(weather),
+                                    onToggle = { viewModel.toggleWeatherEnabled(weather) }
+                                )
+                            }
 
-                item { HorizontalDivider() }
+                            item { HorizontalDivider() }
 
-                item {
-                    FixedTimeSection(viewModel = viewModel)
-                }
+                            item {
+                                FixedTimeSection(viewModel = viewModel)
+                            }
 
-                item { HorizontalDivider() }
-
-                // 5. RESUMEN DE REGLAS (Mantenemos como estaba)
-                item {
-                    Text("Resumen de Archivos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                }
-
-                items(state.rules.toList()) { (config, uri) ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Column(Modifier.padding(12.dp)) {
-                            Text(config, fontWeight = FontWeight.Bold)
-                            // Limpiamos el URI para mostrar solo el nombre del archivo
-                            Text(uri.split("/").last(), style = MaterialTheme.typography.bodySmall)
+                            item { Spacer(modifier = Modifier.height(16.dp)) }
                         }
                     }
                 }
-
-                item { Spacer(modifier = Modifier.height(16.dp)) }
             }
         }
     }

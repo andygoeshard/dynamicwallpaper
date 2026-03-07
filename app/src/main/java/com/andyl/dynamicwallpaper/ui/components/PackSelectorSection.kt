@@ -46,20 +46,15 @@ fun PackSelectorSection(viewModel: DynamicWallpaperViewModel) {
 
     val packs = state.availablePacks
     if (packs.isEmpty()) return
-
-    // Lógica de Infinito
     val totalItems = Int.MAX_VALUE
-    // Buscamos un punto de inicio en el medio para que siempre haya scroll a ambos lados
     val startIndex = (totalItems / 2) - ((totalItems / 2) % packs.size)
 
-    // El listState lo manejamos con el startIndex inicial
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = startIndex)
     val snapBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
     var showRenameDialog by remember { mutableStateOf(false) }
     var tempName by remember { mutableStateOf("") }
 
-    // --- DIALOGO DE RENOMBRAR (Se mantiene igual) ---
     if (showRenameDialog) {
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
@@ -89,10 +84,9 @@ fun PackSelectorSection(viewModel: DynamicWallpaperViewModel) {
         IconButton(onClick = {
             coroutineScope.launch {
                 val targetIndex = listState.firstVisibleItemIndex - 1
-                listState.animateScrollToItem(targetIndex)
-                // Opcional: Que al mover la flecha también cambie el pack
                 val packId = packs[targetIndex % packs.size].id
-                viewModel.changePack(packId)
+                viewModel.changePack(packId, -1)
+                listState.animateScrollToItem(targetIndex)
             }
         }) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
@@ -102,7 +96,6 @@ fun PackSelectorSection(viewModel: DynamicWallpaperViewModel) {
             state = listState,
             flingBehavior = snapBehavior,
             modifier = Modifier.weight(1f),
-            // Aumentamos el padding para que el item seleccionado quede más al centro
             contentPadding = PaddingValues(horizontal = 100.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -119,9 +112,10 @@ fun PackSelectorSection(viewModel: DynamicWallpaperViewModel) {
                             tempName = pack.name
                             showRenameDialog = true
                         } else {
-                            viewModel.changePack(pack.id)
+                            val currentVisible = listState.firstVisibleItemIndex
+                            val direction = if (index > currentVisible) 1 else -1
+                            viewModel.changePack(pack.id, direction)
                             coroutineScope.launch {
-                                // Centramos el item clickeado
                                 listState.animateScrollToItem(index)
                             }
                         }
@@ -147,12 +141,11 @@ fun PackSelectorSection(viewModel: DynamicWallpaperViewModel) {
         IconButton(onClick = {
             coroutineScope.launch {
                 val targetIndex = listState.firstVisibleItemIndex + 1
-                listState.animateScrollToItem(targetIndex)
-                // Cambiamos el pack automáticamente al swapear con flecha
                 val packId = packs[targetIndex % packs.size].id
-                viewModel.changePack(packId)
+                viewModel.changePack(packId, 1)
+                listState.animateScrollToItem(targetIndex)
             }
-        }) {
+        }){
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
         }
     }

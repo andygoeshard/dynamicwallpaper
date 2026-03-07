@@ -180,9 +180,9 @@ class DynamicWallpaperViewModel(
         }
     }
 
-    fun changePack(packId: String) {
+    fun changePack(packId: String, direction: Int) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, editingPackId = packId) }
+            _uiState.update { it.copy(isLoading = true, editingPackId = packId, slideDirection = direction) }
 
             runCatching { getWallpaperConfigUseCase(packId) }
                 .onSuccess { config ->

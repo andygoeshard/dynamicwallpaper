@@ -5,6 +5,7 @@ import com.andyl.dynamicwallpaper.domain.model.Weather
 
 data class DynamicWallpaperUiState(
     val availablePacks: List<PackInfo> = emptyList(),
+    val slideDirection: Int = 1,
     val isLoading: Boolean = true,
     val isApplied: Boolean = false,
     val error: String? = null,
