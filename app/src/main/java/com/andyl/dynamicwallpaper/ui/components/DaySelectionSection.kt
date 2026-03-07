@@ -1,5 +1,6 @@
 package com.andyl.dynamicwallpaper.ui.components
 
+import android.R.attr.onClick
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -49,6 +50,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.size.Precision
+import coil.size.Size
 import com.andyl.dynamicwallpaper.ui.viewmodel.DynamicWallpaperViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -59,21 +63,24 @@ fun DaySelectionSection(viewModel: DynamicWallpaperViewModel) {
     val context = LocalContext.current
     val days = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
 
-    // 1. EL PICKER: Configuramos el lanzador para elegir la imagen
     var selectedDayForPicker by remember { mutableStateOf<String?>(null) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
+        contract = ActivityResultContracts.OpenDocument(), // Cambiamos esto
         onResult = { uri ->
             uri?.let {
                 selectedDayForPicker?.let { day ->
+                    context.contentResolver.takePersistableUriPermission(
+                        it,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
                     viewModel.setDailyWallpaper(day, it.toString())
                 }
             }
         }
     )
 
-    // Lógica del Scroll Infinito (Mismo que antes)
+
     val totalItems = Int.MAX_VALUE
     val todayIndex = remember { java.time.LocalDate.now().dayOfWeek.value - 1 }
     val startIndex = (totalItems / 2) - ((totalItems / 2) % days.size) + todayIndex
@@ -97,8 +104,10 @@ fun DaySelectionSection(viewModel: DynamicWallpaperViewModel) {
             contentPadding = PaddingValues(horizontal = horizontalPadding),
             modifier = Modifier.fillMaxWidth()
         ) {
+
             items(totalItems) { index ->
-                val dayIndex = index % days.size
+                val dayIndex = (index % days.size)
+
                 val dayName = days[dayIndex]
                 val imageUri = state.dailyRules[dayName]
                 val isToday = dayIndex == todayIndex
@@ -108,10 +117,8 @@ fun DaySelectionSection(viewModel: DynamicWallpaperViewModel) {
                     imageUri = imageUri,
                     isToday = isToday,
                     onClick = {
-                        selectedDayForPicker = dayName // Guardamos para qué día es la foto
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
+                        selectedDayForPicker = dayName
+                        photoPickerLauncher.launch(arrayOf("image/*"))
                     }
                 )
             }
@@ -147,7 +154,13 @@ fun DayImageCard(
                 if (imageUri != null) {
                     ContentScale.Crop
                     AsyncImage(
-                        model = imageUri,
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(imageUri) // o la URI que estés usando
+                            .crossfade(true)
+                            // ESTO ES LO QUE TE SALVA LA RAM:
+                            .size(Size(300, 300)) // <--- Limitamos la resolución en memoria
+                            .precision(Precision.INEXACT)
+                            .build(),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop

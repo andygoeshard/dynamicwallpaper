@@ -36,6 +36,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.size.Precision
+import coil.size.Size
 import com.andyl.dynamicwallpaper.domain.mapper.toKey
 
 @Composable
@@ -58,7 +61,6 @@ fun SelectWallpaperButton(
     ) { uri: Uri? ->
         uri?.let {
             try {
-                // Importante: persistir el permiso para que el Worker pueda leerlo después
                 context.contentResolver.takePersistableUriPermission(
                     it, Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
@@ -76,7 +78,13 @@ fun SelectWallpaperButton(
         Box(modifier = Modifier.fillMaxSize()) {
             if (!currentUri.isNullOrEmpty()) {
                 AsyncImage(
-                    model = currentUri,
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(currentUri)
+                        .crossfade(true)
+                        // ESTO ES LO QUE TE SALVA LA RAM:
+                        .size(Size(300, 500))
+                        .precision(Precision.INEXACT)
+                        .build(),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop

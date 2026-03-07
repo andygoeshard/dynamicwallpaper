@@ -17,42 +17,31 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
 
         val now = java.time.LocalDateTime.now()
 
-        // 1. PRIORIDAD MÁXIMA: Horarios Fijos (HH:mm)
+        // 1. Horarios Fijos (HH:mm)
         val currentTimeString = String.format("%02d:%02d", now.hour, now.minute)
-        config.fixedTimeRules[currentTimeString]?.let { uri ->
-            Log.d("RESOLVE", ">>> Prioridad 1: Horario Fijo detectado ($currentTimeString)")
-            return WallpaperId(uri)
-        }
+        config.fixedTimeRules[currentTimeString]?.let { return WallpaperId(it) }
 
-        // 2. SEGUNDA PRIORIDAD: Día de la semana (MONDAY, etc.)
-        val currentDay = now.dayOfWeek.name // Devuelve "MONDAY", "TUESDAY", etc.
+        // 2. Día de la semana (Normalizado a tus keys en español y minúsculas)
+        val daysList = listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
+        val currentDay = daysList[now.dayOfWeek.value % 7]
+
         config.dailyRules[currentDay]?.let { uri ->
-            Log.d("RESOLVE", ">>> Prioridad 2: Regla por Día detectada ($currentDay)")
+            Log.d("RESOLVE", ">>> Match Día: $currentDay")
             return WallpaperId(uri)
         }
 
-        // 3. TERCERA PRIORIDAD: Clima + Momento del día (Solo si el clima NO está muteado)
+        // 3. Clima + Momento (Solo si no está muteado)
         if (config.enabledWeathers.contains(weather)) {
-            config.rules.firstOrNull {
-                it.weather == weather && it.timeOfDay == timeOfDay
-            }?.let { rule ->
-                Log.d("RESOLVE", ">>> Prioridad 3: Clima activo detectado ($weather - $timeOfDay)")
-                return rule.wallpaperId
-            }
-        } else {
-            Log.d("RESOLVE", ">>> Clima $weather está MUTEADO. Saltando a fallback.")
+            config.rules.firstOrNull { it.weather == weather && it.timeOfDay == timeOfDay }
+                ?.let { return it.wallpaperId }
         }
 
-        // 4. FALLBACK: Si el clima está muteado o no hay reglas, buscamos cualquier cosa para el momento del día
-        config.rules.firstOrNull {
-            it.timeOfDay == timeOfDay
-        }?.let { rule ->
-            Log.d("RESOLVE", ">>> Fallback: Usando cualquier regla para $timeOfDay")
-            return rule.wallpaperId
-        }
+        // 4. Fallback: Cualquier regla para el momento del día
+        config.rules.firstOrNull { it.timeOfDay == timeOfDay }
+            ?.let { return it.wallpaperId }
 
-        // 5. ÚLTIMO RECURSO: La primera regla que aparezca
+        // 5. ÚLTIMO RECURSO: Sin excepciones
         return config.rules.firstOrNull()?.wallpaperId
-            ?: throw IllegalStateException("WallpaperConfig sin reglas")
+            ?: WallpaperId("") // Devolvemos ID vacío en lugar de explotar
     }
 }

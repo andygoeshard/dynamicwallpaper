@@ -16,6 +16,7 @@ import kotlinx.serialization.json.Json
 import androidx.core.content.edit
 import com.andyl.dynamicwallpaper.data.userpreferences.dto.WallpaperPackDto
 import com.andyl.dynamicwallpaper.data.userpreferences.dto.toDomain
+import com.andyl.dynamicwallpaper.domain.model.PackInfo
 
 class UserPreferencesRepositoryImpl(
     context: Context
@@ -164,6 +165,35 @@ class UserPreferencesRepositoryImpl(
             times.map { t -> WallpaperRule(w, t, WallpaperId("")) }
         }
     }
+
+    override suspend fun getAllPacks(): List<PackInfo> {
+        val activeId = getActivePackId()
+
+        val allEntries = prefs.all
+
+        return allEntries.filter { (key, _) ->
+            key.startsWith(KEY_PACK_DATA)
+        }.map { (key, value) ->
+            val packId = key.removePrefix("${KEY_PACK_DATA}_")
+            val rawJson = value as? String
+
+            val packName = if (rawJson != null) {
+                try {
+                    val dto = json.decodeFromString<WallpaperPackDto>(rawJson)
+                    dto.name
+                } catch (e: Exception) { "Pack $packId" }
+            } else {
+                "Pack $packId"
+            }
+
+            PackInfo(
+                id = packId,
+                name = packName,
+                isActive = packId == activeId
+            )
+        }.sortedBy { it.id }
+    }
+
 
     companion object {
         private const val KEY_PACK_DATA = "wallpaper_pack_data"

@@ -1,9 +1,11 @@
 package com.andyl.dynamicwallpaper.ui.state
 
+import com.andyl.dynamicwallpaper.domain.model.PackInfo
 import com.andyl.dynamicwallpaper.domain.model.Weather
 
 data class DynamicWallpaperUiState(
-    val isLoading: Boolean = false,
+    val availablePacks: List<PackInfo> = emptyList(),
+    val isLoading: Boolean = true,
     val isApplied: Boolean = false,
     val error: String? = null,
     val packName: String = "",
@@ -14,4 +16,3 @@ data class DynamicWallpaperUiState(
     val editingPackId: String = "1",
     val activePackId: String = "1"
 )
-

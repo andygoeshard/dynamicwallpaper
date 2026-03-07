@@ -1,5 +1,7 @@
 package com.andyl.dynamicwallpaper.ui.viewmodel
 
+import android.R.attr.action
+import android.R.attr.data
 import android.app.AlarmManager
 import android.content.Context
 import android.content.Intent
@@ -18,30 +20,29 @@ import com.andyl.dynamicwallpaper.domain.model.WallpaperRule
 import com.andyl.dynamicwallpaper.domain.model.Weather
 import com.andyl.dynamicwallpaper.domain.repository.LocationRepository
 import com.andyl.dynamicwallpaper.domain.usecase.contract.ApplyDynamicWallpaperUseCase
-import com.andyl.dynamicwallpaper.domain.usecase.contract.ChangePackUseCase
+import com.andyl.dynamicwallpaper.domain.usecase.contract.ChangeActivePackUseCase
+import com.andyl.dynamicwallpaper.domain.usecase.contract.GetAllPacksUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.GetWallpaperConfigUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.SetWallpaperRuleUseCase
 import com.andyl.dynamicwallpaper.ui.state.DynamicWallpaperUiState
-import com.andyl.dynamicwallpaper.worker.BootReceiver
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Collections.emptyList
 
 @OptIn(FlowPreview::class)
 class DynamicWallpaperViewModel(
     private val applyDynamicWallpaperUseCase: ApplyDynamicWallpaperUseCase,
     private val setWallpaperRuleUseCase: SetWallpaperRuleUseCase,
     private val getWallpaperConfigUseCase: GetWallpaperConfigUseCase,
-    private val changePackUseCase: ChangePackUseCase,
+    private val changeActivePackUseCase: ChangeActivePackUseCase,
+    private val getAllPacksUseCase: GetAllPacksUseCase,
     private val locationRepository: LocationRepository
 ) : ViewModel() {
 
@@ -75,7 +76,6 @@ class DynamicWallpaperViewModel(
                 .filter { it.length > 2 }
                 .distinctUntilChanged()
                 .collectLatest { query ->
-                    // Si el query coincide exactamente con la ciudad guardada, no buscamos de nuevo
                     val savedName = locationRepository.getSavedCityName()
                     if (query != savedName) {
                         runCatching { locationRepository.searchCity(query) }
@@ -106,31 +106,85 @@ class DynamicWallpaperViewModel(
 
     fun applyWallpaper() {
         viewModelScope.launch {
+            val state = _uiState.value
+            val currentEditingId = state.editingPackId // El pack que estamos viendo/editando
+
             _uiState.update { it.copy(isLoading = true, error = null) }
-            runCatching { applyDynamicWallpaperUseCase() }
-                .onSuccess { _uiState.update { it.copy(isLoading = false, isApplied = true) } }
-                .onFailure { t -> _uiState.update { it.copy(isLoading = false, error = t.message) } }
+
+            runCatching {
+                val configToSave = WallpaperConfig(
+                    id = currentEditingId,
+                    name = state.packName,
+                    rules = state.rules.map { (key, uri) -> parseRuleFromKey(key, uri) },
+                    dailyRules = state.dailyRules,
+                    fixedTimeRules = state.fixedRules,
+                    enabledWeathers = state.enabledWeathers,
+                    activePackId = currentEditingId
+                )
+                setWallpaperRuleUseCase(configToSave)
+                changeActivePackUseCase(currentEditingId)
+                applyDynamicWallpaperUseCase(currentEditingId)
+            }
+                .onSuccess {
+                    _uiState.update { state ->
+                        val updatedPacks = state.availablePacks.map {
+                            it.copy(isActive = it.id == currentEditingId)
+                        }
+                        state.copy(
+                            isLoading = false,
+                            isApplied = true,
+                            activePackId = currentEditingId,
+                            availablePacks = updatedPacks
+                        )
+                    }
+                }
+                .onFailure { t ->
+                    Log.e("WallpaperVM", "Error en apply: ${t.message}", t)
+                    _uiState.update { it.copy(
+                        isLoading = false,
+                        error = "valio pinga: ${t.message ?: "Error desconocido"}"
+                    ) }
+                }
         }
     }
 
     private fun loadInitialConfig() {
         viewModelScope.launch {
-            runCatching { getWallpaperConfigUseCase("1") }.onSuccess { config ->
-                val rulesMap = config.rules
-                    .filter { it.wallpaperId.value.isNotEmpty() }
-                    .associate { formatKey(it.weather, it.timeOfDay) to it.wallpaperId.value }
-                _uiState.update { it.copy(
-                    rules = rulesMap,
-                    activePackId = config.activePackId)
+            _uiState.update { it.copy(isLoading = true) }
+
+            val allPacks = getAllPacksUseCase()
+            val activeId = allPacks.find { it.isActive }?.id ?: "1"
+
+            runCatching { getWallpaperConfigUseCase(activeId) }
+                .onSuccess { config ->
+                    val rulesMap = config.rules
+                        .filter { it.wallpaperId.value.isNotEmpty() }
+                        .associate { formatKey(it.weather, it.timeOfDay) to it.wallpaperId.value }
+
+                    _uiState.update { it.copy(
+                        availablePacks = allPacks,
+                        rules = rulesMap,
+                        packName = config.name,
+                        dailyRules = config.dailyRules,
+                        fixedRules = config.fixedTimeRules,
+                        enabledWeathers = config.enabledWeathers,
+                        activePackId = config.activePackId,
+                        editingPackId = config.activePackId,
+                        isLoading = false
+                    ) }
+                    Log.d("TEST_DAILY", "Keys recibidas: ${config.dailyRules.entries}")
                 }
-            }
+                .onFailure { t ->
+                    _uiState.update { it.copy(isLoading = false, error = t.message) }
+                }
         }
     }
 
     fun changePack(packId: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            runCatching { changePackUseCase(packId) }
+            _uiState.update { it.copy(isLoading = true, editingPackId = packId) }
+
+            runCatching { getWallpaperConfigUseCase(packId) }
                 .onSuccess { config ->
                     val rulesMap = config.rules
                         .filter { it.wallpaperId.value.isNotEmpty() }
@@ -138,7 +192,10 @@ class DynamicWallpaperViewModel(
 
                     _uiState.update { it.copy(
                         rules = rulesMap,
-                        activePackId = config.activePackId,
+                        packName = config.name,
+                        dailyRules = config.dailyRules,
+                        fixedRules = config.fixedTimeRules,
+                        enabledWeathers = config.enabledWeathers,
                         isLoading = false,
                         error = null
                     ) }
@@ -148,14 +205,19 @@ class DynamicWallpaperViewModel(
                 }
         }
     }
-
-    // 1. Cambiar el nombre del pack
     fun renamePack(newName: String) {
-        _uiState.update { it.copy(packName = newName) }
+        _uiState.update { state ->
+            val updatedPacks = state.availablePacks.map {
+                if (it.id == state.editingPackId) it.copy(name = newName) else it
+            }
+            state.copy(
+                packName = newName,
+                availablePacks = updatedPacks
+            )
+        }
         saveCurrentConfigToRepo()
     }
 
-    // 2. Mutear/Desmutear un clima
     fun toggleWeatherEnabled(weather: Weather) {
         _uiState.update { currentState ->
             val newEnabled = if (currentState.enabledWeathers.contains(weather)) {
@@ -167,24 +229,18 @@ class DynamicWallpaperViewModel(
         }
         saveCurrentConfigToRepo()
     }
-
-    // 3. Función privada para persistir TODO el estado actual al Repo
-    private fun saveCurrentConfigToRepo() {
+    private fun saveCurrentConfigToRepo() = viewModelScope.launch { // Ahora devuelve el Job
         val state = _uiState.value
-        viewModelScope.launch {
-            val config = WallpaperConfig(
-                id = state.editingPackId,
-                name = state.packName,
-                rules = state.rules.map { (key, uri) ->
-                    parseRuleFromKey(key, uri)
-                },
-                dailyRules = state.dailyRules,
-                fixedTimeRules = state.fixedRules,
-                enabledWeathers = state.enabledWeathers,
-                activePackId = state.activePackId
-            )
-            setWallpaperRuleUseCase(config) // Asegurate de tener este UseCase
-        }
+        val config = WallpaperConfig(
+            id = state.editingPackId,
+            name = state.packName,
+            rules = state.rules.map { (key, uri) -> parseRuleFromKey(key, uri) },
+            dailyRules = state.dailyRules,
+            fixedTimeRules = state.fixedRules,
+            enabledWeathers = state.enabledWeathers,
+            activePackId = state.activePackId
+        )
+        setWallpaperRuleUseCase(config)
     }
     private fun parseRuleFromKey(key: String, uri: String): WallpaperRule {
         val parts = key.split(" - ") // El formato que usamos en formatKey()
@@ -195,6 +251,7 @@ class DynamicWallpaperViewModel(
 
     fun setDailyWallpaper(dayName: String, uri: String) {
         _uiState.update { it.copy(dailyRules = it.dailyRules + (dayName to uri)) }
+        Log.d("TEST_DAILY_Wallpaper", "Regla diaria guardada: $dayName -> $uri")
         saveCurrentConfigToRepo()
     }
 

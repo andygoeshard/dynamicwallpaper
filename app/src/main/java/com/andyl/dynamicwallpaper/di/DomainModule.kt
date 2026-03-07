@@ -1,14 +1,16 @@
 package com.andyl.dynamicwallpaper.di
 
 import com.andyl.dynamicwallpaper.domain.usecase.contract.ApplyDynamicWallpaperUseCase
-import com.andyl.dynamicwallpaper.domain.usecase.contract.ChangePackUseCase
+import com.andyl.dynamicwallpaper.domain.usecase.contract.ChangeActivePackUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.DetectTimeOfDayUseCase
+import com.andyl.dynamicwallpaper.domain.usecase.contract.GetAllPacksUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.GetWallpaperConfigUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.ResolveWallpaperUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.SetWallpaperRuleUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.impl.ApplyDynamicWallpaperUseCaseImpl
-import com.andyl.dynamicwallpaper.domain.usecase.impl.ChangePackUseCaseImpl
+import com.andyl.dynamicwallpaper.domain.usecase.impl.ChangeActivePackUseCaseImpl
 import com.andyl.dynamicwallpaper.domain.usecase.impl.DetectTimeOfDayUseCaseImpl
+import com.andyl.dynamicwallpaper.domain.usecase.impl.GetAllPacksUseCaseImpl
 import com.andyl.dynamicwallpaper.domain.usecase.impl.GetWallpaperConfigUseCaseImpl
 import com.andyl.dynamicwallpaper.domain.usecase.impl.ResolveWallpaperUseCaseImpl
 import com.andyl.dynamicwallpaper.domain.usecase.impl.SetWallpaperConfigUseCaseImpl
@@ -19,14 +21,24 @@ import org.koin.dsl.module
 val domainModule = module {
 
     factory<DetectTimeOfDayUseCase> {
-        DetectTimeOfDayUseCaseImpl(get())
+        DetectTimeOfDayUseCaseImpl(
+            get()
+        )
     }
 
     factory<ResolveWallpaperUseCase> {
         ResolveWallpaperUseCaseImpl()
     }
-    factory<ChangePackUseCase> {
-        ChangePackUseCaseImpl(get())
+    factory<GetAllPacksUseCase> {
+        GetAllPacksUseCaseImpl(
+            repository = get()
+        )
+    }
+
+    factory<ChangeActivePackUseCase> {
+        ChangeActivePackUseCaseImpl(
+            get()
+        )
     }
 
     factory<ApplyDynamicWallpaperUseCase> {

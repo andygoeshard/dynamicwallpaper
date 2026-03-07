@@ -1,6 +1,7 @@
 package com.andyl.dynamicwallpaper.domain.repository
 
 import com.andyl.dynamicwallpaper.domain.model.GeoLocation
+import com.andyl.dynamicwallpaper.domain.model.PackInfo
 import com.andyl.dynamicwallpaper.domain.model.WallpaperConfig
 
 
@@ -15,5 +16,6 @@ interface UserPreferencesRepository {
     suspend fun getCityName(): String?
     suspend fun getActivePackId(): String
     suspend fun setActivePackId(packId: String)
+    suspend fun getAllPacks(): List<PackInfo>
 }
 

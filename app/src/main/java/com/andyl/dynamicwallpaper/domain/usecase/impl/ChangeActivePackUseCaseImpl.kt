@@ -2,13 +2,12 @@ package com.andyl.dynamicwallpaper.domain.usecase.impl
 
 import com.andyl.dynamicwallpaper.domain.model.WallpaperConfig
 import com.andyl.dynamicwallpaper.domain.repository.UserPreferencesRepository
-import com.andyl.dynamicwallpaper.domain.usecase.contract.ChangePackUseCase
+import com.andyl.dynamicwallpaper.domain.usecase.contract.ChangeActivePackUseCase
 
-class ChangePackUseCaseImpl(
+class ChangeActivePackUseCaseImpl(
     private val repository: UserPreferencesRepository
-) : ChangePackUseCase {
-    override suspend fun invoke(packId: String): WallpaperConfig {
+) : ChangeActivePackUseCase {
+    override suspend fun invoke(packId: String) {
         repository.setActivePackId(packId)
-        return repository.getWallpaperConfig(packId)
     }
 }
