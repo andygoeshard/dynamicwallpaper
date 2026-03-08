@@ -256,6 +256,7 @@ class DynamicWallpaperViewModel(
                     availablePacks = updatedPacks,
                     editingPackId = updatedPacks.last().id
                 )}
+                onEvent(WallpaperEvent.OnChangePack(updatedPacks.last().id, 1))
             }.onFailure { e ->
                 _uiState.update { it.copy(error = e.message) }
             }

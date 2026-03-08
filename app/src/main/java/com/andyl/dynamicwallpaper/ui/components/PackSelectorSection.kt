@@ -42,6 +42,7 @@ import com.andyl.dynamicwallpaper.ui.state.DynamicWallpaperUiState
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -62,6 +63,21 @@ fun PackSelectorSection(
 
     var showRenameDialog by remember { mutableStateOf(false) }
     var tempName by remember { mutableStateOf("") }
+
+    LaunchedEffect(state.editingPackId) {
+        val packs = state.availablePacks
+        if (packs.isNotEmpty()) {
+            val targetPackIndex = packs.indexOfFirst { it.id == state.editingPackId }
+
+            if (targetPackIndex != -1) {
+                val currentVisibleIndex = listState.firstVisibleItemIndex
+                val currentOffset = currentVisibleIndex % packs.size
+                val baseIndex = currentVisibleIndex - currentOffset
+                val finalTargetIndex = baseIndex + targetPackIndex
+                listState.animateScrollToItem(finalTargetIndex)
+            }
+        }
+    }
 
     if (showRenameDialog) {
         AlertDialog(
