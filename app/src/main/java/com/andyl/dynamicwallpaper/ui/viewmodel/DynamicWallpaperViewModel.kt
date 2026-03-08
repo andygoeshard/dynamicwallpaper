@@ -17,8 +17,10 @@ import com.andyl.dynamicwallpaper.domain.model.WallpaperId
 import com.andyl.dynamicwallpaper.domain.model.WallpaperRule
 import com.andyl.dynamicwallpaper.domain.model.Weather
 import com.andyl.dynamicwallpaper.domain.repository.LocationRepository
+import com.andyl.dynamicwallpaper.domain.usecase.contract.AddPackUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.ApplyDynamicWallpaperUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.ChangeActivePackUseCase
+import com.andyl.dynamicwallpaper.domain.usecase.contract.DeletePackUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.GetAllPacksUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.GetWallpaperConfigUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.SetWallpaperRuleUseCase
@@ -42,6 +44,8 @@ class DynamicWallpaperViewModel(
     private val getWallpaperConfigUseCase: GetWallpaperConfigUseCase,
     private val changeActivePackUseCase: ChangeActivePackUseCase,
     private val getAllPacksUseCase: GetAllPacksUseCase,
+    private val addPackUseCase: AddPackUseCase,
+    private val deletePackUseCase: DeletePackUseCase,
     private val locationRepository: LocationRepository
 ) : ViewModel() {
 
@@ -85,6 +89,12 @@ class DynamicWallpaperViewModel(
             is WallpaperEvent.SetFixedTimeWallpaper -> setFixedTimeWallpaper(event.context, event.time, event.uri)
 
             is WallpaperEvent.SetWallpaperRule -> setWallpaperRule(event.weather, event.timeOfDay, event.wallpaperUri)
+
+            WallpaperEvent.OnAddNewPack -> addNewPack()
+
+            is WallpaperEvent.OnDeletePack -> deletePack(event.packId)
+
+            is WallpaperEvent.OnSelectFromPackManager -> selectPackFromManager(event.packId)
         }
     }
 
@@ -211,8 +221,6 @@ class DynamicWallpaperViewModel(
         }
     }
 
-
-
     private fun changePack(packId: String, direction: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, editingPackId = packId, slideDirection = direction) }
@@ -238,6 +246,42 @@ class DynamicWallpaperViewModel(
                 }
         }
     }
+
+    private fun addNewPack() {
+        viewModelScope.launch {
+            runCatching {
+                    addPackUseCase()
+            }.onSuccess { updatedPacks ->
+                _uiState.update { it.copy(
+                    availablePacks = updatedPacks,
+                    editingPackId = updatedPacks.last().id
+                )}
+            }.onFailure { e ->
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    private fun deletePack(packId: String) {
+        viewModelScope.launch {
+            runCatching {
+                deletePackUseCase(packId)
+                getAllPacksUseCase()
+            }.onSuccess { updatedPacks ->
+                val nextPackToEdit = if (packId == _uiState.value.editingPackId) {
+                    updatedPacks.first().id
+                } else {
+                    _uiState.value.editingPackId
+                }
+                _uiState.update { it.copy(availablePacks = updatedPacks) }
+                onEvent(WallpaperEvent.OnChangePack(nextPackToEdit, 1))
+
+            }.onFailure { e ->
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
     private fun renamePack(newName: String) {
         _uiState.update { state ->
             val updatedPacks = state.availablePacks.map {
@@ -262,7 +306,34 @@ class DynamicWallpaperViewModel(
         }
         saveCurrentConfigToRepo()
     }
-    private fun saveCurrentConfigToRepo() = viewModelScope.launch { // Ahora devuelve el Job
+
+    private fun selectPackFromManager(packId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            runCatching {
+                getWallpaperConfigUseCase(packId)
+            }.onSuccess { config ->
+                val rulesMap = config.rules
+                    .filter { it.wallpaperId.value.isNotEmpty() }
+                    .associate { formatKey(it.weather, it.timeOfDay) to it.wallpaperId.value }
+
+                _uiState.update { it.copy(
+                    rules = rulesMap,
+                    packName = config.name,
+                    editingPackId = packId,
+                    dailyRules = config.dailyRules,
+                    fixedRules = config.fixedTimeRules,
+                    enabledWeathers = config.enabledWeathers,
+                    isLoading = false
+                ) }
+            }.onFailure { t ->
+                _uiState.update { it.copy(isLoading = false, error = t.message) }
+            }
+        }
+    }
+
+    private fun saveCurrentConfigToRepo() = viewModelScope.launch {
         val state = _uiState.value
         val config = WallpaperConfig(
             id = state.editingPackId,
@@ -276,7 +347,7 @@ class DynamicWallpaperViewModel(
         setWallpaperRuleUseCase(config)
     }
     private fun parseRuleFromKey(key: String, uri: String): WallpaperRule {
-        val parts = key.split(" - ") // El formato que usamos en formatKey()
+        val parts = key.split(" - ")
         val weather = weatherFromKey(parts[0])
         val timeOfDay = TimeOfDay.valueOf(parts[1])
         return WallpaperRule(weather, timeOfDay, WallpaperId(uri))

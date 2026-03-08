@@ -1,5 +1,6 @@
 package com.andyl.dynamicwallpaper.ui.screen
 
+import android.R.attr.onClick
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -95,8 +98,11 @@ fun DynamicWallpaperScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Dynamic Wallpaper", fontWeight = FontWeight.Bold) },
                 actions = {
+                    IconButton(onClick = { viewModel.onEvent(WallpaperEvent.OnAddNewPack) }) {
+                        Icon(Icons.Default.AddCircle, contentDescription = "Add new pack")
+                    }
                     IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Ubicación")
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
                 }
             )

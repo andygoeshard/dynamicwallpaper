@@ -20,4 +20,9 @@ sealed interface WallpaperEvent{
     data class SetFixedTimeWallpaper(val context: Context, val time: String, val uri: String): WallpaperEvent
     data class SetWallpaperRule(val weather: Weather, val timeOfDay: TimeOfDay, val wallpaperUri: String): WallpaperEvent
     data class RequestExactAlarmPermission(val context: Context): WallpaperEvent
+    object OnAddNewPack: WallpaperEvent
+    data class OnDeletePack(val packId: String): WallpaperEvent
+    data class OnSelectFromPackManager(val packId: String): WallpaperEvent
 }
+
+

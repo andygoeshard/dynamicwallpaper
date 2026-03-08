@@ -17,5 +17,7 @@ interface UserPreferencesRepository {
     suspend fun getActivePackId(): String
     suspend fun setActivePackId(packId: String)
     suspend fun getAllPacks(): List<PackInfo>
+    suspend fun addNewPack(): List<PackInfo>
+    suspend fun deletePack(packId: String)
 }
 

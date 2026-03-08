@@ -1,14 +1,18 @@
 package com.andyl.dynamicwallpaper.di
 
+import com.andyl.dynamicwallpaper.domain.usecase.contract.AddPackUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.ApplyDynamicWallpaperUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.ChangeActivePackUseCase
+import com.andyl.dynamicwallpaper.domain.usecase.contract.DeletePackUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.DetectTimeOfDayUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.GetAllPacksUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.GetWallpaperConfigUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.ResolveWallpaperUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.SetWallpaperRuleUseCase
+import com.andyl.dynamicwallpaper.domain.usecase.impl.AddPackUseCaseImpl
 import com.andyl.dynamicwallpaper.domain.usecase.impl.ApplyDynamicWallpaperUseCaseImpl
 import com.andyl.dynamicwallpaper.domain.usecase.impl.ChangeActivePackUseCaseImpl
+import com.andyl.dynamicwallpaper.domain.usecase.impl.DeletePackUseCaseImpl
 import com.andyl.dynamicwallpaper.domain.usecase.impl.DetectTimeOfDayUseCaseImpl
 import com.andyl.dynamicwallpaper.domain.usecase.impl.GetAllPacksUseCaseImpl
 import com.andyl.dynamicwallpaper.domain.usecase.impl.GetWallpaperConfigUseCaseImpl
@@ -29,6 +33,7 @@ val domainModule = module {
     factory<ResolveWallpaperUseCase> {
         ResolveWallpaperUseCaseImpl()
     }
+
     factory<GetAllPacksUseCase> {
         GetAllPacksUseCaseImpl(
             repository = get()
@@ -37,6 +42,18 @@ val domainModule = module {
 
     factory<ChangeActivePackUseCase> {
         ChangeActivePackUseCaseImpl(
+            get()
+        )
+    }
+
+    factory<AddPackUseCase> {
+        AddPackUseCaseImpl(
+            get()
+        )
+    }
+
+    factory<DeletePackUseCase> {
+        DeletePackUseCaseImpl(
             get()
         )
     }

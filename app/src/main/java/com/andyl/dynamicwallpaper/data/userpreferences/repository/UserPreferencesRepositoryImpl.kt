@@ -93,29 +93,6 @@ class UserPreferencesRepositoryImpl(
         prefs.edit { putString(KEY_ACTIVE_PACK_ID, packId) }
     }
 
-    private fun saveRules(rules: List<WallpaperRule>, packId: String) {
-        val serialized = json.encodeToString(
-            rules.map {
-                WallpaperRuleDto(
-                    weather = it.weather.toKey(),
-                    timeOfDay = it.timeOfDay.name,
-                    uri = it.wallpaperId.value
-                )
-            }
-        )
-        prefs.edit { putString("${KEY_RULES}_$packId", serialized) }
-    }
-
-    private fun loadRules(packId: String): List<WallpaperRule> {
-        val raw = prefs.getString("${KEY_RULES}_$packId", null) ?: return emptyList()
-        return json.decodeFromString<List<WallpaperRuleDto>>(raw).map {
-            WallpaperRule(
-                weather = weatherFromKey(it.weather),
-                timeOfDay = TimeOfDay.valueOf(it.timeOfDay),
-                wallpaperId = WallpaperId(it.uri)
-            )
-        }
-    }
 
     // --- MÉTODOS DE UBICACIÓN Y CIUDAD ---
 
@@ -160,6 +137,43 @@ class UserPreferencesRepositoryImpl(
 
         return weathers.flatMap { w ->
             times.map { t -> WallpaperRule(w, t, WallpaperId("")) }
+        }
+    }
+
+    override suspend fun addNewPack(): List<PackInfo> {
+        val allPacks = getAllPacks()
+
+        if (allPacks.size >= 10) {
+            throw IllegalStateException("Límite de 10 paquetes alcanzado")
+        }
+
+        val newId = System.currentTimeMillis().toString()
+        val newName = "Pack ${allPacks.size + 1}"
+
+        val newConfig = WallpaperConfig(
+            id = newId,
+            name = newName,
+            rules = defaultRules(),
+            activePackId = getActivePackId()
+        )
+
+        setWallpaperConfig(newConfig)
+        return getAllPacks()
+    }
+
+    override suspend fun deletePack(packId: String) {
+        val allPacks = getAllPacks()
+        if (allPacks.size <= 1) throw IllegalStateException("No puedes borrar todos los paquetes")
+
+        val activeId = getActivePackId()
+        if (packId == activeId) {
+            val nextAvailable = allPacks.firstOrNull { it.id != packId }
+            nextAvailable?.let { setActivePackId(it.id) }
+        }
+
+        prefs.edit {
+            remove("${KEY_PACK_DATA}_$packId")
+            remove("wallpaper_rules_$packId")
         }
     }
 
