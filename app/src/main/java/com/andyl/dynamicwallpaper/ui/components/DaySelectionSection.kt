@@ -1,21 +1,15 @@
 package com.andyl.dynamicwallpaper.ui.components
 
-import android.R.attr.onClick
 import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,9 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -34,11 +26,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,13 +42,15 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Precision
 import coil.size.Size
-import com.andyl.dynamicwallpaper.ui.viewmodel.DynamicWallpaperViewModel
-import org.koin.androidx.compose.koinViewModel
+import com.andyl.dynamicwallpaper.ui.event.WallpaperEvent
+import com.andyl.dynamicwallpaper.ui.state.DynamicWallpaperUiState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun DaySelectionSection(viewModel: DynamicWallpaperViewModel) {
-    val state by viewModel.uiState.collectAsState()
+fun DaySelectionSection(
+    state : DynamicWallpaperUiState,
+    onEvent: (WallpaperEvent) -> Unit
+    ) {
     val context = LocalContext.current
     val days = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
 
@@ -74,7 +65,7 @@ fun DaySelectionSection(viewModel: DynamicWallpaperViewModel) {
                         it,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
-                    viewModel.setDailyWallpaper(day, it.toString())
+                    onEvent(WallpaperEvent.SetDailyWallpaper(day, it.toString()))
                 }
             }
         }

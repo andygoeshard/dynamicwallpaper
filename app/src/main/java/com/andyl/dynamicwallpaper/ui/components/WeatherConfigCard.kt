@@ -25,12 +25,16 @@ import androidx.compose.ui.unit.dp
 import com.andyl.dynamicwallpaper.domain.mapper.toKey
 import com.andyl.dynamicwallpaper.domain.model.TimeOfDay
 import com.andyl.dynamicwallpaper.domain.model.Weather
+import com.andyl.dynamicwallpaper.ui.event.WallpaperEvent
+import com.andyl.dynamicwallpaper.ui.state.DynamicWallpaperUiState
 
 
 @Composable
 fun WeatherConfigCard(
+    state: DynamicWallpaperUiState,
     weather: Weather,
     isEnabled: Boolean,
+    onEvent: (WallpaperEvent) -> Unit,
     onToggle: (Boolean) -> Unit,
 ) {
     val alpha by animateFloatAsState(if (isEnabled) 1f else 0.5f, label = "alpha")
@@ -65,7 +69,6 @@ fun WeatherConfigCard(
                     fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier.weight(1f)
                 )
-                // Switch de Muteo
                 Switch(
                     checked = isEnabled,
                     onCheckedChange = onToggle
@@ -90,7 +93,9 @@ fun WeatherConfigCard(
                         weather = weather,
                         timeOfDay = time,
                         label = label,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        state = state,
+                        onEvent = onEvent
                     )
                 }
             }

@@ -22,7 +22,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,22 +34,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.andyl.dynamicwallpaper.ui.viewmodel.DynamicWallpaperViewModel
-import org.koin.androidx.compose.koinViewModel
+import com.andyl.dynamicwallpaper.ui.event.WallpaperEvent
+import com.andyl.dynamicwallpaper.ui.state.DynamicWallpaperUiState
 import java.util.Calendar
 
 @Composable
 fun FixedTimeSection(
-    viewModel: DynamicWallpaperViewModel = koinViewModel()
+    state : DynamicWallpaperUiState,
+    onEvent: (WallpaperEvent) -> Unit
 ) {
-    val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
     var pendingTime by remember { mutableStateOf<String?>(null) }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
             context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            pendingTime?.let { time -> viewModel.setFixedTimeWallpaper(context, time, it.toString()) }
+            pendingTime?.let { time ->
+                onEvent(WallpaperEvent.SetFixedTimeWallpaper(context,time, it.toString()))
+            }
         }
     }
 

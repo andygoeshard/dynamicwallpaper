@@ -1,0 +1,23 @@
+package com.andyl.dynamicwallpaper.ui.event
+
+import android.content.Context
+import com.andyl.dynamicwallpaper.domain.model.CityResult
+import com.andyl.dynamicwallpaper.domain.model.TimeOfDay
+import com.andyl.dynamicwallpaper.domain.model.Weather
+
+sealed interface WallpaperEvent{
+
+    // City Events
+    data class OnSearchQueryChanged(val newQuery: String): WallpaperEvent
+    data class OnSelectCity(val city: CityResult): WallpaperEvent
+    // Wallpaper Events
+    object OnLoadInitialConfig: WallpaperEvent
+    object OnApplyWallpaper: WallpaperEvent
+    data class OnChangePack(val packId: String, val direction: Int) : WallpaperEvent
+    data class OnRenamePack(val newName: String): WallpaperEvent
+    data class OnToggleWeather(val weather: Weather): WallpaperEvent
+    data class SetDailyWallpaper(val dayName: String, val uri: String): WallpaperEvent
+    data class SetFixedTimeWallpaper(val context: Context, val time: String, val uri: String): WallpaperEvent
+    data class SetWallpaperRule(val weather: Weather, val timeOfDay: TimeOfDay, val wallpaperUri: String): WallpaperEvent
+    data class RequestExactAlarmPermission(val context: Context): WallpaperEvent
+}

@@ -1,6 +1,5 @@
 package com.andyl.dynamicwallpaper.ui.components
 
-import android.R.attr.text
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
@@ -12,8 +11,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -21,11 +18,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,13 +30,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.andyl.dynamicwallpaper.ui.viewmodel.DynamicWallpaperViewModel
+import com.andyl.dynamicwallpaper.ui.event.WallpaperEvent
+import com.andyl.dynamicwallpaper.ui.state.DynamicWallpaperUiState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PackSelectorSection(viewModel: DynamicWallpaperViewModel) {
-    val state by viewModel.uiState.collectAsState()
+fun PackSelectorSection(
+    state : DynamicWallpaperUiState,
+    onEvent: (WallpaperEvent) -> Unit
+) {
     val coroutineScope = rememberCoroutineScope()
 
     val packs = state.availablePacks
@@ -69,7 +67,7 @@ fun PackSelectorSection(viewModel: DynamicWallpaperViewModel) {
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.renamePack(tempName)
+                    onEvent(WallpaperEvent.OnRenamePack(tempName))
                     showRenameDialog = false
                 }) { Text("Guardar") }
             }
@@ -85,7 +83,7 @@ fun PackSelectorSection(viewModel: DynamicWallpaperViewModel) {
             coroutineScope.launch {
                 val targetIndex = listState.firstVisibleItemIndex - 1
                 val packId = packs[targetIndex % packs.size].id
-                viewModel.changePack(packId, -1)
+                onEvent(WallpaperEvent.OnChangePack(packId, -1))
                 listState.animateScrollToItem(targetIndex)
             }
         }) {
@@ -114,7 +112,7 @@ fun PackSelectorSection(viewModel: DynamicWallpaperViewModel) {
                         } else {
                             val currentVisible = listState.firstVisibleItemIndex
                             val direction = if (index > currentVisible) 1 else -1
-                            viewModel.changePack(pack.id, direction)
+                            onEvent(WallpaperEvent.OnChangePack(pack.id, direction))
                             coroutineScope.launch {
                                 listState.animateScrollToItem(index)
                             }
@@ -142,7 +140,8 @@ fun PackSelectorSection(viewModel: DynamicWallpaperViewModel) {
             coroutineScope.launch {
                 val targetIndex = listState.firstVisibleItemIndex + 1
                 val packId = packs[targetIndex % packs.size].id
-                viewModel.changePack(packId, 1)
+                onEvent(WallpaperEvent.OnChangePack(packId, 1))
+
                 listState.animateScrollToItem(targetIndex)
             }
         }){
