@@ -179,10 +179,7 @@ fun DynamicWallpaperScreen(
 
                             item { HorizontalDivider() }
 
-                            // ... dentro del LazyColumn
-
                             item {
-                                // Fila del "Pajarito" (Chevron) clickable
                                 Surface(
                                     onClick = {
                                         viewModel.onEvent(WallpaperEvent.OnToggleWeatherFeature)
@@ -208,43 +205,16 @@ fun DynamicWallpaperScreen(
                                             )
                                         }
 
-                                        // Animación de rotación del pajarito
                                         val rotation by androidx.compose.animation.core.animateFloatAsState(
                                             targetValue = if (state.isWeatherFeatureEnabled) 180f else 0f,
                                             label = "ArrowRotation"
                                         )
 
                                         Icon(
-                                            imageVector = Icons.Default.KeyboardArrowDown, // Asegúrate de tener la V
+                                            imageVector = Icons.Default.KeyboardArrowDown,
                                             contentDescription = null,
-                                            modifier = androidx.compose.ui.Modifier.rotate(rotation),
+                                            modifier = Modifier.rotate(rotation),
                                             tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            }
-
-                            val weathers = listOf(
-                                Weather.Clear, Weather.Cloudy, Weather.Rain,
-                                Weather.Snow, Weather.Fog, Weather.Storm
-                            )
-
-                            items(weathers, key = { it.toString() }) { weather ->
-                                AnimatedVisibility(
-                                    visible = state.isWeatherFeatureEnabled,
-                                    enter = expandVertically(
-                                        expandFrom = Alignment.Top,
-                                        animationSpec = tween(durationMillis = 300)
-                                    ) + fadeIn(),
-                                    exit = shrinkVertically() + fadeOut()
-                                ) {
-                                    Box(modifier = Modifier.padding(vertical = 4.dp)) {
-                                        WeatherConfigCard(
-                                            weather = weather,
-                                            isEnabled = state.enabledWeathers.contains(weather),
-                                            onToggle = { viewModel.onEvent(WallpaperEvent.OnToggleWeather(weather)) },
-                                            state = state,
-                                            onEvent = { event -> viewModel.onEvent(event) }
                                         )
                                     }
                                 }
@@ -253,17 +223,42 @@ fun DynamicWallpaperScreen(
                             item {
                                 AnimatedVisibility(
                                     visible = state.isWeatherFeatureEnabled,
-                                    enter = expandVertically() + fadeIn(),
-                                    exit = shrinkVertically() + fadeOut()
+                                    enter = expandVertically(
+                                        expandFrom = Alignment.Top,
+                                        animationSpec = tween(durationMillis = 400)
+                                    ) + fadeIn(),
+                                    exit = shrinkVertically(
+                                        shrinkTowards = Alignment.Top,
+                                        animationSpec = tween(durationMillis = 400)
+                                    ) + fadeOut()
                                 ) {
-                                    Text(
-                                        "Mutea climas individuales para mantener el fondo anterior.",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(top = 8.dp)
-                                    )
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        val weathers = listOf(
+                                            Weather.Clear, Weather.Cloudy, Weather.Rain,
+                                            Weather.Snow, Weather.Fog, Weather.Storm
+                                        )
+
+                                        weathers.forEach { weather ->
+                                            WeatherConfigCard(
+                                                weather = weather,
+                                                isEnabled = state.enabledWeathers.contains(weather),
+                                                onToggle = { viewModel.onEvent(WallpaperEvent.OnToggleWeather(weather)) },
+                                                state = state,
+                                                onEvent = { event -> viewModel.onEvent(event) }
+                                            )
+                                        }
+
+                                        Text(
+                                            "Mutea climas individuales para mantener el fondo anterior.",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
+                                        )
+                                    }
                                 }
                             }
+
+                            item { HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp)) }
 
                             item {
                                 FixedTimeSection(
