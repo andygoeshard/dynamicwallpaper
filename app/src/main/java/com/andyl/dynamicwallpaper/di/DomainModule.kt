@@ -66,7 +66,6 @@ val domainModule = module {
             detectTimeOfDayUseCase = get(),
             resolveWallpaperUseCase = get(),
             wallpaperRepository = get(),
-            get()
         )
     }
     factory<SetWallpaperRuleUseCase> {

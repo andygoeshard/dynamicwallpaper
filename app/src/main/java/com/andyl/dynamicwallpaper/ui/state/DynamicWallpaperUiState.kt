@@ -15,5 +15,6 @@ data class DynamicWallpaperUiState(
     val fixedRules: Map<String, String> = emptyMap(),
     val enabledWeathers: Set<Weather> = emptySet(),
     val editingPackId: String = "1",
-    val activePackId: String = "1"
+    val activePackId: String = "1",
+    val isWeatherFeatureEnabled: Boolean = false
 )

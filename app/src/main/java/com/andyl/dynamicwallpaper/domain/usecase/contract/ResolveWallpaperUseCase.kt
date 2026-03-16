@@ -7,7 +7,7 @@ import com.andyl.dynamicwallpaper.domain.model.Weather
 
 interface ResolveWallpaperUseCase {
     suspend operator fun invoke(
-        weather: Weather,
+        weather: Weather?,
         timeOfDay: TimeOfDay,
         config: WallpaperConfig
     ): WallpaperId

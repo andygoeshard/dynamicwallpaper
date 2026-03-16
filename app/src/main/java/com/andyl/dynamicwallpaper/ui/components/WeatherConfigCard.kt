@@ -1,6 +1,11 @@
 package com.andyl.dynamicwallpaper.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,22 +42,24 @@ fun WeatherConfigCard(
     onEvent: (WallpaperEvent) -> Unit,
     onToggle: (Boolean) -> Unit,
 ) {
-    val alpha by animateFloatAsState(if (isEnabled) 1f else 0.5f, label = "alpha")
+    val alpha by animateFloatAsState(if (isEnabled) 1f else 0.6f, label = "alpha")
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .alpha(alpha),
+            .padding(vertical = 6.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = if (isEnabled)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            else
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().alpha(alpha)
             ) {
                 Text(text = when(weather) {
                     Weather.Clear -> "☀️"
@@ -75,28 +82,36 @@ fun WeatherConfigCard(
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            AnimatedVisibility(
+                visible = isEnabled,
+                enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut()
             ) {
-                val times = listOf(
-                    TimeOfDay.DAWN to "Amanecer",
-                    TimeOfDay.DAY to "Día",
-                    TimeOfDay.DUSK to "Tarde",
-                    TimeOfDay.NIGHT to "Noche"
-                )
+                Column {
+                    Spacer(Modifier.height(12.dp))
 
-                times.forEach { (time, label) ->
-                    SelectWallpaperButton(
-                        weather = weather,
-                        timeOfDay = time,
-                        label = label,
-                        modifier = Modifier.weight(1f),
-                        state = state,
-                        onEvent = onEvent
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        val times = listOf(
+                            TimeOfDay.DAWN to "Amanecer",
+                            TimeOfDay.DAY to "Día",
+                            TimeOfDay.DUSK to "Tarde",
+                            TimeOfDay.NIGHT to "Noche"
+                        )
+
+                        times.forEach { (time, label) ->
+                            SelectWallpaperButton(
+                                weather = weather,
+                                timeOfDay = time,
+                                label = label,
+                                modifier = Modifier.weight(1f),
+                                state = state,
+                                onEvent = onEvent
+                            )
+                        }
+                    }
                 }
             }
         }

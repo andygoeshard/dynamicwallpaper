@@ -8,7 +8,6 @@ import com.andyl.dynamicwallpaper.domain.repository.WeatherRepository
 import com.andyl.dynamicwallpaper.domain.usecase.contract.ApplyDynamicWallpaperUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.DetectTimeOfDayUseCase
 import com.andyl.dynamicwallpaper.domain.usecase.contract.ResolveWallpaperUseCase
-import com.andyl.dynamicwallpaper.domain.usecase.contract.SetWallpaperRuleUseCase
 
 class ApplyDynamicWallpaperUseCaseImpl(
     private val locationRepository: LocationRepository,
@@ -17,29 +16,41 @@ class ApplyDynamicWallpaperUseCaseImpl(
     private val detectTimeOfDayUseCase: DetectTimeOfDayUseCase,
     private val resolveWallpaperUseCase: ResolveWallpaperUseCase,
     private val wallpaperRepository: WallpaperRepository,
-    private val setWallpaperRuleUseCase: SetWallpaperRuleUseCase
 ) : ApplyDynamicWallpaperUseCase {
-
     override suspend operator fun invoke(packId: String?) {
-        Log.d("DEBUG_WORKER", "1. Obteniendo ubicación...")
-        val location = locationRepository.getCurrentLocation()
-
-        Log.d("DEBUG_WORKER", "2. Obteniendo clima para: $location")
-        val weather = weatherRepository.getCurrentWeather(location)
-
-        val timeOfDay = detectTimeOfDayUseCase()
-        Log.d("DEBUG_WORKER", "3. Momento del día: $timeOfDay")
-
         val config = preferencesRepository.getWallpaperConfig(packId)
-        val wallpaperId = resolveWallpaperUseCase(weather, timeOfDay, config)
+        Log.d("DEBUG_WORKER", "Worker funcionando!")
 
-        Log.d("DEBUG_WORKER", "4. Wallpaper resuelto: $wallpaperId")
+        val currentWeather = if (config.enabledWeathers.isNotEmpty()) {
+            try {
+                Log.d("DEBUG_WORKER", "1. Obteniendo ubicación y clima...")
+                val location = locationRepository.getCurrentLocation()
+                val weather = weatherRepository.getCurrentWeather(location)
+
+                if (config.enabledWeathers.contains(weather)) {
+                    Log.d("DEBUG_WORKER", "2. Clima detectado y soportado: $weather")
+                    weather
+                } else {
+                    Log.d("DEBUG_WORKER", "2. Clima $weather detectado pero NO habilitado en este pack.")
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e("DEBUG_WORKER", "Error en sensor/API de clima, aplicando fallback", e)
+                null
+            }
+        } else {
+            Log.d("DEBUG_WORKER", "1. Clima desactivado globalmente para este pack.")
+            null
+        }
+        val timeOfDay = detectTimeOfDayUseCase()
+
+        val wallpaperId = resolveWallpaperUseCase(currentWeather, timeOfDay, config)
 
         if (wallpaperId != null) {
             wallpaperRepository.applyWallpaper(wallpaperId)
-            Log.d("DEBUG_WORKER", "5. ¡Wallpaper aplicado con éxito!")
+            Log.d("DEBUG_WORKER", "¡Wallpaper aplicado!: $wallpaperId")
         } else {
-            Log.e("DEBUG_WORKER", "5. ERROR: No se encontró un wallpaper para estas condiciones")
+            Log.e("DEBUG_WORKER", "No se encontró wallpaper para: $timeOfDay y clima: $currentWeather")
         }
     }
 }

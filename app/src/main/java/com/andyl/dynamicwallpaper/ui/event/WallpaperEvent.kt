@@ -13,6 +13,7 @@ sealed interface WallpaperEvent{
     // Wallpaper Events
     object OnLoadInitialConfig: WallpaperEvent
     object OnApplyWallpaper: WallpaperEvent
+    object OnToggleWeatherFeature: WallpaperEvent
     data class OnChangePack(val packId: String, val direction: Int) : WallpaperEvent
     data class OnRenamePack(val newName: String): WallpaperEvent
     data class OnToggleWeather(val weather: Weather): WallpaperEvent

@@ -92,6 +92,8 @@ class DynamicWallpaperViewModel(
 
             WallpaperEvent.OnAddNewPack -> addNewPack()
 
+            WallpaperEvent.OnToggleWeatherFeature -> toggleWeatherEnabled()
+
             is WallpaperEvent.OnDeletePack -> deletePack(event.packId)
 
             is WallpaperEvent.OnSelectFromPackManager -> selectPackFromManager(event.packId)
@@ -390,6 +392,12 @@ class DynamicWallpaperViewModel(
                 }
                 context.startActivity(intent)
             }
+        }
+    }
+
+    private fun toggleWeatherEnabled(){
+        _uiState.update { curretState ->
+            curretState.copy(isWeatherFeatureEnabled = !curretState.isWeatherFeatureEnabled)
         }
     }
 
