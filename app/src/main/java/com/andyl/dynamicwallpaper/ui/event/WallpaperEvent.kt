@@ -24,6 +24,8 @@ sealed interface WallpaperEvent{
     object OnAddNewPack: WallpaperEvent
     data class OnDeletePack(val packId: String): WallpaperEvent
     data class OnSelectFromPackManager(val packId: String): WallpaperEvent
+    data class OnDeleteDayRule(val dayName: String): WallpaperEvent
+    data class OnDeleteFixedTimeRule(val time: String): WallpaperEvent
 }
 
 

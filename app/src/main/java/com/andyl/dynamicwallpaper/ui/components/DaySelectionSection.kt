@@ -48,12 +48,11 @@ import com.andyl.dynamicwallpaper.ui.state.DynamicWallpaperUiState
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DaySelectionSection(
-    state : DynamicWallpaperUiState,
+    state: DynamicWallpaperUiState,
     onEvent: (WallpaperEvent) -> Unit
-    ) {
+) {
     val context = LocalContext.current
     val days = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
-
     var selectedDayForPicker by remember { mutableStateOf<String?>(null) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -62,8 +61,7 @@ fun DaySelectionSection(
             uri?.let {
                 selectedDayForPicker?.let { day ->
                     context.contentResolver.takePersistableUriPermission(
-                        it,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        it, Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
                     onEvent(WallpaperEvent.SetDailyWallpaper(day, it.toString()))
                 }
@@ -71,34 +69,43 @@ fun DaySelectionSection(
         }
     )
 
+    // --- EL CÁLCULO DEFINITIVO ---
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val itemWidth = 85.dp
+
+    // Restamos 32.dp del padding del Screen (16+16)
+    // Y restamos 32.dp del padding interno de la GlassyBox (16+16)
+    val availableWidth = configuration.screenWidthDp.dp - 64.dp
+    val horizontalPadding = (availableWidth / 2) - (itemWidth / 2)
+    // ----------------------------
 
     val totalItems = Int.MAX_VALUE
     val todayIndex = remember { java.time.LocalDate.now().dayOfWeek.value - 1 }
     val startIndex = (totalItems / 2) - ((totalItems / 2) % days.size) + todayIndex
+
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = startIndex)
     val snapBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
-    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-    val itemWidth = 92.dp
-    val horizontalPadding = (screenWidth / 2) - (itemWidth / 2)
-
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
-        Text("Calendario Semanal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp))
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Calendario Semanal",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyRow(
             state = listState,
             flingBehavior = snapBehavior,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            // Aplicamos el padding calculado restando los 64dp totales de márgenes
             contentPadding = PaddingValues(horizontal = horizontalPadding),
             modifier = Modifier.fillMaxWidth()
         ) {
-
             items(totalItems) { index ->
                 val dayIndex = (index % days.size)
-
                 val dayName = days[dayIndex]
                 val imageUri = state.dailyRules[dayName]
                 val isToday = dayIndex == todayIndex
@@ -110,64 +117,10 @@ fun DaySelectionSection(
                     onClick = {
                         selectedDayForPicker = dayName
                         photoPickerLauncher.launch(arrayOf("image/*"))
-                    }
+                    },
+                    onDelete = { onEvent(WallpaperEvent.OnDeleteDayRule(dayName)) }
                 )
             }
         }
-    }
-}
-
-@Composable
-fun DayImageCard(
-    dayName: String,
-    imageUri: String?,
-    isToday: Boolean,
-    onClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(80.dp)
-    ) {
-        Card(
-            onClick = onClick,
-            modifier = Modifier
-                .size(80.dp)
-                .then(
-                    if (isToday) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(14.dp))
-                    else Modifier
-                ),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            )
-        ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                if (imageUri != null) {
-                    ContentScale.Crop
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(imageUri)
-                            .crossfade(true)
-                            .size(Size(300, 300))
-                            .precision(Precision.INEXACT)
-                            .build(),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = dayName.replaceFirstChar { it.uppercase() },
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-            color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-        )
     }
 }

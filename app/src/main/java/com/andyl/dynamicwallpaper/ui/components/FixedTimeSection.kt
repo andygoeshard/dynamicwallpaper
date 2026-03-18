@@ -1,5 +1,6 @@
 package com.andyl.dynamicwallpaper.ui.components
 
+import android.R.attr.onClick
 import android.app.TimePickerDialog
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -40,42 +43,45 @@ import java.util.Calendar
 
 @Composable
 fun FixedTimeSection(
-    state : DynamicWallpaperUiState,
+    state: DynamicWallpaperUiState,
     onEvent: (WallpaperEvent) -> Unit
 ) {
     val context = LocalContext.current
-
     var pendingTime by remember { mutableStateOf<String?>(null) }
+
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
             context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             pendingTime?.let { time ->
-                onEvent(WallpaperEvent.SetFixedTimeWallpaper(context,time, it.toString()))
+                onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, time, it.toString()))
             }
         }
     }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "Interrupciones por Horario",
+            text = "Interrupciones por Horario",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            "Estas fotos se pondrán a la hora exacta, ignorando el clima.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = "Estas fotos se pondrán a la hora exacta, ignorando el clima.",
+            style = MaterialTheme.typography.labelSmall, // labelSmall para que sea bien discreto
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         state.fixedRules.forEach { (time, uri) ->
-            TimeRuleItem(time, uri) {
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+            TimeRuleItem(
+                time, uri,
+                onDelete = { onEvent(WallpaperEvent.OnDeleteFixedTimeRule(time)) }
+            )
+            Spacer(modifier = Modifier.height(10.dp))
         }
 
-        OutlinedButton(
+        Button(
             onClick = {
                 val calendar = Calendar.getInstance()
                 TimePickerDialog(context, { _, hour, minute ->
@@ -83,47 +89,17 @@ fun FixedTimeSection(
                     launcher.launch(arrayOf("image/*"))
                 }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
             },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                contentColor = MaterialTheme.colorScheme.primary
+            ),
+            elevation = null
         ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Programar nueva hora")
-        }
-    }
-}
-
-@Composable
-fun TimeRuleItem(
-    time: String,
-    uri: String,
-    onDelete: () -> Unit
-) {
-    OutlinedCard(
-        modifier = Modifier.fillMaxWidth().height(60.dp),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AsyncImage(
-                model = uri,
-                contentDescription = null,
-                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(Modifier.width(16.dp))
-
-            Text(
-                text = time,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black
-            )
-
-            Spacer(Modifier.weight(1f))
-
+            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(10.dp))
+            Text("Programar nueva hora", fontWeight = FontWeight.Bold)
         }
     }
 }

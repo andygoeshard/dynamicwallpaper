@@ -1,8 +1,11 @@
 package com.andyl.dynamicwallpaper.ui.components
 
+import android.R.attr.maxWidth
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -41,20 +44,24 @@ import com.andyl.dynamicwallpaper.ui.event.WallpaperEvent
 import com.andyl.dynamicwallpaper.ui.state.DynamicWallpaperUiState
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PackSelectorSection(
-    state : DynamicWallpaperUiState,
+    state: DynamicWallpaperUiState,
     onEvent: (WallpaperEvent) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-
     val packs = state.availablePacks
     if (packs.isEmpty()) return
+
     val totalItems = Int.MAX_VALUE
     val startIndex = (totalItems / 2) - ((totalItems / 2) % packs.size)
 
@@ -64,16 +71,28 @@ fun PackSelectorSection(
     var showRenameDialog by remember { mutableStateOf(false) }
     var tempName by remember { mutableStateOf("") }
 
-    LaunchedEffect(state.editingPackId) {
-        val packs = state.availablePacks
-        if (packs.isNotEmpty()) {
-            val targetPackIndex = packs.indexOfFirst { it.id == state.editingPackId }
+    // --- CÁLCULO DE CENTRADO DINÁMICO ---
+    val density = LocalDensity.current
+    var rowWidthPx by remember { mutableIntStateOf(0) }
 
-            if (targetPackIndex != -1) {
-                val currentVisibleIndex = listState.firstVisibleItemIndex
-                val currentOffset = currentVisibleIndex % packs.size
-                val baseIndex = currentVisibleIndex - currentOffset
-                val finalTargetIndex = baseIndex + targetPackIndex
+    // El padding se calcula sobre el ancho REAL del contenedor central
+    val horizontalPadding = remember(rowWidthPx) {
+        if (rowWidthPx == 0) 0.dp
+        else {
+            val rowWidthDp = with(density) { rowWidthPx.toDp() }
+            val estimatedChipWidth = 110.dp
+            (rowWidthDp / 2) - (estimatedChipWidth / 2)
+        }
+    }
+
+    LaunchedEffect(state.editingPackId) {
+        val targetPackIndex = packs.indexOfFirst { it.id == state.editingPackId }
+        if (targetPackIndex != -1) {
+            val currentVisibleIndex = listState.firstVisibleItemIndex
+            val currentOffset = currentVisibleIndex % packs.size
+            val baseIndex = currentVisibleIndex - currentOffset
+            val finalTargetIndex = baseIndex + targetPackIndex
+            if (finalTargetIndex != currentVisibleIndex) {
                 listState.animateScrollToItem(finalTargetIndex)
             }
         }
@@ -82,12 +101,7 @@ fun PackSelectorSection(
     if (showRenameDialog) {
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
-            title = {
-                Text(
-                    text = "Gestionar Paquetes",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            },
+            title = { Text("Gestionar Paquetes", fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(
@@ -107,14 +121,11 @@ fun PackSelectorSection(
                     )
 
                     LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 200.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         items(packs) { pack ->
                             val isSelected = pack.id == state.editingPackId
-
                             Surface(
                                 onClick = {
                                     onEvent(WallpaperEvent.OnSelectFromPackManager(pack.id))
@@ -125,28 +136,13 @@ fun PackSelectorSection(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Row(
-                                    modifier = Modifier
-                                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = pack.name,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        modifier = Modifier.weight(1f)
-                                    )
-
+                                    Text(pack.name, modifier = Modifier.weight(1f), fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
                                     if (packs.size > 1) {
-                                        IconButton(
-                                            onClick = { onEvent(WallpaperEvent.OnDeletePack(pack.id)); tempName = "" }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Delete,
-                                                contentDescription = "Borrar",
-                                                tint = MaterialTheme.colorScheme.error,
-                                                modifier = Modifier.size(20.dp)
-                                            )
+                                        IconButton(onClick = { onEvent(WallpaperEvent.OnDeletePack(pack.id)); tempName = "" }) {
+                                            Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
                                         }
                                     }
                                 }
@@ -155,16 +151,10 @@ fun PackSelectorSection(
                     }
                 }
             },
-
             confirmButton = {
-                TextButton(onClick = {
-                    onEvent(WallpaperEvent.OnRenamePack(tempName))
-                    showRenameDialog = false
-                }) { Text("Guardar Cambios") }
+                TextButton(onClick = { onEvent(WallpaperEvent.OnRenamePack(tempName)); showRenameDialog = false }) { Text("Guardar Cambios") }
             },
-            dismissButton = {
-                TextButton(onClick = { showRenameDialog = false }) { Text("Cerrar") }
-            }
+            dismissButton = { TextButton(onClick = { showRenameDialog = false }) { Text("Cerrar") } }
         )
     }
 
@@ -172,74 +162,85 @@ fun PackSelectorSection(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // FLECHA IZQUIERDA
         IconButton(onClick = {
             coroutineScope.launch {
                 val targetIndex = listState.firstVisibleItemIndex - 1
-                val packId = packs[targetIndex % packs.size].id
+                val safeIndex = if (targetIndex < 0) (totalItems / 2) else targetIndex
+                val packId = packs[((safeIndex % packs.size) + packs.size) % packs.size].id
                 onEvent(WallpaperEvent.OnChangePack(packId, -1))
-                listState.animateScrollToItem(targetIndex)
+                listState.animateScrollToItem(safeIndex)
             }
         }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         }
 
-        LazyRow(
-            state = listState,
-            flingBehavior = snapBehavior,
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = 100.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .onGloballyPositioned { rowWidthPx = it.size.width },
+            contentAlignment = Alignment.Center
         ) {
-            items(totalItems) { index ->
-                val pack = packs[index % packs.size]
-                val isBeingEdited = pack.id == state.editingPackId
-                val isCurrentlyActive = pack.id == state.activePackId
+            if (rowWidthPx > 0) {
+                LazyRow(
+                    state = listState,
+                    flingBehavior = snapBehavior,
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = horizontalPadding),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items(totalItems) { index ->
+                        val pack = packs[index % packs.size]
+                        val isBeingEdited = pack.id == state.editingPackId
+                        val isCurrentlyActive = pack.id == state.activePackId
 
-                FilterChip(
-                    selected = isBeingEdited,
-                    onClick = {
-                        if (isBeingEdited) {
-                            tempName = pack.name
-                            showRenameDialog = true
-                        } else {
-                            val currentVisible = listState.firstVisibleItemIndex
-                            val direction = if (index > currentVisible) 1 else -1
-                            onEvent(WallpaperEvent.OnChangePack(pack.id, direction))
-                            coroutineScope.launch {
-                                listState.animateScrollToItem(index)
-                            }
-                        }
-                    },
-                    label = {
-                        Text(
-                            text = pack.name,
-                            fontWeight = if (isCurrentlyActive) FontWeight.ExtraBold else FontWeight.Normal,
-                            style = MaterialTheme.typography.bodyMedium
+                        FilterChip(
+                            selected = isBeingEdited,
+                            onClick = {
+                                if (isBeingEdited) {
+                                    tempName = pack.name
+                                    showRenameDialog = true
+                                } else {
+                                    val currentVisible = listState.firstVisibleItemIndex
+                                    val direction = if (index > currentVisible) 1 else -1
+                                    onEvent(WallpaperEvent.OnChangePack(pack.id, direction))
+                                    coroutineScope.launch { listState.animateScrollToItem(index) }
+                                }
+                            },
+                            label = {
+                                Text(
+                                    text = pack.name,
+                                    fontWeight = if (isCurrentlyActive) FontWeight.Black else FontWeight.Medium,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                containerColor = Color.Transparent
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isBeingEdited,
+                                borderColor = Color.Transparent,
+                                selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                                selectedBorderWidth = 1.dp
+                            )
                         )
-                    },
-                    border = FilterChipDefaults.filterChipBorder(
-                        enabled = true,
-                        selected = isBeingEdited,
-                        selectedBorderColor = MaterialTheme.colorScheme.primary,
-                        selectedBorderWidth = 2.dp
-                    )
-                )
+                    }
+                }
             }
         }
 
-        // FLECHA DERECHA
         IconButton(onClick = {
             coroutineScope.launch {
                 val targetIndex = listState.firstVisibleItemIndex + 1
                 val packId = packs[targetIndex % packs.size].id
                 onEvent(WallpaperEvent.OnChangePack(packId, 1))
-
                 listState.animateScrollToItem(targetIndex)
             }
-        }){
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+        }) {
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         }
     }
 }
