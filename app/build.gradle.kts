@@ -6,13 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.andyl.dynamicwallpaper"
-    compileSdk {
-        version = release(36)
-    }
+    namespace = "com.andyl.iris"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.andyl.dynamicwallpaper"
+        applicationId = "com.andyl.iris"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -23,7 +21,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -31,11 +30,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -68,6 +67,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.ui)
     implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation(libs.ui)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

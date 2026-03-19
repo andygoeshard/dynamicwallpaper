@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Reglas para Iris
+# No tocar los DTOs porque se rompe la serialización JSON
+-keepclassmembers class com.andyl.iris.data.userpreferences.dto.** {
+    *** *;
+}
+-keepattributes *Annotation*, InnerClasses, EnclosingMethod, Signature
+
+# Reglas para Ktor
+-keep class io.ktor.** { *; }
