@@ -45,4 +45,6 @@
     <string name="stretch">Stretch</string>
     <string name="fit">Fit</string>
     <string name="loading">Loading...</string>
+    <string name="pack_selector_save_changes">Save Changes</string>
+    <string name="btn_close">Close</string>
 </resources>

@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -43,6 +45,7 @@ import com.andyl.iris.ui.state.DynamicWallpaperUiState
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
@@ -99,6 +102,13 @@ fun PackSelectorSection(
     }
 
     if (showRenameDialog) {
+        LaunchedEffect(state.editingPackId) {
+            val currentPack = packs.find { it.id == state.editingPackId }
+            if (currentPack != null) {
+                tempName = currentPack.name
+            }
+        }
+
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
             title = { Text(stringResource(R.string.pack_sel_title), fontWeight = FontWeight.Bold) },
@@ -114,14 +124,35 @@ fun PackSelectorSection(
 
                     HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
-                    Text(
-                        text = stringResource(R.string.pack_sel_my_packages)+" (${packs.size}/10)",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.pack_sel_my_packages) + " (${packs.size}/10)",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        if (packs.size < 10) {
+                            TextButton(
+                                onClick = {
+                                    onEvent(WallpaperEvent.OnAddNewPack)
+                                },
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_add), modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text(stringResource(R.string.btn_add), style = MaterialTheme.typography.labelLarge)
+                            }
+                        }
+                    }
 
                     LazyColumn(
-                        modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 200.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         items(packs) { pack ->
@@ -152,9 +183,13 @@ fun PackSelectorSection(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { onEvent(WallpaperEvent.OnRenamePack(tempName)); showRenameDialog = false }) { Text("Guardar Cambios") }
+                TextButton(enabled = tempName.isNotBlank(), onClick = { onEvent(WallpaperEvent.OnRenamePack(tempName)); showRenameDialog = false }) { Text(
+                    stringResource(R.string.pack_selector_save_changes)
+                ) }
             },
-            dismissButton = { TextButton(onClick = { showRenameDialog = false }) { Text("Cerrar") } }
+            dismissButton = { TextButton(onClick = { showRenameDialog = false }) { Text(
+                stringResource(R.string.btn_close)
+            ) } }
         )
     }
 

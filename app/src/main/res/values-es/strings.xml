@@ -47,4 +47,9 @@
     <string name="crop">Recortar</string>
     <string name="stretch">Estirar</string>
     <string name="fit">Ajustar</string>
+
+
+    <string name="loading">Cargando...</string>
+    <string name="pack_selector_save_changes">Guardar Cambios</string>
+    <string name="btn_close">Cerrar</string>
 </resources>
