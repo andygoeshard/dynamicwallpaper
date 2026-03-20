@@ -61,6 +61,7 @@ import com.andyl.iris.R
 import com.andyl.iris.ui.components.DaySelectionSection
 import com.andyl.iris.ui.components.FixedTimeSection
 import com.andyl.iris.ui.components.BoxContainer
+import com.andyl.iris.ui.components.IrisLoadingLogo
 import com.andyl.iris.ui.components.IrisLogo
 import com.andyl.iris.ui.components.PackSelectorSection
 import com.andyl.iris.ui.components.WeatherSection
@@ -150,7 +151,7 @@ fun DynamicWallpaperScreen(
                                 enabled = !state.isLoading
                             ) {
                                 if (state.isLoading) {
-                                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
+                                    IrisLoadingLogo()
                                 } else {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.CheckCircle, contentDescription = null)
@@ -167,7 +168,7 @@ fun DynamicWallpaperScreen(
     ) { padding ->
         if (state.isLoading && state.rules.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                IrisLoadingLogo(modifier = Modifier.size(100.dp))
             }
         } else {
             Column(

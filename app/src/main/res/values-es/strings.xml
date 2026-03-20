@@ -1,0 +1,50 @@
+<resources>
+    <string name="app_name">IrisWallpaper</string>
+    <string name="top_barr_name">Iris</string>
+    <string name="btn_delete">Eliminar</string>
+    <string name="btn_add">Añadir</string>
+    <string name="weekCalendar">Calendario Semanal</string>
+    <string name="today">Hoy</string>
+
+    <string name="fixed_time_section_title">Interrupciones por Horario</string>
+    <string name="fixed_time_section_subtitle">Estas fotos se pondrán a la hora exacta, ignorando el clima.</string>
+    <string name="btn_schedule_new_time">Programar nueva hora</string>
+    <string name="acc_add_time_rule">Añadir nueva regla de horario</string>
+
+    <string name="pack_sel_title">Gestor de Paquetes</string>
+    <string name="acc_pack_selected">Nombre del paquete seleccionado</string>
+    <string name="pack_sel_my_packages">Mis Paquetes</string>
+    <string name="scale_mode_selector_mode">Modo de Ajuste</string>
+    <string name="acc_image_descr">Imagen</string>
+    <string name="time_rule_item_interrupt">Interrupción por horario</string>
+
+    <string name="weather_cfg_card_dawn">Amanecer</string>
+    <string name="weather_cfg_car_day">Día</string>
+    <string name="weather_cfg_card_dusk">Atardecer</string>
+    <string name="weather_cfg_card_night">Noche</string>
+
+    <string name="weather_section_config">Ajustes por Clima</string>
+    <string name="weather_section_tap_config">Tocá para expandir y editar tus ajustes</string>
+    <string name="weather_section_mute_config">Desactivá climas individuales para mantener el fondo actual</string>
+    <string name="acc_arrow_rotation">Rotación de flecha</string>
+
+    <string name="alarm_permission_title">Precisión de Horarios</string>
+    <string name="alarm_permission_text">Para asegurar que los fondos cambien al segundo exacto, Android requiere un permiso especial de alarmas.</string>
+    <string name="alarm_permission_btn_settings">Ir a Ajustes</string>
+    <string name="alarm_permission_btn_deny">Ahora no</string>
+    <string name="activate_package">Activar este paquete</string>
+    <string name="pack_content_transition">Transición de contenido del paquete</string>
+
+    <string name="cfg_screen_title">Ajustes de Iris</string>
+    <string name="btn_back">Volver</string>
+    <string name="cfg_screen_img_settings_title">Ajustes de Imagen</string>
+    <string name="cfg_screen_img_settings_text">Ajustá la escala del fondo para la resolución de tu pantalla.</string>
+    <string name="cfg_screen_city_settings_title">Ajustes de Ciudad</string>
+    <string name="cfg_screen_city_settings_not_defined">No definida (Usa GPS)</string>
+    <string name="cfg_screen_city_settings_new_city">Buscar nueva ciudad</string>
+    <string name="cfg_screen_city_settings_use_gps">Usar GPS para la ubicación</string>
+
+    <string name="crop">Recortar</string>
+    <string name="stretch">Estirar</string>
+    <string name="fit">Ajustar</string>
+</resources>
