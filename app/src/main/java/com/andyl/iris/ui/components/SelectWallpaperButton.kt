@@ -26,12 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Precision
 import coil.size.Size
+import com.andyl.iris.R
 import com.andyl.iris.domain.mapper.toKey
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
@@ -80,7 +82,7 @@ fun SelectWallpaperButton(
                         .size(Size(300, 500))
                         .precision(Precision.INEXACT)
                         .build(),
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.acc_image_descr),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -105,7 +107,7 @@ fun SelectWallpaperButton(
             if (currentUri.isNullOrEmpty()) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.btn_add),
                     modifier = Modifier.align(Alignment.Center).size(24.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )

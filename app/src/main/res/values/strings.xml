@@ -1,3 +1,47 @@
 <resources>
-    <string name="app_name">DynamicWallpaper</string>
+    <string name="app_name">IrisWallpaper</string>
+    <string name="top_barr_name">Iris</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_add">Add</string>
+    <string name="weekCalendar">Week Calendar</string>
+    <string name="today">Today</string>
+    <string name="fixed_time_section_title">Time-Based Overrides</string>
+    <string name="fixed_time_section_subtitle">These photos will be set at the exact time, ignoring the weather.</string>
+    <string name="btn_schedule_new_time">Schedule new time</string>
+    <string name="acc_add_time_rule">Add new time rule</string>
+    <string name="pack_sel_title">Pack Manager</string>
+    <string name="acc_pack_selected">Selected pack name</string>
+    <string name="pack_sel_my_packages">My Packages</string>
+    <string name="scale_mode_selector_mode">Setup Mode</string>
+    <string name="acc_image_descr">Image</string>
+    <string name="time_rule_item_interrupt">Time-based Interrupt</string>
+
+    <string name="weather_cfg_card_dawn">Dawn</string>
+    <string name="weather_cfg_car_day">Day</string>
+    <string name="weather_cfg_card_dusk">Dusk</string>
+    <string name="weather_cfg_card_night">Night</string>
+
+    <string name="weather_section_config">Weather-based Settings</string>
+    <string name="weather_section_tap_config">Tap to expand and edit your settings</string>
+    <string name="weather_section_mute_config">Disable individual weather to keep the existing background</string>
+    <string name="acc_arrow_rotation">ArrowRotation</string>
+
+    <string name="alarm_permission_title">Schedule Accuracy</string>
+    <string name="alarm_permission_text">To ensure backgrounds change at the exact second, Android requires a special alarm permission.</string>
+    <string name="alarm_permission_btn_settings">Go to Settings</string>
+    <string name="alarm_permission_btn_deny">Not now</string>
+    <string name="activate_package">Activate this package</string>
+    <string name="pack_content_transition">PackContentTransition</string>
+
+    <string name="cfg_screen_title">Iris Settings</string>
+    <string name="btn_back">Back</string>
+    <string name="cfg_screen_img_settings_title">Image Settings</string>
+    <string name="cfg_screen_img_settings_text">Adjust background scaling for your screen resolution.</string>
+    <string name="cfg_screen_city_settings_title">City Settings</string>
+    <string name="cfg_screen_city_settings_not_defined">Not defined(Uses GPS)</string>
+    <string name="cfg_screen_city_settings_new_city">Search new city</string>
+    <string name="cfg_screen_city_settings_use_gps">Use GPS for Location</string>
+    <string name="crop">Crop</string>
+    <string name="stretch">Stretch</string>
+    <string name="fit">Fit</string>
 </resources>

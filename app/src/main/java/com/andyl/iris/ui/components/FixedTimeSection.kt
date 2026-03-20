@@ -25,8 +25,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.andyl.iris.R
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.state.DynamicWallpaperUiState
 import java.util.Calendar
@@ -50,14 +52,14 @@ fun FixedTimeSection(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Interrupciones por Horario",
+            text = stringResource(R.string.fixed_time_section_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = "Estas fotos se pondrán a la hora exacta, ignorando el clima.",
-            style = MaterialTheme.typography.labelSmall, // labelSmall para que sea bien discreto
+            text = stringResource(R.string.fixed_time_section_subtitle),
+            style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
         )
 
@@ -87,9 +89,9 @@ fun FixedTimeSection(
             ),
             elevation = null
         ) {
-            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.acc_add_time_rule), modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(10.dp))
-            Text("Programar nueva hora", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.btn_schedule_new_time), fontWeight = FontWeight.Bold)
         }
     }
 }

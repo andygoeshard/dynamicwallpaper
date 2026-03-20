@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.andyl.iris.R
 import com.andyl.iris.domain.model.ScaleMode
 
 @Composable
@@ -24,7 +26,7 @@ fun ScaleModeSelector(
 ) {
     Column(modifier = Modifier.padding(top = 8.dp)) {
         Text(
-            text = "Modo de ajuste",
+            text = stringResource(R.string.scale_mode_selector_mode),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold
@@ -38,7 +40,7 @@ fun ScaleModeSelector(
                 FilterChip(
                     selected = isSelected,
                     onClick = { onModeSelected(mode) },
-                    label = { Text(mode.label, style = MaterialTheme.typography.labelMedium) },
+                    label = { Text(stringResource(mode.labelRes), style = MaterialTheme.typography.labelMedium) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                         selectedLabelColor = MaterialTheme.colorScheme.primary,

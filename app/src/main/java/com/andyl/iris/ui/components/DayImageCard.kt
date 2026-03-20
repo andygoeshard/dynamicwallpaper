@@ -26,10 +26,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.andyl.iris.R
 
 @Composable
 fun DayImageCard(
@@ -97,7 +99,7 @@ fun DayImageCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Clear,
-                        contentDescription = "Borrar",
+                        contentDescription = stringResource(R.string.btn_delete),
                         tint = Color.White,
                         modifier = Modifier.size(14.dp)
                     )
@@ -108,7 +110,7 @@ fun DayImageCard(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = if (isToday) "Hoy" else dayName.take(3).uppercase(),
+            text = if (isToday) stringResource(R.string.today) else dayName.take(3).uppercase(),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Medium,
             color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant

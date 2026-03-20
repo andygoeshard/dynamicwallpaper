@@ -25,8 +25,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.andyl.iris.R
 import com.andyl.iris.domain.mapper.toKey
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
@@ -95,10 +97,10 @@ fun WeatherConfigCard(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         val times = listOf(
-                            TimeOfDay.DAWN to "Amanecer",
-                            TimeOfDay.DAY to "Día",
-                            TimeOfDay.DUSK to "Tarde",
-                            TimeOfDay.NIGHT to "Noche"
+                            TimeOfDay.DAWN to stringResource(R.string.weather_cfg_card_dawn),
+                            TimeOfDay.DAY to stringResource(R.string.weather_cfg_car_day),
+                            TimeOfDay.DUSK to stringResource(R.string.weather_cfg_card_dusk),
+                            TimeOfDay.NIGHT to stringResource(R.string.weather_cfg_card_night)
                         )
 
                         times.forEach { (time, label) ->

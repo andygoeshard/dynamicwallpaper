@@ -54,12 +54,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.andyl.iris.R
 import com.andyl.iris.ui.components.DaySelectionSection
 import com.andyl.iris.ui.components.FixedTimeSection
 import com.andyl.iris.ui.components.BoxContainer
-import com.andyl.iris.ui.components.LogoDynamicMinimalista
+import com.andyl.iris.ui.components.IrisLogo
 import com.andyl.iris.ui.components.PackSelectorSection
 import com.andyl.iris.ui.components.WeatherSection
 import com.andyl.iris.ui.event.WallpaperEvent
@@ -88,16 +90,16 @@ fun DynamicWallpaperScreen(
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
-            title = { Text("Precisión de Horarios") },
-            text = { Text("Para que los fondos cambien en el segundo exacto, Android requiere un permiso especial de alarmas.") },
+            title = { Text(stringResource(R.string.alarm_permission_title)) },
+            text = { Text(stringResource(R.string.alarm_permission_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     showPermissionDialog = false
                     viewModel.onEvent(WallpaperEvent.RequestExactAlarmPermission(context))
-                }) { Text("Ir a Ajustes") }
+                }) { Text(stringResource(R.string.alarm_permission_btn_settings)) }
             },
             dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) { Text("Ahora no") }
+                TextButton(onClick = { showPermissionDialog = false }) { Text(stringResource(R.string.alarm_permission_btn_deny)) }
             }
         )
     }
@@ -106,14 +108,14 @@ fun DynamicWallpaperScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
-                    LogoDynamicMinimalista(
-                        modifier = Modifier.size(300.dp),
-                        color = Color(0xFF4DE1C1),
-                        backgroundColor = Color.Black
+                    IrisLogo(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .padding(8.dp)
                     )
                 },
                 title = {
-                    Text("Dynamic Wallpaper", fontWeight = FontWeight.Black) },
+                    Text("Iris", fontWeight = FontWeight.Black) },
                 actions = {
                     IconButton(onClick = { viewModel.onEvent(WallpaperEvent.OnAddNewPack) }) {
                         Icon(Icons.Default.AddCircle, contentDescription = "Add new pack")
@@ -153,7 +155,7 @@ fun DynamicWallpaperScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.CheckCircle, contentDescription = null)
                                         Spacer(Modifier.width(8.dp))
-                                        Text("Activar este Paquete", fontWeight = FontWeight.ExtraBold)
+                                        Text(stringResource(R.string.activate_package), fontWeight = FontWeight.ExtraBold)
                                     }
                                 }
                             }
@@ -186,7 +188,7 @@ fun DynamicWallpaperScreen(
                                     (slideOutHorizontally { it } + fadeOut())
                         }.using(SizeTransform(clip = false))
                     },
-                    label = "PackContentTransition",
+                    label = stringResource(R.string.pack_content_transition),
                     modifier = Modifier.weight(1f)
                 ) { id ->
                     key(id) {

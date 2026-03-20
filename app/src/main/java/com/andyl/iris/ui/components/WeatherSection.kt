@@ -23,8 +23,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.andyl.iris.R
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.state.DynamicWallpaperUiState
@@ -48,19 +50,19 @@ fun WeatherSection(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Configuración por Clima",
+                        stringResource(R.string.weather_section_config),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Toca para expandir y configurar",
+                        stringResource(R.string.weather_section_tap_config),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
 
                 val rotation by animateFloatAsState(
                     targetValue = if (state.isWeatherFeatureEnabled) 180f else 0f,
-                    label = "ArrowRotation"
+                    label = stringResource(R.string.acc_arrow_rotation)
                 )
 
                 Icon(
@@ -94,7 +96,7 @@ fun WeatherSection(
                 }
 
                 Text(
-                    "Mutea climas individuales para mantener el fondo anterior.",
+                    stringResource(R.string.weather_section_mute_config),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

@@ -21,9 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.andyl.iris.R
 
 @Composable
 fun TimeRuleItem(
@@ -42,7 +44,7 @@ fun TimeRuleItem(
     ) {
         AsyncImage(
             model = uri,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.acc_image_descr),
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(12.dp)),
@@ -59,7 +61,7 @@ fun TimeRuleItem(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Interrupción horaria",
+                text = stringResource(R.string.time_rule_item_interrupt),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
             )
@@ -76,7 +78,7 @@ fun TimeRuleItem(
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Borrar regla",
+                contentDescription = stringResource(R.string.btn_delete),
                 tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
                 modifier = Modifier.size(18.dp)
             )

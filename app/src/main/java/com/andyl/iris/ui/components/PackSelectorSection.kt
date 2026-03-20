@@ -49,6 +49,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import com.andyl.iris.R
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -99,21 +101,21 @@ fun PackSelectorSection(
     if (showRenameDialog) {
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
-            title = { Text("Gestionar Paquetes", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.pack_sel_title), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(
                         value = tempName,
                         onValueChange = { tempName = it },
                         singleLine = true,
-                        label = { Text("Nombre del pack seleccionado") },
+                        label = { Text(stringResource(R.string.acc_pack_selected)) },
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
                     Text(
-                        text = "Mis Paquetes (${packs.size}/10)",
+                        text = stringResource(R.string.pack_sel_my_packages)+" (${packs.size}/10)",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -140,7 +142,7 @@ fun PackSelectorSection(
                                     Text(pack.name, modifier = Modifier.weight(1f), fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
                                     if (packs.size > 1) {
                                         IconButton(onClick = { onEvent(WallpaperEvent.OnDeletePack(pack.id)); tempName = "" }) {
-                                            Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.btn_delete), tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
                                         }
                                     }
                                 }

@@ -40,8 +40,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import com.andyl.iris.R
 import com.andyl.iris.ui.components.ScaleModeSelector
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
@@ -64,9 +66,9 @@ fun WallpaperConfigScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Configuración de Iris") },
+                title = { Text(stringResource(R.string.cfg_screen_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Volver") }
+                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.btn_back)) }
                 }
             )
         }
@@ -78,7 +80,7 @@ fun WallpaperConfigScreen(
             // --- SECCIÓN DE AJUSTE DE IMAGEN (NUEVO) ---
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Visualización del Core",
+                    stringResource(R.string.cfg_screen_img_settings_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -94,7 +96,7 @@ fun WallpaperConfigScreen(
                 )
 
                 Text(
-                    "Define cómo se adaptarán los fondos a la resolución de tu pantalla.",
+                    stringResource(R.string.cfg_screen_img_settings_text),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -104,7 +106,7 @@ fun WallpaperConfigScreen(
 
             // --- SECCIÓN DE UBICACIÓN ---
             Text(
-                "Configuración de Ciudad",
+                stringResource(R.string.cfg_screen_city_settings_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -117,7 +119,7 @@ fun WallpaperConfigScreen(
                     Icon(Icons.Default.LocationOn, null)
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        text = searchQuery.ifEmpty { "No definida (Usa GPS)" },
+                        text = searchQuery.ifEmpty { stringResource(R.string.cfg_screen_city_settings_not_defined) },
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -128,7 +130,7 @@ fun WallpaperConfigScreen(
                 value = searchQuery,
                 onValueChange = { viewModel.onSearchQueryChanged(it) },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Buscar nueva ciudad") },
+                label = { Text(stringResource(R.string.cfg_screen_city_settings_new_city)) },
                 leadingIcon = { Icon(Icons.Default.Search, null) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -157,7 +159,7 @@ fun WallpaperConfigScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Actualizar ubicación por GPS")
+                Text(stringResource(R.string.cfg_screen_city_settings_use_gps))
             }
         }
     }

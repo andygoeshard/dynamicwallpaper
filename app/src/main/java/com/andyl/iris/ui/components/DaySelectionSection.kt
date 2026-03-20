@@ -22,8 +22,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.andyl.iris.R
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.state.DynamicWallpaperUiState
 
@@ -64,7 +66,7 @@ fun DaySelectionSection(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Calendario Semanal",
+            text = stringResource(R.string.weekCalendar),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onSurface
@@ -76,7 +78,6 @@ fun DaySelectionSection(
             state = listState,
             flingBehavior = snapBehavior,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            // Aplicamos el padding calculado restando los 64dp totales de márgenes
             contentPadding = PaddingValues(horizontal = horizontalPadding),
             modifier = Modifier.fillMaxWidth()
         ) {
