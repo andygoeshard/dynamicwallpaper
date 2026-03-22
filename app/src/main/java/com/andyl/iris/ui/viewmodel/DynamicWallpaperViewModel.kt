@@ -28,6 +28,7 @@ import com.andyl.iris.domain.usecase.contract.SetWallpaperRuleUseCase
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.state.DynamicWallpaperUiState
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -60,7 +61,11 @@ class DynamicWallpaperViewModel(
     val searchResults: StateFlow<List<CityResult>> = _searchResults
 
     init {
-        loadInitialConfig()
+        Log.d("VM_CHECK", "Hash de la instancia: ${this.hashCode()}")
+        viewModelScope.launch {
+            delay(100)
+            loadInitialConfig()
+        }
         setupSearchDebounce()
         loadSavedCityName()
     }
@@ -210,32 +215,34 @@ class DynamicWallpaperViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val allPacks = getAllPacksUseCase()
-            val activeId = allPacks.find { it.isActive }?.id ?: "1"
+            runCatching {
+                val allPacks = getAllPacksUseCase()
+                val activeId = allPacks.find { it.isActive }?.id ?: "1"
+                val config = getWallpaperConfigUseCase(activeId)
 
-            runCatching { getWallpaperConfigUseCase(activeId) }
-                .onSuccess { config ->
-                    val rulesMap = config.rules
-                        .filter { it.wallpaperId.value.isNotEmpty() }
-                        .associate { formatKey(it.weather, it.timeOfDay) to it.wallpaperId.value }
+                val rulesMap = config.rules
+                    .filter { it.wallpaperId.value.isNotEmpty() }
+                    .associate { formatKey(it.weather, it.timeOfDay) to it.wallpaperId.value }
 
-                    _uiState.update { it.copy(
-                        availablePacks = allPacks,
-                        rules = rulesMap,
-                        packName = config.name,
-                        dailyRules = config.dailyRules,
-                        fixedRules = config.fixedTimeRules,
-                        enabledWeathers = config.enabledWeathers,
-                        activePackId = config.activePackId,
-                        editingPackId = config.activePackId,
-                        isLoading = false,
-                        scaleMode = config.scaleMode,
-                    ) }
-                    Log.d("TEST_DAILY", "Keys recibidas: ${config.dailyRules.entries}")
-                }
-                .onFailure { t ->
-                    _uiState.update { it.copy(isLoading = false, error = t.message) }
-                }
+                Triple(allPacks, config, rulesMap)
+            }.onSuccess { (allPacks, config, rulesMap) ->
+                _uiState.update { it.copy(
+                    availablePacks = allPacks,
+                    rules = rulesMap,
+                    packName = config.name,
+                    dailyRules = config.dailyRules,
+                    fixedRules = config.fixedTimeRules,
+                    enabledWeathers = config.enabledWeathers,
+                    activePackId = config.activePackId,
+                    editingPackId = config.activePackId,
+                    isLoading = false,
+                    scaleMode = config.scaleMode,
+                ) }
+                Log.d("TEST_DAILY", "Keys recibidas: ${config.dailyRules.entries}")
+            }.onFailure { t ->
+                Log.e("VM", "Error inicializando: ${t.message}")
+                _uiState.update { it.copy(isLoading = false, error = t.message) }
+            }
         }
     }
 
@@ -379,6 +386,7 @@ class DynamicWallpaperViewModel(
     private fun setDailyWallpaper(dayName: String, uri: String) {
         _uiState.update { it.copy(dailyRules = it.dailyRules + (dayName to uri)) }
         Log.d("TEST_DAILY_Wallpaper", "Regla diaria guardada: $dayName -> $uri")
+        Log.d("vm","actual scale mode = ${uiState.value.scaleMode}")
         saveCurrentConfigToRepo()
         syncIfActive()
     }
@@ -387,6 +395,7 @@ class DynamicWallpaperViewModel(
         _uiState.update { currentState ->
             currentState.copy(fixedRules = currentState.fixedRules + (time to uri))
         }
+        Log.d("vm","actual scale mode = ${uiState.value.scaleMode}")
 
         saveCurrentConfigToRepo()
         AlarmHelper.scheduleFixedTimeAlarm(context, time)

@@ -1,11 +1,14 @@
 package com.andyl.iris.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.andyl.iris.ui.screen.DynamicWallpaperScreen
 import com.andyl.iris.ui.screen.WallpaperConfigScreen
+import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AppNav() {
@@ -14,14 +17,17 @@ fun AppNav() {
         navController = navController,
         startDestination = "main"
     ) {
-        composable("main") {
+        composable("main") {backStackEntry ->
+            val viewModel: DynamicWallpaperViewModel = koinViewModel(viewModelStoreOwner = backStackEntry)
             DynamicWallpaperScreen(
-                onNavigateToSettings = { navController.navigate("config") }
+                viewModel, onNavigateToSettings = { navController.navigate("config") }
             )
         }
         composable("config") {
+            val parentEntry = remember(it) { navController.getBackStackEntry("main") }
+            val viewModel: DynamicWallpaperViewModel = koinViewModel(viewModelStoreOwner = parentEntry)
             WallpaperConfigScreen(
-                onBack = { navController.popBackStack() }
+                viewModel,onBack = { navController.popBackStack() }
             )
         }
     }

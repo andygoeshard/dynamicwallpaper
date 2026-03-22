@@ -72,12 +72,13 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DynamicWallpaperScreen(
-    viewModel: DynamicWallpaperViewModel = koinViewModel(),
+    viewModel: DynamicWallpaperViewModel,
     onNavigateToSettings: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var showPermissionDialog by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(Unit) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {

@@ -51,7 +51,7 @@ import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WallpaperConfigScreen(
-    viewModel: DynamicWallpaperViewModel = koinViewModel(),
+    viewModel: DynamicWallpaperViewModel,
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -85,7 +85,6 @@ fun WallpaperConfigScreen(
                     fontWeight = FontWeight.Bold
                 )
 
-                // Usamos tu componente ScaleModeSelector
                 ScaleModeSelector(
                     selectedMode = uiState.scaleMode,
                     onModeSelected = { newMode ->

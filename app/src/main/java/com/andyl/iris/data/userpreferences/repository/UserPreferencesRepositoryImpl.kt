@@ -18,9 +18,13 @@ import com.andyl.iris.data.userpreferences.dto.WallpaperPackDto
 import com.andyl.iris.data.userpreferences.dto.toDomain
 import com.andyl.iris.domain.model.PackInfo
 import com.andyl.iris.domain.model.ScaleMode
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class UserPreferencesRepositoryImpl(
-    context: Context
+    context: Context,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : UserPreferencesRepository {
 
     private val prefs = context.getSharedPreferences(
@@ -29,11 +33,11 @@ class UserPreferencesRepositoryImpl(
     )
     private val json = Json { encodeDefaults = true }
 
-    override suspend fun getWallpaperConfig(packId: String?): WallpaperConfig {
+    override suspend fun getWallpaperConfig(packId: String?): WallpaperConfig = withContext(ioDispatcher){
         val targetId = packId ?: getActivePackId()
         val rawPack = prefs.getString("${KEY_PACK_DATA}_$targetId", null)
 
-        return if (rawPack != null) {
+        if (rawPack != null) {
             val dto = json.decodeFromString<WallpaperPackDto>(rawPack)
             dto.toDomain(targetId)
         } else {
@@ -50,7 +54,7 @@ class UserPreferencesRepositoryImpl(
         }
     }
 
-    override suspend fun setWallpaperConfig(config: WallpaperConfig) {
+    override suspend fun setWallpaperConfig(config: WallpaperConfig) = withContext(ioDispatcher) {
         val dto = WallpaperPackDto(
             id = config.id,
             name = config.name,
@@ -181,7 +185,7 @@ class UserPreferencesRepositoryImpl(
         }
     }
 
-    override suspend fun getAllPacks(): List<PackInfo> {
+    override suspend fun getAllPacks(): List<PackInfo> = withContext(ioDispatcher) {
         val activeId = getActivePackId()
         val allEntries = prefs.all
 
@@ -207,7 +211,7 @@ class UserPreferencesRepositoryImpl(
             )
         }.sortedBy { it.id }
 
-        return savedPacks.ifEmpty {
+        savedPacks.ifEmpty {
             val defaultPacks = listOf(
                 PackInfo("1", "Pack 1", isActive = true),
                 PackInfo("2", "Pack 2", isActive = false),
