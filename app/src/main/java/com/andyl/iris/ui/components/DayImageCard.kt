@@ -30,7 +30,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.size.Precision
 import com.andyl.iris.R
 
 @Composable
@@ -68,7 +70,11 @@ fun DayImageCard(
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(imageUri)
-                                .crossfade(true)
+                                .crossfade(200)
+                                .size(160, 160)
+                                .precision(Precision.EXACT)
+                                .bitmapConfig(android.graphics.Bitmap.Config.RGB_565)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
                                 .build(),
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),

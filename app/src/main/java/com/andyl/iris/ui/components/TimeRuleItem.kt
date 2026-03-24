@@ -24,10 +24,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import coil.size.Precision
 import com.andyl.iris.R
 
 @Composable
@@ -35,7 +39,8 @@ fun TimeRuleItem(
     time: String,
     uri: String,
     onDelete: () -> Unit,
-    onImageClick: () -> Unit
+    onImageClick: () -> Unit,
+    onTimeClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -54,21 +59,27 @@ fun TimeRuleItem(
             contentAlignment = Alignment.Center
         ) {
             AsyncImage(
-                model = uri,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(uri)
+                    .crossfade(true)
+                    .size(160, 160)
+                    .precision(Precision.EXACT)
+                    .bitmapConfig(android.graphics.Bitmap.Config.RGB_565)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .build(),
                 contentDescription = stringResource(R.string.acc_image_descr),
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.05f))
             )
         }
 
         Spacer(Modifier.width(16.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .clickable { onTimeClick() }
+        ) {
             Text(
                 text = time,
                 style = MaterialTheme.typography.titleLarge,

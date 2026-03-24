@@ -66,7 +66,8 @@ fun PackSelectorSection(
     val packs = state.availablePacks
     if (packs.isEmpty()) return
 
-    val totalItems = Int.MAX_VALUE
+    val hasMultiplePacks = packs.size > 1
+    val totalItems = if (hasMultiplePacks) 10000 else 1
     val startIndex = (totalItems / 2) - ((totalItems / 2) % packs.size)
 
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = startIndex)
@@ -77,7 +78,6 @@ fun PackSelectorSection(
 
     val density = LocalDensity.current
     var rowWidthPx by remember { mutableIntStateOf(0) }
-    val hasMultiplePacks = packs.size > 1
 
     val horizontalPadding = remember(rowWidthPx, hasMultiplePacks) {
         if (rowWidthPx == 0 || !hasMultiplePacks) 0.dp

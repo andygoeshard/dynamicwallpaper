@@ -67,11 +67,27 @@ fun FixedTimeSection(
 
         state.fixedRules.forEach { (time, uri) ->
             TimeRuleItem(
-                time, uri,
+                time = time,
+                uri = uri,
                 onDelete = { onEvent(WallpaperEvent.OnDeleteFixedTimeRule(time)) },
                 onImageClick = {
                     pendingTime = time
                     launcher.launch(arrayOf("image/*"))
+                },
+                onTimeClick = {
+                    // 1. Parseamos el tiempo actual para que el diálogo abra en esa hora
+                    val parts = time.split(":")
+                    val currentHour = parts[0].toInt()
+                    val currentMin = parts[1].toInt()
+
+                    TimePickerDialog(context, { _, hour, minute ->
+                        val newTime = String.format("%02d:%02d", hour, minute)
+                        if (newTime != time) {
+                            // 2. Si cambió, creamos la nueva regla con el mismo URI y borramos la vieja
+                            onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, newTime, uri))
+                            onEvent(WallpaperEvent.OnDeleteFixedTimeRule(time))
+                        }
+                    }, currentHour, currentMin, true).show()
                 }
             )
             Spacer(modifier = Modifier.height(10.dp))

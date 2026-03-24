@@ -5,9 +5,11 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,19 +17,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -50,9 +56,9 @@ fun SelectWallpaperButton(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
     val key = "${weather.toKey()} - $timeOfDay"
     val currentUri = state.rules[key]
+    val hasImage = !currentUri.isNullOrEmpty()
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -70,46 +76,67 @@ fun SelectWallpaperButton(
     OutlinedCard(
         onClick = { launcher.launch(arrayOf("image/*")) },
         modifier = modifier.height(110.dp),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        shape = RoundedCornerShape(16.dp), // Un poco más redondo queda mejor
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (hasImage) Color.Transparent else MaterialTheme.colorScheme.outlineVariant
+        ),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+        )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (!currentUri.isNullOrEmpty()) {
+            if (hasImage) {
                 AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
+                    model = ImageRequest.Builder(context)
                         .data(currentUri)
-                        .crossfade(true)
-                        .size(Size(300, 500))
-                        .precision(Precision.INEXACT)
+                        .crossfade(300)
+                        .size(250, 400) // Tamaño optimizado para el A21s
+                        .precision(Precision.EXACT)
+                        .bitmapConfig(android.graphics.Bitmap.Config.RGB_565)
                         .build(),
-                    contentDescription = stringResource(R.string.acc_image_descr),
+                    contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = Color.Black.copy(alpha = 0.4f)
-                ) {}
-            }
 
-            Column(
-                modifier = Modifier.fillMaxSize().padding(12.dp),
-                verticalArrangement = Arrangement.Bottom
-            ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (!currentUri.isNullOrEmpty()) Color.White else MaterialTheme.colorScheme.onSurface
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                                startY = 100f
+                            )
+                        )
                 )
             }
 
-            if (currentUri.isNullOrEmpty()) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.btn_add),
-                    modifier = Modifier.align(Alignment.Center).size(24.dp),
-                    tint = MaterialTheme.colorScheme.primary
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.Start
+            ) {
+                if (!hasImage) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (hasImage) Color.White else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

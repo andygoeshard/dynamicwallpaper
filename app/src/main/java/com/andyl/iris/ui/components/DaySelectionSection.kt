@@ -36,30 +36,36 @@ fun DaySelectionSection(
     onEvent: (WallpaperEvent) -> Unit
 ) {
     val context = LocalContext.current
-    val days = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
+    val days = remember { listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo") }
     var selectedDayForPicker by remember { mutableStateOf<String?>(null) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument(),
-        onResult = { uri ->
-            uri?.let {
-                selectedDayForPicker?.let { day ->
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            selectedDayForPicker?.let { day ->
+                try {
                     context.contentResolver.takePersistableUriPermission(
                         it, Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
                     onEvent(WallpaperEvent.SetDailyWallpaper(day, it.toString()))
-                }
+                } catch (e: Exception) { e.printStackTrace() }
             }
         }
-    )
+    }
 
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val itemWidth = 85.dp
-    val availableWidth = configuration.screenWidthDp.dp - 64.dp
-    val horizontalPadding = (availableWidth / 2) - (itemWidth / 2)
-    val totalItems = Int.MAX_VALUE
+    val horizontalPadding = remember(configuration.screenWidthDp) {
+        val availableWidth = configuration.screenWidthDp.dp - 64.dp
+        (availableWidth / 2) - (itemWidth / 2)
+    }
+
+    val totalItems = 10000
     val todayIndex = remember { java.time.LocalDate.now().dayOfWeek.value - 1 }
-    val startIndex = (totalItems / 2) - ((totalItems / 2) % days.size) + todayIndex
+    val startIndex = remember(days.size) {
+        (totalItems / 2) - ((totalItems / 2) % days.size) + todayIndex
+    }
 
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = startIndex)
     val snapBehavior = rememberSnapFlingBehavior(lazyListState = listState)
@@ -81,9 +87,13 @@ fun DaySelectionSection(
             contentPadding = PaddingValues(horizontal = horizontalPadding),
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(totalItems) { index ->
+            items(
+                count = totalItems,
+                key = { index -> index }
+            ) { index ->
                 val dayIndex = (index % days.size)
                 val dayName = days[dayIndex]
+
                 val imageUri = state.dailyRules[dayName]
                 val isToday = dayIndex == todayIndex
 
