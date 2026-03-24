@@ -1,9 +1,12 @@
 package com.andyl.iris.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,7 +34,8 @@ import com.andyl.iris.R
 fun TimeRuleItem(
     time: String,
     uri: String,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onImageClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -42,14 +46,25 @@ fun TimeRuleItem(
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AsyncImage(
-            model = uri,
-            contentDescription = stringResource(R.string.acc_image_descr),
+        Box(
             modifier = Modifier
                 .size(48.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
-        )
+                .clip(RoundedCornerShape(12.dp))
+                .clickable { onImageClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = uri,
+                contentDescription = stringResource(R.string.acc_image_descr),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.05f))
+            )
+        }
 
         Spacer(Modifier.width(16.dp))
 

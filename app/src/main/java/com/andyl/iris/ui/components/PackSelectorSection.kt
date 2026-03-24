@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -74,13 +75,12 @@ fun PackSelectorSection(
     var showRenameDialog by remember { mutableStateOf(false) }
     var tempName by remember { mutableStateOf("") }
 
-    // --- CÁLCULO DE CENTRADO DINÁMICO ---
     val density = LocalDensity.current
     var rowWidthPx by remember { mutableIntStateOf(0) }
+    val hasMultiplePacks = packs.size > 1
 
-    // El padding se calcula sobre el ancho REAL del contenedor central
-    val horizontalPadding = remember(rowWidthPx) {
-        if (rowWidthPx == 0) 0.dp
+    val horizontalPadding = remember(rowWidthPx, hasMultiplePacks) {
+        if (rowWidthPx == 0 || !hasMultiplePacks) 0.dp
         else {
             val rowWidthDp = with(density) { rowWidthPx.toDp() }
             val estimatedChipWidth = 110.dp
@@ -197,16 +197,21 @@ fun PackSelectorSection(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = {
-            coroutineScope.launch {
-                val targetIndex = listState.firstVisibleItemIndex - 1
-                val safeIndex = if (targetIndex < 0) (totalItems / 2) else targetIndex
-                val packId = packs[((safeIndex % packs.size) + packs.size) % packs.size].id
-                onEvent(WallpaperEvent.OnChangePack(packId, -1))
-                listState.animateScrollToItem(safeIndex)
+        // --- FLECHA IZQUIERDA ---
+        if (hasMultiplePacks) {
+            IconButton(onClick = {
+                coroutineScope.launch {
+                    val targetIndex = listState.firstVisibleItemIndex - 1
+                    val safeIndex = if (targetIndex < 0) (totalItems / 2) else targetIndex
+                    val packId = packs[((safeIndex % packs.size) + packs.size) % packs.size].id
+                    onEvent(WallpaperEvent.OnChangePack(packId, -1))
+                    listState.animateScrollToItem(safeIndex)
+                }
+            }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             }
-        }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        } else {
+            Spacer(modifier = Modifier.size(48.dp))
         }
 
         Box(
@@ -219,12 +224,15 @@ fun PackSelectorSection(
                 LazyRow(
                     state = listState,
                     flingBehavior = snapBehavior,
-                    modifier = Modifier.fillMaxWidth(),
+                    userScrollEnabled = hasMultiplePacks,
+                    modifier = if (hasMultiplePacks) Modifier.fillMaxWidth() else Modifier.wrapContentWidth(),
                     contentPadding = PaddingValues(horizontal = horizontalPadding),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(totalItems) { index ->
+                    val itemCount = if (hasMultiplePacks) totalItems else 1
+
+                    items(itemCount) { index ->
                         val pack = packs[index % packs.size]
                         val isBeingEdited = pack.id == state.editingPackId
                         val isCurrentlyActive = pack.id == state.activePackId
@@ -235,7 +243,7 @@ fun PackSelectorSection(
                                 if (isBeingEdited) {
                                     tempName = pack.name
                                     showRenameDialog = true
-                                } else {
+                                } else if (hasMultiplePacks) {
                                     val currentVisible = listState.firstVisibleItemIndex
                                     val direction = if (index > currentVisible) 1 else -1
                                     onEvent(WallpaperEvent.OnChangePack(pack.id, direction))
@@ -267,15 +275,20 @@ fun PackSelectorSection(
             }
         }
 
-        IconButton(onClick = {
-            coroutineScope.launch {
-                val targetIndex = listState.firstVisibleItemIndex + 1
-                val packId = packs[targetIndex % packs.size].id
-                onEvent(WallpaperEvent.OnChangePack(packId, 1))
-                listState.animateScrollToItem(targetIndex)
+        // --- FLECHA DERECHA ---
+        if (hasMultiplePacks) {
+            IconButton(onClick = {
+                coroutineScope.launch {
+                    val targetIndex = listState.firstVisibleItemIndex + 1
+                    val packId = packs[targetIndex % packs.size].id
+                    onEvent(WallpaperEvent.OnChangePack(packId, 1))
+                    listState.animateScrollToItem(targetIndex)
+                }
+            }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             }
-        }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        } else {
+            Spacer(modifier = Modifier.size(48.dp))
         }
     }
 }

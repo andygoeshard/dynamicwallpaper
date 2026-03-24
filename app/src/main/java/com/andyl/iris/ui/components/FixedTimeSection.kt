@@ -68,7 +68,11 @@ fun FixedTimeSection(
         state.fixedRules.forEach { (time, uri) ->
             TimeRuleItem(
                 time, uri,
-                onDelete = { onEvent(WallpaperEvent.OnDeleteFixedTimeRule(time)) }
+                onDelete = { onEvent(WallpaperEvent.OnDeleteFixedTimeRule(time)) },
+                onImageClick = {
+                    pendingTime = time
+                    launcher.launch(arrayOf("image/*"))
+                }
             )
             Spacer(modifier = Modifier.height(10.dp))
         }
@@ -81,7 +85,9 @@ fun FixedTimeSection(
                     launcher.launch(arrayOf("image/*"))
                 }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
             },
-            modifier = Modifier.fillMaxWidth().height(52.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
