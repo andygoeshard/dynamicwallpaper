@@ -52,4 +52,12 @@
     <string name="loading">Cargando...</string>
     <string name="pack_selector_save_changes">Guardar Cambios</string>
     <string name="btn_close">Cerrar</string>
+
+    <string name="mon">LUN</string>
+    <string name="tue">MAR</string>
+    <string name="wed">MIE</string>
+    <string name="thu">JUE</string>
+    <string name="fri">VIE</string>
+    <string name="sat">SAB</string>
+    <string name="sun">DOM</string>
 </resources>

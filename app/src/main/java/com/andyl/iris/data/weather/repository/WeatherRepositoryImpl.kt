@@ -5,8 +5,6 @@ import com.andyl.iris.domain.mapper.toDomain
 import com.andyl.iris.domain.model.GeoLocation
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.repository.WeatherRepository
-
-
 class WeatherRepositoryImpl(
     private val api: WeatherApi
 ) : WeatherRepository {
@@ -20,7 +18,7 @@ class WeatherRepositoryImpl(
         )
 
         val current = response.currentWeather
-            ?: return Weather.Cloudy // fallback visual razonable
+            ?: return Weather.Cloudy
 
         return current.toDomain()
     }

@@ -9,7 +9,6 @@ import io.ktor.client.request.parameter
 class WeatherApi(
     private val client: HttpClient
 ) {
-
     suspend fun getCurrentWeather(
         latitude: Double,
         longitude: Double

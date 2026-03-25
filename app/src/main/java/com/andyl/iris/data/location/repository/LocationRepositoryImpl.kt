@@ -30,7 +30,6 @@ class LocationRepositoryImpl(
     override suspend fun saveSelectedCity(city: CityResult) {
         Log.d("LocationRepo", "Guardando ciudad seleccionada: ${city.name}")
         preferencesRepository.saveLastLocation(city.lat, city.lon)
-        // Guardamos el nombre en un campo aparte en las prefs para la UI
         preferencesRepository.saveCityName(city.name)
     }
 

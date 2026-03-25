@@ -1,6 +1,5 @@
 package com.andyl.iris.domain.usecase.impl
 
-import android.util.Log
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.WallpaperConfig
 import com.andyl.iris.domain.model.WallpaperId
@@ -16,29 +15,22 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
     ): WallpaperId {
         val now = java.time.LocalDateTime.now()
 
-        val currentTimeString = String.format("%02d:%02d", now.hour, now.minute)
-        config.fixedTimeRules[currentTimeString]?.let { return WallpaperId(it) }
+        val timeKey = "%02d:%02d".format(now.hour, now.minute)
+        config.fixedTimeRules[timeKey]?.let { return WallpaperId(it) }
 
-        val daysList = listOf("domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado")
-        val currentDay = daysList[now.dayOfWeek.value % 7]
-        config.dailyRules[currentDay]?.let { uri ->
-            Log.d("RESOLVE", ">>> Match Día: $currentDay")
-            return WallpaperId(uri)
+        val dayName = now.dayOfWeek.name.lowercase()
+
+        config.dailyRules[dayName]?.let { uri ->
+            if (uri.isNotEmpty()) return WallpaperId(uri)
         }
 
         if (weather != null && config.enabledWeathers.contains(weather)) {
             config.rules.firstOrNull { it.weather == weather && it.timeOfDay == timeOfDay }
-                ?.let {
-                    Log.d("RESOLVE", ">>> Match Clima ($weather) + Momento ($timeOfDay)")
-                    return it.wallpaperId
-                }
+                ?.let { return it.wallpaperId }
         }
 
         config.rules.firstOrNull { it.timeOfDay == timeOfDay }
-            ?.let {
-                Log.d("RESOLVE", ">>> Match Momento (Fallback Clima): $timeOfDay")
-                return it.wallpaperId
-            }
+            ?.let { return it.wallpaperId }
 
         return config.rules.firstOrNull()?.wallpaperId ?: WallpaperId("")
     }

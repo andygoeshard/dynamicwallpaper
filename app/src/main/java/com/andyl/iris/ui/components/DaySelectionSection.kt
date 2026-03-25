@@ -36,7 +36,7 @@ fun DaySelectionSection(
     onEvent: (WallpaperEvent) -> Unit
 ) {
     val context = LocalContext.current
-    val days = remember { listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo") }
+    val days = remember { listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday") }
     var selectedDayForPicker by remember { mutableStateOf<String?>(null) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -94,11 +94,22 @@ fun DaySelectionSection(
                 val dayIndex = (index % days.size)
                 val dayName = days[dayIndex]
 
+                val translatedDay = when(dayName) {
+                    "monday" -> stringResource(R.string.mon)
+                    "tuesday" -> stringResource(R.string.tue)
+                    "wednesday" -> stringResource(R.string.wed)
+                    "thursday" -> stringResource(R.string.thu)
+                    "friday" -> stringResource(R.string.fri)
+                    "saturday" -> stringResource(R.string.sat)
+                    "sunday" -> stringResource(R.string.sun)
+                    else -> dayName
+                }
+
                 val imageUri = state.dailyRules[dayName]
                 val isToday = dayIndex == todayIndex
 
                 DayImageCard(
-                    dayName = dayName,
+                    dayName = translatedDay,
                     imageUri = imageUri,
                     isToday = isToday,
                     onClick = {

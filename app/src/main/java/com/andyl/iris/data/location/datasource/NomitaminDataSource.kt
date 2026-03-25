@@ -13,7 +13,6 @@ class NominatimRemoteDataSource(private val httpClient: HttpClient) {
             parameter("q", query)
             parameter("format", "json")
             parameter("limit", 5)
-            // Nominatim requiere identificarse
             header("User-Agent", "DynamicWallpaperApp/1.0")
         }.body()
     }
