@@ -59,6 +59,7 @@ fun WeatherConfigCard(
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Cabecera del Clima (Switch e Icono)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().alpha(alpha)
@@ -70,14 +71,17 @@ fun WeatherConfigCard(
                     Weather.Snow -> "❄️"
                     Weather.Fog -> "🌫️"
                     else -> "☁️"
-                })
-                Spacer(Modifier.width(8.dp))
+                }, style = MaterialTheme.typography.titleLarge)
+
+                Spacer(Modifier.width(12.dp))
+
                 Text(
                     text = weather.toKey().uppercase(),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier.weight(1f)
                 )
+
                 Switch(
                     checked = isEnabled,
                     onCheckedChange = onToggle
@@ -92,9 +96,11 @@ fun WeatherConfigCard(
                 Column {
                     Spacer(Modifier.height(12.dp))
 
+                    // Contenedor de botones Dawn, Day, Dusk, Night
+                    // Usamos Arrangement.spacedBy para que no se peguen
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         val times = listOf(
                             TimeOfDay.DAWN to stringResource(R.string.weather_cfg_card_dawn),
@@ -108,7 +114,7 @@ fun WeatherConfigCard(
                                 weather = weather,
                                 timeOfDay = time,
                                 label = label,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f), // Se reparten el ancho
                                 state = state,
                                 onEvent = onEvent
                             )

@@ -29,3 +29,7 @@
 
 # Reglas para Ktor
 -keep class io.ktor.** { *; }
+
+-dontwarn java.lang.management.ManagementFactory
+-dontwarn java.lang.management.RuntimeMXBean
+-dontwarn org.slf4j.impl.StaticLoggerBinder

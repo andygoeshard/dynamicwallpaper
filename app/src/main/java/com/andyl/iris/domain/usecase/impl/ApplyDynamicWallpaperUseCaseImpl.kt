@@ -17,6 +17,7 @@ class ApplyDynamicWallpaperUseCaseImpl(
     private val resolveWallpaperUseCase: ResolveWallpaperUseCase,
     private val wallpaperRepository: WallpaperRepository,
 ) : ApplyDynamicWallpaperUseCase {
+
     override suspend operator fun invoke(packId: String?) {
         val config = preferencesRepository.getWallpaperConfig(packId)
         Log.d("DEBUG_WORKER", "Worker funcionando!")
@@ -42,15 +43,26 @@ class ApplyDynamicWallpaperUseCaseImpl(
             Log.d("DEBUG_WORKER", "1. Clima desactivado globalmente para este pack.")
             null
         }
+
         val timeOfDay = detectTimeOfDayUseCase()
 
-        val wallpaperId = resolveWallpaperUseCase(currentWeather, timeOfDay, config)
+        // 1. Obtenemos la lista de reglas (ahora el Resolve devuelve List<WallpaperRule>)
+        val rulesToApply = resolveWallpaperUseCase(currentWeather, timeOfDay, config)
 
-        if (wallpaperId != null) {
-            wallpaperRepository.applyWallpaper(wallpaperId, config.scaleMode)
-            Log.d("DEBUG_WORKER", "¡Wallpaper aplicado!: $wallpaperId")
+        if (rulesToApply.isNotEmpty()) {
+            // 2. Iteramos cada regla y la aplicamos a su target específico
+            rulesToApply.forEach { rule ->
+                if (rule.wallpaperId.value.isNotEmpty()) {
+                    wallpaperRepository.applyWallpaper(
+                        wallpaperId = rule.wallpaperId,
+                        scaleMode = config.scaleMode,
+                        target = rule.target
+                    )
+                    Log.d("DEBUG_WORKER", "Aplicado a target ${rule.target}: ${rule.wallpaperId}")
+                }
+            }
         } else {
-            Log.e("DEBUG_WORKER", "No se encontró wallpaper para: $timeOfDay y clima: $currentWeather")
+            Log.e("DEBUG_WORKER", "No se encontraron reglas para: $timeOfDay y clima: $currentWeather")
         }
     }
 }

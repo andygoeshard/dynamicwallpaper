@@ -31,6 +31,7 @@
     <string name="alarm_permission_btn_settings">Go to Settings</string>
     <string name="alarm_permission_btn_deny">Not now</string>
     <string name="activate_package">Activate this package</string>
+    <string name="apply_wallpaper">Apply changes</string>
     <string name="pack_content_transition">PackContentTransition</string>
 
     <string name="cfg_screen_title">Iris Settings</string>

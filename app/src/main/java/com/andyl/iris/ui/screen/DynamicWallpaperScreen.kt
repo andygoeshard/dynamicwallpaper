@@ -131,7 +131,7 @@ fun DynamicWallpaperScreen(
         bottomBar = {
             Box(modifier = Modifier.fillMaxWidth()) {
                 AnimatedVisibility(
-                    visible = state.editingPackId != state.activePackId,
+                    visible = true,
                     enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
                     exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
                 ) {
@@ -157,7 +157,7 @@ fun DynamicWallpaperScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.CheckCircle, contentDescription = null)
                                         Spacer(Modifier.width(8.dp))
-                                        Text(stringResource(R.string.activate_package), fontWeight = FontWeight.ExtraBold)
+                                        Text(if(state.editingPackId != state.activePackId)stringResource(R.string.activate_package) else stringResource(R.string.apply_wallpaper), fontWeight = FontWeight.ExtraBold)
                                     }
                                 }
                             }

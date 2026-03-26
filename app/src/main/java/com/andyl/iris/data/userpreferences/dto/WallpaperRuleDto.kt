@@ -10,7 +10,8 @@ import kotlinx.serialization.Serializable
 data class WallpaperRuleDto(
     val weather: String,
     val timeOfDay: String,
-    val uri: String
+    val uri: String,
+    val target: Int = 3
 )
 
 private fun Map<String, String>.toWallpaperRules(): List<WallpaperRule> {

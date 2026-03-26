@@ -4,5 +4,6 @@ data class WallpaperRule(
     val weather: Weather,
     val timeOfDay: TimeOfDay,
     val wallpaperId: WallpaperId,
-    val scaleMode: ScaleMode = ScaleMode.CROP
+    val scaleMode: ScaleMode = ScaleMode.CROP,
+    val target: Int = 3
 )

@@ -94,7 +94,7 @@ class DynamicWallpaperViewModel(
 
             is WallpaperEvent.SetFixedTimeWallpaper -> setFixedTimeWallpaper(event.context, event.time, event.uri)
 
-            is WallpaperEvent.SetWallpaperRule -> setWallpaperRule(event.weather, event.timeOfDay, event.wallpaperUri)
+            is WallpaperEvent.SetWallpaperRule -> setWallpaperRule(event.weather, event.timeOfDay, event.wallpaperUri, event.target)
 
             WallpaperEvent.OnAddNewPack -> addNewPack()
 
@@ -104,7 +104,7 @@ class DynamicWallpaperViewModel(
 
             is WallpaperEvent.OnSelectFromPackManager -> selectPackFromManager(event.packId)
             is WallpaperEvent.OnDeleteDayRule -> deleteDailyWallpaper(event.dayName)
-            is WallpaperEvent.OnDeleteFixedTimeRule -> deleteFixedTimeWallpaper(event.time)
+            is WallpaperEvent.OnDeleteFixedTimeRule -> deleteFixedTimeWallpaper(event.context,event.time)
             is WallpaperEvent.UpdateScaleMode -> updateScaleMode(event.mode)
         }
     }
@@ -114,8 +114,6 @@ class DynamicWallpaperViewModel(
             currentState.copy(scaleMode = mode)
         }
         saveCurrentConfigToRepo()
-        syncIfActive()
-
         Log.d("VM", "Modo de escala universal actualizado a: $mode")
     }
 
@@ -131,8 +129,6 @@ class DynamicWallpaperViewModel(
         _searchQuery.value = newQuery
         if (newQuery.length <= 2) _searchResults.value = emptyList()
     }
-
-    private fun formatKey(weather: Weather, time: TimeOfDay) = "${weather.toKey()} - $time"
     private fun setupSearchDebounce() {
         viewModelScope.launch {
             _searchQuery
@@ -150,12 +146,11 @@ class DynamicWallpaperViewModel(
         }
     }
 
-
     private fun selectCity(city: CityResult) {
         viewModelScope.launch {
             runCatching {
                 locationRepository.saveSelectedCity(city)
-                _searchResults.value = emptyList() // Limpiamos la lista para cerrar el buscador
+                _searchResults.value = emptyList()
                 _searchQuery.value = city.name
                 _uiState.update { it.copy(isApplied = true) }
             }.onFailure { e ->
@@ -165,11 +160,10 @@ class DynamicWallpaperViewModel(
     }
 
     // Wallpapers
-
     private fun applyWallpaper() {
         viewModelScope.launch {
             val state = _uiState.value
-            val currentEditingId = state.editingPackId // El pack que estamos viendo/editando
+            val currentEditingId = state.editingPackId 
 
             _uiState.update { it.copy(isLoading = true, error = null) }
 
@@ -222,7 +216,7 @@ class DynamicWallpaperViewModel(
 
                 val rulesMap = config.rules
                     .filter { it.wallpaperId.value.isNotEmpty() }
-                    .associate { formatKey(it.weather, it.timeOfDay) to it.wallpaperId.value }
+                    .associate { formatKey(it.weather, it.timeOfDay, it.target) to it.wallpaperId.value }
 
                 Triple(allPacks, config, rulesMap)
             }.onSuccess { (allPacks, config, rulesMap) ->
@@ -254,7 +248,7 @@ class DynamicWallpaperViewModel(
                 .onSuccess { config ->
                     val rulesMap = config.rules
                         .filter { it.wallpaperId.value.isNotEmpty() }
-                        .associate { formatKey(it.weather, it.timeOfDay) to it.wallpaperId.value }
+                        .associate { formatKey(it.weather, it.timeOfDay, it.target) to it.wallpaperId.value }
 
                     _uiState.update { it.copy(
                         rules = rulesMap,
@@ -332,7 +326,6 @@ class DynamicWallpaperViewModel(
             currentState.copy(enabledWeathers = newEnabled)
         }
         saveCurrentConfigToRepo()
-        syncIfActive()
     }
 
     private fun selectPackFromManager(packId: String) {
@@ -344,7 +337,7 @@ class DynamicWallpaperViewModel(
             }.onSuccess { config ->
                 val rulesMap = config.rules
                     .filter { it.wallpaperId.value.isNotEmpty() }
-                    .associate { formatKey(it.weather, it.timeOfDay) to it.wallpaperId.value }
+                    .associate { formatKey(it.weather, it.timeOfDay, it.target) to it.wallpaperId.value }
 
                 _uiState.update { it.copy(
                     rules = rulesMap,
@@ -376,43 +369,72 @@ class DynamicWallpaperViewModel(
         )
         setWallpaperRuleUseCase(config)
     }
+    private fun formatKey(weather: Weather, time: TimeOfDay, target: Int) =
+        "${weather.toKey()} - $time - $target"
+
     private fun parseRuleFromKey(key: String, uri: String): WallpaperRule {
         val parts = key.split(" - ")
         val weather = weatherFromKey(parts[0])
         val timeOfDay = TimeOfDay.valueOf(parts[1])
-        return WallpaperRule(weather, timeOfDay, WallpaperId(uri))
+        val target = parts.getOrNull(2)?.toIntOrNull() ?: 3
+
+        return WallpaperRule(
+            weather = weather,
+            timeOfDay = timeOfDay,
+            wallpaperId = WallpaperId(uri),
+            target = target
+        )
     }
 
-    private fun setDailyWallpaper(dayName: String, uri: String) {
-        _uiState.update { it.copy(dailyRules = it.dailyRules + (dayName to uri)) }
-        Log.d("TEST_DAILY_Wallpaper", "Regla diaria guardada: $dayName -> $uri")
-        Log.d("vm","actual scale mode = ${uiState.value.scaleMode}")
-        saveCurrentConfigToRepo()
-        syncIfActive()
-    }
-
-    private fun setFixedTimeWallpaper(context: Context, time: String, uri: String) {
+    private fun setDailyWallpaper(key: String, uri: String) {
         _uiState.update { currentState ->
-            currentState.copy(fixedRules = currentState.fixedRules + (time to uri))
+            val newDailyRules = currentState.dailyRules.toMutableMap()
+
+            val dayName = key.split("-")[0]
+
+            if (key.contains("-")) {
+                newDailyRules.remove(dayName)
+                newDailyRules[key] = uri
+            } else {
+                newDailyRules.remove("$dayName-1")
+                newDailyRules.remove("$dayName-2")
+                newDailyRules[dayName] = uri
+            }
+
+            currentState.copy(dailyRules = newDailyRules)
         }
-        Log.d("vm","actual scale mode = ${uiState.value.scaleMode}")
-
         saveCurrentConfigToRepo()
-        AlarmHelper.scheduleFixedTimeAlarm(context, time)
-        syncIfActive()
-
-        Log.d("WallpaperVM", "Regla fija guardada y alarma programada para: $time")
     }
 
-
-    private fun deleteFixedTimeWallpaper(time: String) {
+    private fun setFixedTimeWallpaper(context: Context, timeKey: String, uri: String) {
         _uiState.update { currentState ->
             val newFixedRules = currentState.fixedRules.toMutableMap()
-            newFixedRules.remove(time)
+            val timeBase = timeKey.split("-")[0]
+
+            val existingKeys = newFixedRules.keys.filter { it.startsWith(timeBase) }
+            existingKeys.forEach { newFixedRules.remove(it) }
+
+            newFixedRules[timeKey] = uri
             currentState.copy(fixedRules = newFixedRules)
         }
+
         saveCurrentConfigToRepo()
-        syncIfActive()
+
+        val timeForAlarm = timeKey.split("-")[0]
+        AlarmHelper.scheduleFixedTimeAlarm(context, timeForAlarm)
+    }
+
+    private fun deleteFixedTimeWallpaper(context: Context, timeKey: String) {
+        _uiState.update { currentState ->
+            val newFixedRules = currentState.fixedRules.toMutableMap()
+            newFixedRules.remove(timeKey)
+            currentState.copy(fixedRules = newFixedRules)
+        }
+
+        saveCurrentConfigToRepo()
+
+        val timeForAlarm = timeKey.split("-")[0]
+        AlarmHelper.cancelFixedTimeAlarm(context, timeForAlarm)
     }
 
     private fun deleteDailyWallpaper(dayName: String) {
@@ -422,17 +444,22 @@ class DynamicWallpaperViewModel(
             currentState.copy(dailyRules = newDailyRules)
         }
         saveCurrentConfigToRepo()
-        syncIfActive()
     }
 
-    private fun setWallpaperRule(weather: Weather, timeOfDay: TimeOfDay, wallpaperUri: String) {
+    fun setWallpaperRule(weather: Weather, timeOfDay: TimeOfDay, wallpaperUri: String, target: Int = 3) {
         _uiState.update { currentState ->
             val newRules = currentState.rules.toMutableMap()
-            newRules[formatKey(weather, timeOfDay)] = wallpaperUri
+            if (target == 3) {
+                newRules.remove(formatKey(weather, timeOfDay, 1))
+                newRules.remove(formatKey(weather, timeOfDay, 2))
+            } else {
+                newRules.remove(formatKey(weather, timeOfDay, 3))
+            }
+
+            newRules[formatKey(weather, timeOfDay, target)] = wallpaperUri
             currentState.copy(rules = newRules)
         }
         saveCurrentConfigToRepo()
-        syncIfActive()
     }
 
     private fun requestExactAlarmPermission(context: Context) {
@@ -454,13 +481,12 @@ class DynamicWallpaperViewModel(
         }
     }
 
-    private fun syncIfActive() {
-        val state = _uiState.value
-        if (state.editingPackId == state.activePackId) {
-            viewModelScope.launch {
-                applyDynamicWallpaperUseCase(state.activePackId)
-            }
-        }
-    }
-
+//    private fun syncIfActive() {
+//        val state = _uiState.value
+//        if (state.editingPackId == state.activePackId) {
+//            viewModelScope.launch {
+//                applyDynamicWallpaperUseCase(state.activePackId)
+//            }
+//        }
+//    }
 }

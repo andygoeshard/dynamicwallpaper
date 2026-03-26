@@ -33,6 +33,7 @@
     <string name="alarm_permission_btn_settings">Ir a Ajustes</string>
     <string name="alarm_permission_btn_deny">Ahora no</string>
     <string name="activate_package">Activar este paquete</string>
+    <string name="apply_wallpaper">Aplicar cambios</string>
     <string name="pack_content_transition">Transición de contenido del paquete</string>
 
     <string name="cfg_screen_title">Ajustes de Iris</string>
