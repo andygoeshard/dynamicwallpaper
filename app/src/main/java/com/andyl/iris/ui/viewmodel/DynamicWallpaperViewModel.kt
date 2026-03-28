@@ -411,8 +411,12 @@ class DynamicWallpaperViewModel(
             val newFixedRules = currentState.fixedRules.toMutableMap()
             val timeBase = timeKey.split("-")[0]
 
-            val existingKeys = newFixedRules.keys.filter { it.startsWith(timeBase) }
-            existingKeys.forEach { newFixedRules.remove(it) }
+            if (timeKey.contains("-")) {
+                newFixedRules.remove(timeBase)
+            } else {
+                newFixedRules.remove("$timeBase-1")
+                newFixedRules.remove("$timeBase-2")
+            }
 
             newFixedRules[timeKey] = uri
             currentState.copy(fixedRules = newFixedRules)

@@ -140,7 +140,7 @@ fun DayImageCard(
 }
 
 @Composable
-private fun AsyncImageWrapper(
+fun AsyncImageWrapper(
     uri: String?,
     onClick: () -> Unit,
     onDelete: () -> Unit,

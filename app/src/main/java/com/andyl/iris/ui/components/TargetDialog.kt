@@ -66,7 +66,7 @@ fun WallpaperTargetDialog(
                 )
             }
         },
-        confirmButton = {}, // No hace falta botón "OK", el click en la opción confirma
+        confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancelar")
