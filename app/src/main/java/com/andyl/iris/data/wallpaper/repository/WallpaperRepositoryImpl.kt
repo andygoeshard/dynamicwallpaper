@@ -52,16 +52,12 @@ class WallpaperRepositoryImpl(
                 val originalBitmap = BitmapFactory.decodeStream(input, null, options)
                     ?: throw Exception("No se pudo decodificar la imagen")
 
-                // 3. Transformación de escala
                 val finalBitmap = when (scaleMode) {
                     ScaleMode.CROP -> centerCrop(originalBitmap, screenWidth, screenHeight)
                     ScaleMode.STRETCH -> stretchFill(originalBitmap, screenWidth, screenHeight)
                     ScaleMode.FIT -> centerFit(originalBitmap, screenWidth, screenHeight)
                 }
 
-                // 4. APLICAR SEGÚN EL TARGET
-                // null en el segundo parámetro es para el Rect de visibilidad (por defecto full)
-                // true es para que Android maneje el backup del wallpaper
                 wallpaperManager.setBitmap(finalBitmap, null, true, androidFlags)
 
                 Log.d("WALLPAPER_REPO", "Fondo aplicado a flags: $androidFlags")
@@ -70,8 +66,7 @@ class WallpaperRepositoryImpl(
                 if (finalBitmap != originalBitmap) {
                     originalBitmap.recycle()
                 }
-                // No reciclamos finalBitmap inmediatamente porque setBitmap es asíncrono
-                // pero al salir del scope el GC hará lo suyo.
+
             } ?: throw Exception("Stream de URI no disponible")
         }.onFailure { e ->
             Log.e("WALLPAPER_REPO", "Error aplicando wallpaper: ${e.message}")

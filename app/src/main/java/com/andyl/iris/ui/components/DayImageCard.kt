@@ -1,7 +1,6 @@
 package com.andyl.iris.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -27,91 +26,78 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.request.CachePolicy
 import coil.request.ImageRequest
-import coil.size.Precision
-import com.andyl.iris.R
 
 @Composable
 fun DayImageCard(
     dayName: String,
-    homeUri: String? = null,    // Target 1 (Arriba)
-    lockUri: String? = null,    // Target 2 (Abajo)
-    bothUri: String? = null,    // Target 3 (Única)
+    homeUri: String? = null,
+    lockUri: String? = null,
+    bothUri: String? = null,
     isToday: Boolean,
-    onAddClick: () -> Unit,      // Cuando está vacío o querés agregar
-    onHomeClick: () -> Unit,     // Click específico en la imagen de Inicio
-    onLockClick: () -> Unit,     // Click específico en la imagen de Bloqueo
+    onAddClick: () -> Unit,
+    onHomeClick: () -> Unit,
+    onLockClick: () -> Unit,
     onDeleteHome: () -> Unit,
     onDeleteLock: () -> Unit,
     onDeleteBoth: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(90.dp) // Ancho del Card completo
+        modifier = Modifier.width(90.dp)
     ) {
-        // Contenedor principal del slot (un poco más alto para la columna)
         Box(
             modifier = Modifier.size(height = 100.dp, width = 85.dp),
             contentAlignment = Alignment.Center
         ) {
             when {
-                // 1. CASO: AMBOS SETEADOS (Una sola imagen grande)
                 bothUri != null -> {
                     AsyncImageWrapper(
                         uri = bothUri,
-                        onClick = onAddClick, // Si clickea, cambiamos la dupla
+                        onClick = onAddClick,
                         onDelete = onDeleteBoth,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
 
-                // 2. CASO: CAPAS SEPARADAS (Columna Vertical)
                 homeUri != null || lockUri != null -> {
                     Column(modifier = Modifier.fillMaxSize()) {
 
-                        // IMAGEN DE INICIO (Arriba - Target 1)
                         AsyncImageWrapper(
                             uri = homeUri,
                             onClick = onHomeClick,
                             onDelete = onDeleteHome,
-                            showTargetIcon = homeUri == null, // Icono si falta imagen
+                            showTargetIcon = homeUri == null,
                             targetIcon = Icons.Default.Home,
                             modifier = Modifier
-                                .weight(1f) // Ocupa la mitad
+                                .weight(1f)
                                 .fillMaxWidth()
                                 .alpha(if (homeUri == null) 0.5f else 1f)
                         )
 
-                        // Pequeño divisor visual o spacer
                         Spacer(modifier = Modifier.height(2.dp))
 
-                        // IMAGEN DE BLOQUEO (Abajo - Target 2)
                         AsyncImageWrapper(
                             uri = lockUri,
                             onClick = onLockClick,
                             onDelete = onDeleteLock,
-                            showTargetIcon = lockUri == null, // Icono si falta imagen
+                            showTargetIcon = lockUri == null,
                             targetIcon = Icons.Default.Lock,
                             modifier = Modifier
-                                .weight(1f) // Ocupa la otra mitad
+                                .weight(1f)
                                 .fillMaxWidth()
                                 .alpha(if (lockUri == null) 0.5f else 1f)
                         )
                     }
                 }
 
-                // 3. CASO: VACÍO (El clásico cuadro con el "+")
                 else -> {
                     Card(
                         onClick = onAddClick,
@@ -141,17 +127,17 @@ fun DayImageCard(
 
 @Composable
 fun AsyncImageWrapper(
+    modifier: Modifier = Modifier,
     uri: String?,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     showTargetIcon: Boolean = false,
     targetIcon: ImageVector = Icons.Default.Home,
-    modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
         Card(
             onClick = onClick,
-            shape = RoundedCornerShape(16.dp), // Esquinas un poco más cerradas para la columna
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxSize(),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -162,14 +148,13 @@ fun AsyncImageWrapper(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(uri)
                         .crossfade(200)
-                        .size(200, 200) // Miniatura liviana
+                        .size(200, 200)
                         .build(),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             } else if (showTargetIcon) {
-                // Estado "fantasma" con icono de target (Home o Lock)
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -182,12 +167,10 @@ fun AsyncImageWrapper(
                     )
                 }
             } else {
-                // Placeholder gris simple (para el caso "both" si fallara)
                 Box(Modifier.fillMaxSize().background(Color.Gray.copy(0.1f)))
             }
         }
 
-        // Botón de borrar miniatura (reutilizamos tu lógica)
         if (uri != null) {
             IconButton(
                 onClick = onDelete,

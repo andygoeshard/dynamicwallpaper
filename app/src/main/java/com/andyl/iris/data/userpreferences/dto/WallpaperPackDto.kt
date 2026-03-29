@@ -39,7 +39,7 @@ fun WallpaperPackDto.toDomain(activeId: String): WallpaperConfig {
         activePackId = activeId,
         scaleMode = try {
             ScaleMode.valueOf(this.scaleMode)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             ScaleMode.FIT
         }
     )

@@ -61,7 +61,6 @@ class DynamicWallpaperViewModel(
     val searchResults: StateFlow<List<CityResult>> = _searchResults
 
     init {
-        Log.d("VM_CHECK", "Hash de la instancia: ${this.hashCode()}")
         viewModelScope.launch {
             delay(100)
             loadInitialConfig()

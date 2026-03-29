@@ -60,7 +60,6 @@ fun FixedTimeSection(
                         2 -> "$time-2"
                         else -> time
                     }
-                    // MANDAMOS SOLO EL SET. SIN DELETES PREVIOS.
                     onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, finalKey, uriStr))
 
                     targetPredefined = null
@@ -94,7 +93,23 @@ fun FixedTimeSection(
                     onHomeClick = { selectedTimeForPicker = displayTime; targetPredefined = 1; photoPickerLauncher.launch(arrayOf("image/*")) },
                     onLockClick = { selectedTimeForPicker = displayTime; targetPredefined = 2; photoPickerLauncher.launch(arrayOf("image/*")) },
                     onBothClick = { selectedTimeForPicker = displayTime; targetPredefined = 3; photoPickerLauncher.launch(arrayOf("image/*")) },
-                    onTimeClick = { /* Picker para mover hora */ }
+                    onTimeClick = {
+                        val tParts = displayTime.split(":")
+                        TimePickerDialog(context, { _, hour, minute ->
+                            val newTime = String.format("%02d:%02d", hour, minute)
+                            if (newTime != displayTime) {
+                                val suffixes = listOf("", "-1", "-2")
+                                suffixes.forEach { suffix ->
+                                    val oldKey = "$displayTime$suffix"
+                                    val uri = state.fixedRules[oldKey]
+                                    if (uri != null) {
+                                        onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, "$newTime$suffix", uri))
+                                        onEvent(WallpaperEvent.OnDeleteFixedTimeRule(context, oldKey))
+                                    }
+                                }
+                            }
+                        }, tParts[0].toInt(), tParts[1].toInt(), true).show()
+                    }
                 )
             }
         }

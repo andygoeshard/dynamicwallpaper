@@ -54,7 +54,6 @@ fun IrisLoadingLogo(
         label = "LogoScale"
     )
 
-    // 3. Alpha para el texto (parpadeo suave)
     val textAlpha by infiniteTransition.animateFloat(
         initialValue = 0.4f,
         targetValue = 1f,

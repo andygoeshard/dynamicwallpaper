@@ -2,7 +2,6 @@ package com.andyl.iris.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,10 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Card
@@ -141,12 +138,12 @@ fun TimeRuleItem(
 
 @Composable
 fun AsyncImageWrapperTimeRuleItem(
+    modifier: Modifier = Modifier,
     uri: String?,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     showTargetIcon: Boolean = false,
     targetIcon: ImageVector = Icons.Default.Home,
-    modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
         Card(

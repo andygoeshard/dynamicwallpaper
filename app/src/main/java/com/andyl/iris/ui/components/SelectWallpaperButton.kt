@@ -64,12 +64,10 @@ fun SelectWallpaperButton(
 ) {
     val context = LocalContext.current
 
-    // Estados para el flujo del picker y el diálogo
     var pendingUri by remember { mutableStateOf<String?>(null) }
     var showTargetDialog by remember { mutableStateOf(false) }
     var targetPredefined by remember { mutableStateOf<Int?>(null) }
 
-    // --- LÓGICA DE BUSQUEDA POR TARGET ---
     val keyHome = "${weather.toKey()} - $timeOfDay - 1"
     val keyLock = "${weather.toKey()} - $timeOfDay - 2"
     val keyBoth = "${weather.toKey()} - $timeOfDay - 3"
@@ -89,10 +87,8 @@ fun SelectWallpaperButton(
                     it, Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
                 if (targetPredefined != null) {
-                    // Si ya sabemos a donde va (click en mitad especifica)
                     onEvent(WallpaperEvent.SetWallpaperRule(weather, timeOfDay, it.toString(), targetPredefined!!))
                 } else {
-                    // Si es nuevo o "Ambos", disparamos el Dialog
                     pendingUri = it.toString()
                     showTargetDialog = true
                 }
@@ -112,10 +108,8 @@ fun SelectWallpaperButton(
         )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // --- RENDERIZADO EN COLUMNA ---
             when {
                 !uriBoth.isNullOrEmpty() -> {
-                    // Caso: Ambos (Imagen completa)
                     Box(Modifier.fillMaxSize().clickable {
                         targetPredefined = null
                         launcher.launch(arrayOf("image/*"))
@@ -124,9 +118,7 @@ fun SelectWallpaperButton(
                     }
                 }
                 hasAnyImage -> {
-                    // Caso: Columna Vertical (Home arriba, Lock abajo)
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // MITAD SUPERIOR: HOME
                         Box(modifier = Modifier.weight(1f).fillMaxWidth().clickable {
                             targetPredefined = 1
                             launcher.launch(arrayOf("image/*"))
@@ -139,7 +131,6 @@ fun SelectWallpaperButton(
 
                         Spacer(modifier = Modifier.height(2.dp).background(Color.Black.copy(0.2f)))
 
-                        // MITAD INFERIOR: LOCK
                         Box(modifier = Modifier.weight(1f).fillMaxWidth().clickable {
                             targetPredefined = 2
                             launcher.launch(arrayOf("image/*"))
@@ -152,7 +143,6 @@ fun SelectWallpaperButton(
                     }
                 }
                 else -> {
-                    // Caso: Vacío (Click abre Dialog)
                     Box(modifier = Modifier.fillMaxSize().clickable {
                         targetPredefined = null
                         launcher.launch(arrayOf("image/*"))
@@ -162,7 +152,6 @@ fun SelectWallpaperButton(
                 }
             }
 
-            // Gradiente para legibilidad del texto
             if (hasAnyImage) {
                 Box(
                     modifier = Modifier
@@ -176,7 +165,6 @@ fun SelectWallpaperButton(
                 )
             }
 
-            // Texto inferior (Label)
             Text(
                 text = label,
                 modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
@@ -189,7 +177,6 @@ fun SelectWallpaperButton(
         }
     }
 
-    // --- DIÁLOGO ---
     if (showTargetDialog) {
         WallpaperTargetDialog(
             onDismiss = { showTargetDialog = false },

@@ -16,7 +16,6 @@ import org.koin.java.KoinJavaComponent.inject
 
 class BootReceiver : BroadcastReceiver() {
 
-    // Usamos inject de Koin para traer el repo y leer los horarios guardados
     private val preferencesRepository: UserPreferencesRepository by inject(UserPreferencesRepository::class.java)
 
     override fun onReceive(context: Context, intent: Intent?) {

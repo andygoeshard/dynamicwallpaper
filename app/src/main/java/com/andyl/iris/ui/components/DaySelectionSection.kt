@@ -38,12 +38,10 @@ fun DaySelectionSection(
     val context = LocalContext.current
     val days = remember { listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday") }
 
-    // Estados para el flujo
     var selectedDayForPicker by remember { mutableStateOf<String?>(null) }
     var pendingUri by remember { mutableStateOf<String?>(null) }
     var showTargetDialog by remember { mutableStateOf(false) }
 
-    // Si este es null, muestra el diálogo. Si tiene 1 o 2, va directo.
     var targetPredefined by remember { mutableStateOf<Int?>(null) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -57,11 +55,9 @@ fun DaySelectionSection(
                 val day = selectedDayForPicker
                 if (day != null) {
                     if (targetPredefined != null) {
-                        // Si ya sabemos el target (1 o 2), mandamos directo
                         val finalKey = "$day-$targetPredefined"
                         onEvent(WallpaperEvent.SetDailyWallpaper(finalKey, it.toString()))
                     } else {
-                        // Si es nuevo o "Ambos", guardamos URI y mostramos Dialog
                         pendingUri = it.toString()
                         showTargetDialog = true
                     }
@@ -70,7 +66,6 @@ fun DaySelectionSection(
         }
     }
 
-    // --- Lógica de Scroll (sin cambios) ---
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val itemWidth = 90.dp
     val horizontalPadding = remember(configuration.screenWidthDp) {

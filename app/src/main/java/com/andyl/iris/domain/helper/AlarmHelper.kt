@@ -13,11 +13,9 @@ object AlarmHelper {
     fun scheduleFixedTimeAlarm(context: Context, time: String) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // 1. Chequeo de seguridad para Android 12+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!alarmManager.canScheduleExactAlarms()) {
                 Log.e("ALARM_HELPER", "ERROR: No tenemos permiso para alarmas exactas.")
-                // Opcional: Podés redirigir al usuario a Ajustes aquí
                 return
             }
         }

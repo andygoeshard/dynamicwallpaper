@@ -46,11 +46,9 @@ class ApplyDynamicWallpaperUseCaseImpl(
 
         val timeOfDay = detectTimeOfDayUseCase()
 
-        // 1. Obtenemos la lista de reglas (ahora el Resolve devuelve List<WallpaperRule>)
         val rulesToApply = resolveWallpaperUseCase(currentWeather, timeOfDay, config)
 
         if (rulesToApply.isNotEmpty()) {
-            // 2. Iteramos cada regla y la aplicamos a su target específico
             rulesToApply.forEach { rule ->
                 if (rule.wallpaperId.value.isNotEmpty()) {
                     wallpaperRepository.applyWallpaper(
