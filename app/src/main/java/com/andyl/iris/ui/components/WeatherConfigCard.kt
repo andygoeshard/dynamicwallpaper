@@ -1,5 +1,6 @@
 package com.andyl.iris.ui.components
 
+import android.R.attr.checked
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -59,7 +60,6 @@ fun WeatherConfigCard(
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Cabecera del Clima (Switch e Icono)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().alpha(alpha)
@@ -76,7 +76,7 @@ fun WeatherConfigCard(
                 Spacer(Modifier.width(12.dp))
 
                 Text(
-                    text = weather.toKey().uppercase(),
+                    text = stringResource(weather.stringRes),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier.weight(1f)
@@ -96,8 +96,6 @@ fun WeatherConfigCard(
                 Column {
                     Spacer(Modifier.height(12.dp))
 
-                    // Contenedor de botones Dawn, Day, Dusk, Night
-                    // Usamos Arrangement.spacedBy para que no se peguen
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)

@@ -56,4 +56,26 @@
     <string name="fri">FRI</string>
     <string name="sat">SAT</string>
     <string name="sun">SUN</string>
+    <string name="both_screens">Both screens</string>
+    <string name="mixed_configuration">Mixed configuration</string>
+    <string name="home_only">Home only</string>
+    <string name="lock_only">Lock only</string>
+    <string name="no_images">No images</string>
+
+    <string name="weather_clear">Clear</string>
+    <string name="weather_cloudy">Cloudy</string>
+    <string name="weather_rain">Rain</string>
+    <string name="weather_snow">Snow</string>
+    <string name="weather_fog">Fog</string>
+    <string name="weather_storm">Storm</string>
+    <string name="cancel">Cancel</string>
+    <string name="apply_to">Apply to...\n</string>
+    <string name="both_subtitle">Sync home and lock screens\n</string>
+    <string name="home_subtitle">Home wallpaper</string>
+    <string name="lock_subtitle">Lock screen wallpaper\n</string>
+    <string name="add_new_pack">Add new pack</string>
+    <string name="first_apply_title">¿Aplicar cambios?</string>
+    <string name="first_apply_text">Iris va a cambiar el fondo de pantalla automáticamente según tus reglas. ¿Querés continuar?</string>
+    <string name="first_apply_confirm">Sí, aplicar</string>
+    <string name="first_apply_cancel">Ahora no</string>
 </resources>

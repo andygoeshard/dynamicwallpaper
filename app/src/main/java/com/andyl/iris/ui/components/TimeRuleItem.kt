@@ -34,10 +34,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.andyl.iris.R
 
 @Composable
 fun TimeRuleItem(
@@ -119,11 +121,11 @@ fun TimeRuleItem(
             )
 
             val statusText = when {
-                bothUri != null -> "Ambas pantallas"
-                homeUri != null && lockUri != null -> "Configuración mixta"
-                homeUri != null -> "Solo Inicio"
-                lockUri != null -> "Solo Bloqueo"
-                else -> "Sin imágenes"
+                bothUri != null -> stringResource(R.string.both_screens)
+                homeUri != null && lockUri != null -> stringResource(R.string.mixed_configuration)
+                homeUri != null -> stringResource(R.string.home_only)
+                lockUri != null -> stringResource(R.string.lock_only)
+                else -> stringResource(R.string.no_images)
             }
 
             Text(

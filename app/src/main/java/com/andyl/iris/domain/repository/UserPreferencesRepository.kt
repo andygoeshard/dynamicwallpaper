@@ -19,5 +19,7 @@ interface UserPreferencesRepository {
     suspend fun getAllPacks(): List<PackInfo>
     suspend fun addNewPack(): List<PackInfo>
     suspend fun deletePack(packId: String)
+    suspend fun isFirstApplyGlobal(): Boolean
+    suspend fun setGlobalFirstApplyDone()
 }
 

@@ -21,8 +21,10 @@ import com.andyl.iris.domain.repository.LocationRepository
 import com.andyl.iris.domain.usecase.contract.AddPackUseCase
 import com.andyl.iris.domain.usecase.contract.ApplyDynamicWallpaperUseCase
 import com.andyl.iris.domain.usecase.contract.ChangeActivePackUseCase
+import com.andyl.iris.domain.usecase.contract.ChangeFirstTimeKeyUseCase
 import com.andyl.iris.domain.usecase.contract.DeletePackUseCase
 import com.andyl.iris.domain.usecase.contract.GetAllPacksUseCase
+import com.andyl.iris.domain.usecase.contract.GetFirstTimeKeyUseCase
 import com.andyl.iris.domain.usecase.contract.GetWallpaperConfigUseCase
 import com.andyl.iris.domain.usecase.contract.SetWallpaperRuleUseCase
 import com.andyl.iris.ui.event.WallpaperEvent
@@ -48,6 +50,8 @@ class DynamicWallpaperViewModel(
     private val getAllPacksUseCase: GetAllPacksUseCase,
     private val addPackUseCase: AddPackUseCase,
     private val deletePackUseCase: DeletePackUseCase,
+    private val getFirstTimeKeyUseCase: GetFirstTimeKeyUseCase,
+    private val changeFirstTimeKeyUseCase: ChangeFirstTimeKeyUseCase,
     private val locationRepository: LocationRepository
 ) : ViewModel() {
 
@@ -102,9 +106,16 @@ class DynamicWallpaperViewModel(
             is WallpaperEvent.OnDeletePack -> deletePack(event.packId)
 
             is WallpaperEvent.OnSelectFromPackManager -> selectPackFromManager(event.packId)
+
             is WallpaperEvent.OnDeleteDayRule -> deleteDailyWallpaper(event.dayName)
+
             is WallpaperEvent.OnDeleteFixedTimeRule -> deleteFixedTimeWallpaper(event.context,event.time)
+
             is WallpaperEvent.UpdateScaleMode -> updateScaleMode(event.mode)
+
+            is WallpaperEvent.OnConfirmFirstTime -> confirmFirstTimeApply()
+
+            is WallpaperEvent.OnDismissFirstTimeDialog -> onDismissFirstTimeDialog()
         }
     }
 
@@ -114,6 +125,23 @@ class DynamicWallpaperViewModel(
         }
         saveCurrentConfigToRepo()
         Log.d("VM", "Modo de escala universal actualizado a: $mode")
+    }
+
+    private fun confirmFirstTimeApply() {
+        viewModelScope.launch {
+            changeFirstTimeKeyUseCase()
+
+            _uiState.update { it.copy(
+                showFirstTimeDialog = false,
+                isFirstTimeGlobal = false
+            ) }
+
+            applyWallpaper()
+        }
+    }
+
+    private fun onDismissFirstTimeDialog(){
+        _uiState.update { it.copy(showFirstTimeDialog = false) }
     }
 
     // Location
@@ -160,10 +188,15 @@ class DynamicWallpaperViewModel(
 
     // Wallpapers
     private fun applyWallpaper() {
-        viewModelScope.launch {
-            val state = _uiState.value
-            val currentEditingId = state.editingPackId 
+        val state = _uiState.value
 
+        if (state.isFirstTimeGlobal) {
+            _uiState.update { it.copy(showFirstTimeDialog = true) }
+            return
+        }
+
+        viewModelScope.launch {
+            val currentEditingId = state.editingPackId
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             runCatching {
@@ -182,11 +215,11 @@ class DynamicWallpaperViewModel(
                 applyDynamicWallpaperUseCase(currentEditingId)
             }
                 .onSuccess {
-                    _uiState.update { state ->
-                        val updatedPacks = state.availablePacks.map {
+                    _uiState.update { s ->
+                        val updatedPacks = s.availablePacks.map {
                             it.copy(isActive = it.id == currentEditingId)
                         }
-                        state.copy(
+                        s.copy(
                             isLoading = false,
                             isApplied = true,
                             activePackId = currentEditingId,
@@ -195,11 +228,7 @@ class DynamicWallpaperViewModel(
                     }
                 }
                 .onFailure { t ->
-                    Log.e("WallpaperVM", "Error en apply: ${t.message}", t)
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        error = "valio pinga: ${t.message ?: "Error desconocido"}"
-                    ) }
+                    _uiState.update { it.copy(isLoading = false, error = t.message) }
                 }
         }
     }
@@ -212,28 +241,34 @@ class DynamicWallpaperViewModel(
                 val allPacks = getAllPacksUseCase()
                 val activeId = allPacks.find { it.isActive }?.id ?: "1"
                 val config = getWallpaperConfigUseCase(activeId)
+                val isFirstTime = getFirstTimeKeyUseCase()
 
                 val rulesMap = config.rules
                     .filter { it.wallpaperId.value.isNotEmpty() }
                     .associate { formatKey(it.weather, it.timeOfDay, it.target) to it.wallpaperId.value }
 
-                Triple(allPacks, config, rulesMap)
-            }.onSuccess { (allPacks, config, rulesMap) ->
+                object {
+                    val packs = allPacks
+                    val conf = config
+                    val rules = rulesMap
+                    val firstTime = isFirstTime
+                }
+            }.onSuccess { data ->
                 _uiState.update { it.copy(
-                    availablePacks = allPacks,
-                    rules = rulesMap,
-                    packName = config.name,
-                    dailyRules = config.dailyRules,
-                    fixedRules = config.fixedTimeRules,
-                    enabledWeathers = config.enabledWeathers,
-                    activePackId = config.activePackId,
-                    editingPackId = config.activePackId,
+                    availablePacks = data.packs,
+                    rules = data.rules,
+                    packName = data.conf.name,
+                    dailyRules = data.conf.dailyRules,
+                    fixedRules = data.conf.fixedTimeRules,
+                    enabledWeathers = data.conf.enabledWeathers,
+                    activePackId = data.conf.activePackId,
+                    editingPackId = data.conf.activePackId,
                     isLoading = false,
-                    scaleMode = config.scaleMode,
+                    scaleMode = data.conf.scaleMode,
+                    isFirstTimeGlobal = data.firstTime,
+                    showFirstTimeDialog = false
                 ) }
-                Log.d("TEST_DAILY", "Keys recibidas: ${config.dailyRules.entries}")
             }.onFailure { t ->
-                Log.e("VM", "Error inicializando: ${t.message}")
                 _uiState.update { it.copy(isLoading = false, error = t.message) }
             }
         }

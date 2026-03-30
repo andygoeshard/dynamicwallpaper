@@ -21,8 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.andyl.iris.R
 
 @Composable
 fun WallpaperTargetDialog(
@@ -33,7 +35,7 @@ fun WallpaperTargetDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "¿Dónde aplicar?",
+                text = stringResource(R.string.apply_to),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -45,22 +47,22 @@ fun WallpaperTargetDialog(
             ) {
                 TargetOptionItem(
                     icon = Icons.Default.Home,
-                    title = "Ambas pantallas",
-                    subtitle = "Sincronizar inicio y bloqueo",
+                    title = stringResource(R.string.both_screens),
+                    subtitle = stringResource(R.string.both_subtitle),
                     onClick = { onConfirm(3) }
                 )
 
                 TargetOptionItem(
                     icon = Icons.Default.Home,
-                    title = "Solo Inicio",
-                    subtitle = "Fondo del escritorio",
+                    title = stringResource(R.string.home_only),
+                    subtitle = stringResource(R.string.home_subtitle),
                     onClick = { onConfirm(1) }
                 )
 
                 TargetOptionItem(
                     icon = Icons.Default.Lock,
-                    title = "Solo Bloqueo",
-                    subtitle = "Pantalla de bloqueo",
+                    title = stringResource(R.string.lock_only),
+                    subtitle = stringResource(R.string.lock_subtitle),
                     onClick = { onConfirm(2) }
                 )
             }
@@ -68,7 +70,7 @@ fun WallpaperTargetDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(stringResource(R.string.cancel))
             }
         },
         shape = MaterialTheme.shapes.extraLarge

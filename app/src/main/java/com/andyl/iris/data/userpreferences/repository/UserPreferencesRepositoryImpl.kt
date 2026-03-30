@@ -221,6 +221,14 @@ class UserPreferencesRepositoryImpl(
         }
     }
 
+    override suspend fun isFirstApplyGlobal(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_GLOBAL_FIRST_APPLY, true)
+    }
+
+    override suspend fun setGlobalFirstApplyDone() = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_GLOBAL_FIRST_APPLY, false) }
+    }
+
 
     companion object {
         private const val KEY_PACK_DATA = "wallpaper_pack_data"
@@ -229,6 +237,7 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_LAST_LAT = "last_latitude"
         private const val KEY_LAST_LON = "last_longitude"
         private const val KEY_CITY_NAME = "last_city_name"
+        private const val KEY_GLOBAL_FIRST_APPLY = "global_first_apply_done"
     }
 }
 

@@ -9,13 +9,15 @@ val viewModelModule = module {
     viewModel {
         DynamicWallpaperViewModel(
             applyDynamicWallpaperUseCase = get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get()
+            setWallpaperRuleUseCase = get(),
+            getWallpaperConfigUseCase = get(),
+            changeActivePackUseCase = get(),
+            getAllPacksUseCase = get(),
+            addPackUseCase = get(),
+            deletePackUseCase = get(),
+            getFirstTimeKeyUseCase = get(),
+            changeFirstTimeKeyUseCase = get(),
+            locationRepository = get(),
         )
     }
 

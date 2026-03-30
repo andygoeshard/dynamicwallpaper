@@ -28,6 +28,8 @@ sealed interface WallpaperEvent{
     data class OnDeleteDayRule(val dayName: String): WallpaperEvent
     data class OnDeleteFixedTimeRule(val context: Context, val time: String): WallpaperEvent
     data class UpdateScaleMode(val mode: ScaleMode) : WallpaperEvent
+    object OnDismissFirstTimeDialog : WallpaperEvent
+    object OnConfirmFirstTime : WallpaperEvent
 }
 
 

@@ -103,6 +103,41 @@ fun DynamicWallpaperScreen(
         )
     }
 
+    if (state.showFirstTimeDialog) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = {
+                Text(
+                    text = stringResource(R.string.first_apply_title),
+                    fontWeight = FontWeight.ExtraBold
+                )
+            },
+            text = {
+                Text(text = stringResource(R.string.first_apply_text))
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.onEvent(WallpaperEvent.OnDismissFirstTimeDialog)
+                        viewModel.onEvent(WallpaperEvent.OnApplyWallpaper)
+                    },
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(stringResource(R.string.first_apply_confirm), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onEvent(WallpaperEvent.OnDismissFirstTimeDialog)
+                    }
+                ) {
+                    Text(stringResource(R.string.first_apply_cancel))
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -114,13 +149,13 @@ fun DynamicWallpaperScreen(
                     )
                 },
                 title = {
-                    Text("Iris", fontWeight = FontWeight.Black) },
+                    Text(stringResource(R.string.top_barr_name), fontWeight = FontWeight.Black) },
                 actions = {
                     IconButton(onClick = { viewModel.onEvent(WallpaperEvent.OnAddNewPack) }) {
-                        Icon(Icons.Default.AddCircle, contentDescription = "Add new pack")
+                        Icon(Icons.Default.AddCircle, contentDescription = stringResource(R.string.add_new_pack))
                     }
                     IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.cfg_screen_img_settings_title))
                     }
                 }
             )
@@ -134,7 +169,6 @@ fun DynamicWallpaperScreen(
                 ) {
                     Surface(
                         tonalElevation = 0.dp,
-                        // Glassy effect para el botón
                         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                         modifier = Modifier
                             .padding(16.dp)
@@ -144,7 +178,9 @@ fun DynamicWallpaperScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Button(
                                 onClick = { viewModel.onEvent(WallpaperEvent.OnApplyWallpaper) },
-                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
                                 shape = RoundedCornerShape(16.dp),
                                 enabled = !state.isLoading
                             ) {

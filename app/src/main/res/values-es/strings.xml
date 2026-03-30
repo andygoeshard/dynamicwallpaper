@@ -61,4 +61,26 @@
     <string name="fri">VIE</string>
     <string name="sat">SAB</string>
     <string name="sun">DOM</string>
+    <string name="both_screens">Ambas pantallas</string>
+    <string name="mixed_configuration">Configuración mixta</string>
+    <string name="home_only">Solo Inicio</string>
+    <string name="lock_only">Solo Bloqueo</string>
+    <string name="no_images">Sin imágenes</string>
+
+    <string name="weather_clear">Despejado</string>
+    <string name="weather_cloudy">Nublado</string>
+    <string name="weather_rain">Lluvia</string>
+    <string name="weather_snow">Nieve</string>
+    <string name="weather_fog">Niebla</string>
+    <string name="weather_storm">Tormenta</string>
+    <string name="cancel">Cancelar</string>
+    <string name="apply_to">¿Dónde aplicar?</string>
+    <string name="both_subtitle">Sincronizar inicio y bloqueo</string>
+    <string name="home_subtitle">Fondo del escritorio</string>
+    <string name="lock_subtitle">Pantalla de bloqueo</string>
+    <string name="add_new_pack">Agregar nuevo paquete</string>
+    <string name="first_apply_title">¿Aplicar cambios?</string>
+    <string name="first_apply_text">Iris va a cambiar el fondo de pantalla automáticamente según tus reglas. ¿Querés continuar?</string>
+    <string name="first_apply_confirm">Sí, aplicar</string>
+    <string name="first_apply_cancel">Ahora no</string>
 </resources>

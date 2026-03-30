@@ -18,5 +18,7 @@ data class DynamicWallpaperUiState(
     val editingPackId: String = "1",
     val activePackId: String = "1",
     val isWeatherFeatureEnabled: Boolean = false,
+    val isFirstTimeGlobal: Boolean = true,
+    val showFirstTimeDialog: Boolean = true,
     val scaleMode: ScaleMode = ScaleMode.CROP
 )
