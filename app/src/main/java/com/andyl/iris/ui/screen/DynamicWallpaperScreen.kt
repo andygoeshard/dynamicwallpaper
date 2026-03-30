@@ -118,7 +118,7 @@ fun DynamicWallpaperScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.onEvent(WallpaperEvent.OnDismissFirstTimeDialog)
+                        viewModel.onEvent(WallpaperEvent.OnConfirmFirstTime)
                         viewModel.onEvent(WallpaperEvent.OnApplyWallpaper)
                     },
                     shape = RoundedCornerShape(12.dp)

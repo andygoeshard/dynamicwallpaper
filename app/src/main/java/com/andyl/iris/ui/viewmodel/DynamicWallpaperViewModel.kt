@@ -130,12 +130,10 @@ class DynamicWallpaperViewModel(
     private fun confirmFirstTimeApply() {
         viewModelScope.launch {
             changeFirstTimeKeyUseCase()
-
             _uiState.update { it.copy(
                 showFirstTimeDialog = false,
                 isFirstTimeGlobal = false
             ) }
-
             applyWallpaper()
         }
     }
