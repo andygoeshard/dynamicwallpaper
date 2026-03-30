@@ -74,8 +74,8 @@
     <string name="home_subtitle">Home wallpaper</string>
     <string name="lock_subtitle">Lock screen wallpaper\n</string>
     <string name="add_new_pack">Add new pack</string>
-    <string name="first_apply_title">¿Aplicar cambios?</string>
-    <string name="first_apply_text">Iris va a cambiar el fondo de pantalla automáticamente según tus reglas. ¿Querés continuar?</string>
-    <string name="first_apply_confirm">Sí, aplicar</string>
-    <string name="first_apply_cancel">Ahora no</string>
+    <string name="first_apply_title">Apply changes?</string>
+    <string name="first_apply_text">Iris will automatically change your wallpaper based on your rules. Do you want to continue?</string>
+    <string name="first_apply_confirm">Yes, apply</string>
+    <string name="first_apply_cancel">Not now</string>
 </resources>
