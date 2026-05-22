@@ -47,16 +47,22 @@ class ApplyDynamicWallpaperUseCaseImpl(
         val timeOfDay = detectTimeOfDayUseCase()
 
         val rulesToApply = resolveWallpaperUseCase(currentWeather, timeOfDay, config)
+        Log.d("DEBUG_WORKER", "Reglas encontradas: ${rulesToApply.size}")
 
         if (rulesToApply.isNotEmpty()) {
             rulesToApply.forEach { rule ->
                 if (rule.wallpaperId.value.isNotEmpty()) {
-                    wallpaperRepository.applyWallpaper(
+                    Log.d("DEBUG_WORKER", "Intentando aplicar: ${rule.wallpaperId.value} a target ${rule.target}")
+                    val result = wallpaperRepository.applyWallpaper(
                         wallpaperId = rule.wallpaperId,
                         scaleMode = config.scaleMode,
                         target = rule.target
                     )
-                    Log.d("DEBUG_WORKER", "Aplicado a target ${rule.target}: ${rule.wallpaperId}")
+                    if (result.isSuccess) {
+                        Log.d("DEBUG_WORKER", "¡Aplicado con éxito!")
+                    } else {
+                        Log.e("DEBUG_WORKER", "Fallo al aplicar: ${result.exceptionOrNull()?.message}")
+                    }
                 }
             }
         } else {

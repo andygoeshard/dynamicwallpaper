@@ -49,7 +49,7 @@ class UserPreferencesRepositoryImpl(
                 name = "Pack $targetId",
                 rules = rules,
                 activePackId = getActivePackId(),
-                scaleMode = ScaleMode.FIT
+                scaleMode = ScaleMode.CROP
             )
         }
     }
@@ -162,7 +162,7 @@ class UserPreferencesRepositoryImpl(
             name = newName,
             rules = defaultRules(),
             activePackId = getActivePackId(),
-            scaleMode = ScaleMode.FIT
+            scaleMode = ScaleMode.CROP
         )
 
         setWallpaperConfig(newConfig)

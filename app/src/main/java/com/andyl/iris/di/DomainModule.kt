@@ -9,6 +9,7 @@ import com.andyl.iris.domain.usecase.contract.DetectTimeOfDayUseCase
 import com.andyl.iris.domain.usecase.contract.GetAllPacksUseCase
 import com.andyl.iris.domain.usecase.contract.GetFirstTimeKeyUseCase
 import com.andyl.iris.domain.usecase.contract.GetWallpaperConfigUseCase
+import com.andyl.iris.domain.usecase.contract.InstallPredefinedPackUseCase
 import com.andyl.iris.domain.usecase.contract.ResolveWallpaperUseCase
 import com.andyl.iris.domain.usecase.contract.SetWallpaperRuleUseCase
 import com.andyl.iris.domain.usecase.impl.AddPackUseCaseImpl
@@ -17,9 +18,11 @@ import com.andyl.iris.domain.usecase.impl.ChangeActivePackUseCaseImpl
 import com.andyl.iris.domain.usecase.impl.ChangeFirsTimeKeyUseCaseImpl
 import com.andyl.iris.domain.usecase.impl.DeletePackUseCaseImpl
 import com.andyl.iris.domain.usecase.impl.DetectTimeOfDayUseCaseImpl
+import com.andyl.iris.domain.usecase.impl.DownloadWallpaperUseCase
 import com.andyl.iris.domain.usecase.impl.GetAllPacksUseCaseImpl
 import com.andyl.iris.domain.usecase.impl.GetFirstTimeKeyUseCaseImpl
 import com.andyl.iris.domain.usecase.impl.GetWallpaperConfigUseCaseImpl
+import com.andyl.iris.domain.usecase.impl.InstallPredefinedPackUseCaseImpl
 import com.andyl.iris.domain.usecase.impl.ResolveWallpaperUseCaseImpl
 import com.andyl.iris.domain.usecase.impl.SetWallpaperConfigUseCaseImpl
 import com.andyl.iris.worker.IrisWallpaperWorker
@@ -80,10 +83,6 @@ val domainModule = module {
         )
     }
 
-    factory<DetectTimeOfDayUseCase> {
-        DetectTimeOfDayUseCaseImpl(get())
-    }
-
     factory<GetWallpaperConfigUseCase> {
         GetWallpaperConfigUseCaseImpl(get())
     }
@@ -96,6 +95,11 @@ val domainModule = module {
         ChangeFirsTimeKeyUseCaseImpl(get())
     }
 
-    worker { IrisWallpaperWorker(get(), get(), get()) }
+    factory<InstallPredefinedPackUseCase> {
+        InstallPredefinedPackUseCaseImpl(get(), get(), get(), get())
+    }
 
+    single{ DownloadWallpaperUseCase(get(), get()) }
+
+    worker { IrisWallpaperWorker(get(), get(), get()) }
 }

@@ -1,5 +1,6 @@
 package com.andyl.iris.ui.screen
 
+import android.R.attr.navigationIcon
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
@@ -28,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -70,7 +72,8 @@ import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
 @Composable
 fun DynamicWallpaperScreen(
     viewModel: DynamicWallpaperViewModel,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToSearch: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -141,6 +144,7 @@ fun DynamicWallpaperScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
+                modifier = Modifier.padding(top = 64.dp),
                 navigationIcon = {
                     IrisLogo(
                         modifier = Modifier
@@ -151,6 +155,13 @@ fun DynamicWallpaperScreen(
                 title = {
                     Text(stringResource(R.string.top_barr_name), fontWeight = FontWeight.Black) },
                 actions = {
+                    IconButton(onClick = onNavigateToSearch) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Explorar fondos"
+                        )
+                    }
+
                     IconButton(onClick = { viewModel.onEvent(WallpaperEvent.OnAddNewPack) }) {
                         Icon(Icons.Default.AddCircle, contentDescription = stringResource(R.string.add_new_pack))
                     }

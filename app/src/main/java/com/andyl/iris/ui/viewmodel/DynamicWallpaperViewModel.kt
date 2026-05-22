@@ -120,11 +120,29 @@ class DynamicWallpaperViewModel(
     }
 
     private fun updateScaleMode(mode: ScaleMode) {
-        _uiState.update { currentState ->
-            currentState.copy(scaleMode = mode)
+        _uiState.update { it.copy(scaleMode = mode) }
+        
+        viewModelScope.launch {
+            // 1. Guardar el nuevo modo de escala inmediatamente
+            val state = _uiState.value
+            val config = WallpaperConfig(
+                id = state.editingPackId,
+                name = state.packName,
+                rules = state.rules.map { (key, uri) -> parseRuleFromKey(key, uri) },
+                dailyRules = state.dailyRules,
+                fixedTimeRules = state.fixedRules,
+                enabledWeathers = state.enabledWeathers,
+                activePackId = state.activePackId,
+                scaleMode = mode
+            )
+            setWallpaperRuleUseCase(config)
+            
+            // 2. Si estamos editando el activo, forzamos el re-ajuste visual en el momento
+            if (state.editingPackId == state.activePackId) {
+                applyDynamicWallpaperUseCase(state.activePackId)
+                Log.d("VM", "Scale mode updated and re-applied reactively: $mode")
+            }
         }
-        saveCurrentConfigToRepo()
-        Log.d("VM", "Modo de escala universal actualizado a: $mode")
     }
 
     private fun confirmFirstTimeApply() {
@@ -436,6 +454,11 @@ class DynamicWallpaperViewModel(
             currentState.copy(dailyRules = newDailyRules)
         }
         saveCurrentConfigToRepo()
+        
+        val state = _uiState.value
+        if (state.editingPackId == state.activePackId) {
+            applyWallpaper()
+        }
     }
 
     private fun setFixedTimeWallpaper(context: Context, timeKey: String, uri: String) {
@@ -458,6 +481,11 @@ class DynamicWallpaperViewModel(
 
         val timeForAlarm = timeKey.split("-")[0]
         AlarmHelper.scheduleFixedTimeAlarm(context, timeForAlarm)
+        
+        val state = _uiState.value
+        if (state.editingPackId == state.activePackId) {
+            applyWallpaper()
+        }
     }
 
     private fun deleteFixedTimeWallpaper(context: Context, timeKey: String) {
@@ -496,6 +524,12 @@ class DynamicWallpaperViewModel(
             currentState.copy(rules = newRules)
         }
         saveCurrentConfigToRepo()
+        
+        // Si estamos editando el pack que está activo, aplicamos los cambios inmediatamente
+        val state = _uiState.value
+        if (state.editingPackId == state.activePackId) {
+            applyWallpaper()
+        }
     }
 
     private fun requestExactAlarmPermission(context: Context) {

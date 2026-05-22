@@ -1,5 +1,6 @@
 package com.andyl.iris.di
 
+import com.andyl.iris.ui.searchscreen.SearchViewModel
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -18,6 +19,14 @@ val viewModelModule = module {
             getFirstTimeKeyUseCase = get(),
             changeFirstTimeKeyUseCase = get(),
             locationRepository = get(),
+        )
+    }
+    viewModel { params ->
+        SearchViewModel(
+            remoteDataSource = get(),
+            downloadUseCase = get(),
+            installPredefinedPackUseCase = get(),
+            wallpaperViewModel = params.get()
         )
     }
 

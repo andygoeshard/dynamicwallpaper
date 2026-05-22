@@ -15,6 +15,8 @@ import androidx.core.net.toUri
 import com.andyl.iris.domain.model.ScaleMode
 import androidx.core.graphics.scale
 import androidx.core.graphics.createBitmap
+import java.io.File
+import java.io.InputStream
 
 class WallpaperRepositoryImpl(
     private val context: Context
@@ -26,7 +28,9 @@ class WallpaperRepositoryImpl(
         target: Int
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val uri = wallpaperId.value.toUri()
+            val path = wallpaperId.value
+            Log.d("IRIS_WALLPAPER", ">>> START APPLYING: $path")
+            
             val wallpaperManager = WallpaperManager.getInstance(context)
 
             val androidFlags = when (target) {
@@ -39,18 +43,35 @@ class WallpaperRepositoryImpl(
             val screenWidth = metrics.widthPixels.toFloat()
             val screenHeight = metrics.heightPixels.toFloat()
 
-            // 2. Decodificar con sample size inteligente
+            // 1. SAFE STREAM RETRIEVAL
+            fun getInputStream(): InputStream {
+                return if (path.startsWith("/") || path.startsWith("file://")) {
+                    val cleanPath = path.removePrefix("file://")
+                    val file = File(cleanPath)
+                    if (!file.exists()) {
+                        Log.e("IRIS_WALLPAPER", "File does not exist: $cleanPath")
+                        throw Exception("File not found")
+                    }
+                    file.inputStream()
+                } else {
+                    context.contentResolver.openInputStream(path.toUri()) 
+                        ?: throw Exception("ContentResolver null stream")
+                }
+            }
+
+            // 2. PRE-DECODE FOR SIZE
             val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            context.contentResolver.openInputStream(uri)?.use {
+            getInputStream().use {
                 BitmapFactory.decodeStream(it, null, options)
             }
 
             options.inSampleSize = calculateInSampleSize(options, screenWidth.toInt(), screenHeight.toInt())
             options.inJustDecodeBounds = false
 
-            context.contentResolver.openInputStream(uri)?.use { input ->
+            // 3. FULL DECODE AND SCALE
+            getInputStream().use { input ->
                 val originalBitmap = BitmapFactory.decodeStream(input, null, options)
-                    ?: throw Exception("No se pudo decodificar la imagen")
+                    ?: throw Exception("Bitmap decode failed")
 
                 val finalBitmap = when (scaleMode) {
                     ScaleMode.CROP -> centerCrop(originalBitmap, screenWidth, screenHeight)
@@ -58,34 +79,28 @@ class WallpaperRepositoryImpl(
                     ScaleMode.FIT -> centerFit(originalBitmap, screenWidth, screenHeight)
                 }
 
+                // 4. APPLY TO SYSTEM
                 wallpaperManager.setBitmap(finalBitmap, null, true, androidFlags)
+                Log.d("IRIS_WALLPAPER", ">>> SUCCESS applying to target $androidFlags")
 
-                Log.d("WALLPAPER_REPO", "Fondo aplicado a flags: $androidFlags")
-
-                // 5. Limpieza agresiva de memoria
+                // 5. CLEANUP
                 if (finalBitmap != originalBitmap) {
                     originalBitmap.recycle()
                 }
-
-            } ?: throw Exception("Stream de URI no disponible")
+            }
         }.onFailure { e ->
-            Log.e("WALLPAPER_REPO", "Error aplicando wallpaper: ${e.message}")
+            Log.e("IRIS_WALLPAPER", ">>> FATAL ERROR: ${e.message}", e)
         }
     }
-
-    // --- FUNCIONES DE TRANSFORMACIÓN ---
 
     private fun centerCrop(source: Bitmap, targetW: Float, targetH: Float): Bitmap {
         val sourceW = source.width.toFloat()
         val sourceH = source.height.toFloat()
-
         val scale = (targetW / sourceW).coerceAtLeast(targetH / sourceH)
         val matrix = Matrix().apply { setScale(scale, scale) }
-
         val dx = (targetW - sourceW * scale) / 2f
         val dy = (targetH - sourceH * scale) / 2f
         matrix.postTranslate(dx, dy)
-
         val result = createBitmap(targetW.toInt(), targetH.toInt())
         Canvas(result).drawBitmap(source, matrix, null)
         return result
@@ -98,14 +113,11 @@ class WallpaperRepositoryImpl(
     private fun centerFit(source: Bitmap, targetW: Float, targetH: Float): Bitmap {
         val sourceW = source.width.toFloat()
         val sourceH = source.height.toFloat()
-
         val scale = (targetW / sourceW).coerceAtMost(targetH / sourceH)
         val matrix = Matrix().apply { setScale(scale, scale) }
-
         val dx = (targetW - sourceW * scale) / 2f
         val dy = (targetH - sourceH * scale) / 2f
         matrix.postTranslate(dx, dy)
-
         val result = createBitmap(targetW.toInt(), targetH.toInt())
         Canvas(result).drawBitmap(source, matrix, null)
         return result
@@ -124,4 +136,3 @@ class WallpaperRepositoryImpl(
         return inSampleSize
     }
 }
-

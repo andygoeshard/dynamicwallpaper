@@ -17,8 +17,8 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
         val now = java.time.LocalDateTime.now()
         val rulesToApply = mutableListOf<WallpaperRule>()
 
+        // 1. Reglas por Hora Exacta
         val timeKey = "%02d:%02d".format(now.hour, now.minute)
-
         config.fixedTimeRules[timeKey]?.let { uri ->
             if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 3))
         }
@@ -31,11 +31,10 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
                 if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 2))
             }
         }
-
         if (rulesToApply.isNotEmpty()) return rulesToApply
 
+        // 2. Reglas Diarias
         val dayName = now.dayOfWeek.name.lowercase()
-
         config.dailyRules[dayName]?.let { uri ->
             if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 3))
         }
@@ -48,19 +47,21 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
                 if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 2))
             }
         }
-
         if (rulesToApply.isNotEmpty()) return rulesToApply
 
+        // 3. Reglas por Clima/Momento
+        val weatherToMatch = weather ?: Weather.Clear
         val weatherMatches = config.rules.filter { rule ->
-            val matchesWeather = weather != null && rule.weather == weather && config.enabledWeathers.contains(weather)
+            val matchesWeather = rule.weather == weatherToMatch && config.enabledWeathers.contains(weatherToMatch)
             val matchesTime = rule.timeOfDay == timeOfDay
             matchesWeather && matchesTime
         }
 
         if (weatherMatches.isNotEmpty()) return weatherMatches
 
+        // Fallback final: Primera regla que coincida con el momento del día
         val timeMatches = config.rules.filter { it.timeOfDay == timeOfDay }
-        if (timeMatches.isNotEmpty()) return timeMatches
+        if (timeMatches.isNotEmpty()) return listOf(timeMatches.first())
 
         return config.rules.take(1)
     }

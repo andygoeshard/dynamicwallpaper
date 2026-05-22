@@ -1,5 +1,6 @@
 package com.andyl.iris.di
 
+import com.andyl.iris.data.imagesprovider.datasource.UnsplashRemoteDataSource
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -15,6 +16,7 @@ val networkModule = module {
                 json(
                     Json {
                         ignoreUnknownKeys = true
+                        prettyPrint = true
                         isLenient = true
                     }
                 )
@@ -22,4 +24,5 @@ val networkModule = module {
         }
     }
 
+    single { UnsplashRemoteDataSource(get()) }
 }
