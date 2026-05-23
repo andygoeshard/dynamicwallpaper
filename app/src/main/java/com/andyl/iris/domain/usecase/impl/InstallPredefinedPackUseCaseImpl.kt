@@ -35,30 +35,29 @@ class InstallPredefinedPackUseCaseImpl(
             val dailyRulesToDownload = mutableListOf<PredefinedDailyRule>()
 
             if (pack.isRandom && pack.randomQuery != null) {
-                val randomImages = unsplashRemoteDataSource.getRandomPhotos(pack.randomQuery, count = 30).getOrNull()
-                if (!randomImages.isNullOrEmpty()) {
-                    if (pack.type == PackType.WEEKLY) {
-                        // Assign random images to days
+                if (pack.type == PackType.WEEKLY) {
+                    val randomImages = unsplashRemoteDataSource.getRandomPhotos(pack.randomQuery, count = 10).getOrNull()
+                    if (!randomImages.isNullOrEmpty()) {
                         val days = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
                         days.forEachIndexed { index, day ->
-                            val url = randomImages.getOrNull(index)?.urls?.full ?: ""
+                            val url = randomImages.getOrNull(index % randomImages.size)?.urls?.full ?: ""
                             val optimizedUrl = if (url.contains("?")) "$url&ar=9:16&fit=crop" else "$url?ar=9:16&fit=crop"
                             dailyRulesToDownload.add(PredefinedDailyRule(day, optimizedUrl))
                         }
-                    } else {
-                        // Assign random images to weather/time
-                        var imgIndex = 0
-                        Weather.all().forEach { w ->
-                            TimeOfDay.entries.forEach { t ->
-                                val url = randomImages.getOrNull(imgIndex % randomImages.size)?.urls?.full ?: ""
+                    }
+                } else {
+                    // Weather-based random pack: Fetch images for each time of day to ensure atmosphere
+                    TimeOfDay.entries.forEach { time ->
+                        val query = "${pack.randomQuery} ${time.name.lowercase()}"
+                        val images = unsplashRemoteDataSource.getRandomPhotos(query, count = 10).getOrNull()
+                        if (!images.isNullOrEmpty()) {
+                            Weather.all().forEachIndexed { index, weather ->
+                                val url = images.getOrNull(index % images.size)?.urls?.full ?: ""
                                 val optimizedUrl = if (url.contains("?")) "$url&ar=9:16&fit=crop" else "$url?ar=9:16&fit=crop"
-                                weatherRulesToDownload.add(PredefinedRule(w, t, optimizedUrl))
-                                imgIndex++
+                                weatherRulesToDownload.add(PredefinedRule(weather, time, optimizedUrl))
                             }
                         }
                     }
-                } else {
-                    return@withContext Result.failure(Exception("Failed to fetch images from Unsplash"))
                 }
             } else {
                 weatherRulesToDownload.addAll(pack.weatherRules)
@@ -97,7 +96,7 @@ class InstallPredefinedPackUseCaseImpl(
             val newId = "pack_${pack.id}_${System.currentTimeMillis()}"
             val config = WallpaperConfig(
                 id = newId,
-                name = pack.name,
+                name = if (pack.isRandom) "${pack.name} (Randomized)" else pack.name,
                 rules = localWeatherRules,
                 dailyRules = localDailyRules,
                 activePackId = newId,

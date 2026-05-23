@@ -55,12 +55,7 @@ fun FixedTimeSection(
                 val uriStr = it.toString()
 
                 if (targetPredefined != null) {
-                    val finalKey = when (targetPredefined) {
-                        1 -> "$time-1"
-                        2 -> "$time-2"
-                        else -> time
-                    }
-                    onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, finalKey, uriStr))
+                    onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, time, uriStr, targetPredefined!!))
 
                     targetPredefined = null
                     selectedTimeForPicker = null
@@ -103,7 +98,12 @@ fun FixedTimeSection(
                                     val oldKey = "$displayTime$suffix"
                                     val uri = state.fixedRules[oldKey]
                                     if (uri != null) {
-                                        onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, "$newTime$suffix", uri))
+                                        val target = when {
+                                            suffix == "-1" -> 1
+                                            suffix == "-2" -> 2
+                                            else -> 3
+                                        }
+                                        onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, newTime, uri, target))
                                         onEvent(WallpaperEvent.OnDeleteFixedTimeRule(context, oldKey))
                                     }
                                 }
@@ -142,12 +142,7 @@ fun FixedTimeSection(
                 val time = selectedTimeForPicker
                 val uri = pendingUri
                 if (time != null && uri != null) {
-                    val finalKey = when (target) {
-                        1 -> "$time-1"
-                        2 -> "$time-2"
-                        else -> time
-                    }
-                    onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, finalKey, uri))
+                    onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, time, uri, target))
                 }
                 showTargetDialog = false
                 selectedTimeForPicker = null

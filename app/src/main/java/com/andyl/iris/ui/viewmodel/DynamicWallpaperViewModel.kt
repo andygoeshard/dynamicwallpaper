@@ -93,9 +93,9 @@ class DynamicWallpaperViewModel(
 
             is WallpaperEvent.RequestExactAlarmPermission -> requestExactAlarmPermission(event.context)
 
-            is WallpaperEvent.SetDailyWallpaper -> setDailyWallpaper(event.dayName, event.uri)
+            is WallpaperEvent.SetDailyWallpaper -> setDailyWallpaper(event.dayName, event.uri, event.target)
 
-            is WallpaperEvent.SetFixedTimeWallpaper -> setFixedTimeWallpaper(event.context, event.time, event.uri)
+            is WallpaperEvent.SetFixedTimeWallpaper -> setFixedTimeWallpaper(event.context, event.time, event.uri, event.target)
 
             is WallpaperEvent.SetWallpaperRule -> setWallpaperRule(event.weather, event.timeOfDay, event.wallpaperUri, event.target)
 
@@ -436,19 +436,17 @@ class DynamicWallpaperViewModel(
         )
     }
 
-    private fun setDailyWallpaper(key: String, uri: String) {
+    private fun setDailyWallpaper(dayName: String, uri: String, target: Int) {
         _uiState.update { currentState ->
             val newDailyRules = currentState.dailyRules.toMutableMap()
 
-            val dayName = key.split("-")[0]
-
-            if (key.contains("-")) {
-                newDailyRules.remove(dayName)
-                newDailyRules[key] = uri
-            } else {
+            if (target == 3) {
                 newDailyRules.remove("$dayName-1")
                 newDailyRules.remove("$dayName-2")
                 newDailyRules[dayName] = uri
+            } else {
+                newDailyRules.remove(dayName)
+                newDailyRules["$dayName-$target"] = uri
             }
 
             currentState.copy(dailyRules = newDailyRules)
@@ -461,26 +459,25 @@ class DynamicWallpaperViewModel(
         }
     }
 
-    private fun setFixedTimeWallpaper(context: Context, timeKey: String, uri: String) {
+    private fun setFixedTimeWallpaper(context: Context, timeBase: String, uri: String, target: Int) {
         _uiState.update { currentState ->
             val newFixedRules = currentState.fixedRules.toMutableMap()
-            val timeBase = timeKey.split("-")[0]
 
-            if (timeKey.contains("-")) {
-                newFixedRules.remove(timeBase)
-            } else {
+            if (target == 3) {
                 newFixedRules.remove("$timeBase-1")
                 newFixedRules.remove("$timeBase-2")
+                newFixedRules[timeBase] = uri
+            } else {
+                newFixedRules.remove(timeBase)
+                newFixedRules["$timeBase-$target"] = uri
             }
 
-            newFixedRules[timeKey] = uri
             currentState.copy(fixedRules = newFixedRules)
         }
 
         saveCurrentConfigToRepo()
 
-        val timeForAlarm = timeKey.split("-")[0]
-        AlarmHelper.scheduleFixedTimeAlarm(context, timeForAlarm)
+        AlarmHelper.scheduleFixedTimeAlarm(context, timeBase)
         
         val state = _uiState.value
         if (state.editingPackId == state.activePackId) {

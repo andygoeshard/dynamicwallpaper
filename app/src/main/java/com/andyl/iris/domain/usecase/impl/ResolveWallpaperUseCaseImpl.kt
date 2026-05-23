@@ -59,9 +59,9 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
 
         if (weatherMatches.isNotEmpty()) return weatherMatches
 
-        // Fallback final: Primera regla que coincida con el momento del día
+        // Fallback final: Reglas que coincidan con el momento del día
         val timeMatches = config.rules.filter { it.timeOfDay == timeOfDay }
-        if (timeMatches.isNotEmpty()) return listOf(timeMatches.first())
+        if (timeMatches.isNotEmpty()) return timeMatches
 
         return config.rules.take(1)
     }

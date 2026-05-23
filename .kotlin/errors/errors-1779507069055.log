@@ -1,0 +1,1077 @@
+kotlin version: 2.0.21
+error message: org.jetbrains.kotlin.backend.common.BackendException: Backend Internal error: Exception during IR lowering
+File being compiled: /Users/mamorales/AndroidStudioProjects/dynamicwallpaper/app/src/main/java/com/andyl/iris/ui/searchscreen/components/PackDetail.kt
+The root cause java.lang.RuntimeException was thrown at: org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	at org.jetbrains.kotlin.backend.common.CodegenUtil.reportBackendException(CodegenUtil.kt:253)
+	at org.jetbrains.kotlin.backend.common.CodegenUtil.reportBackendException$default(CodegenUtil.kt:236)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invokeSequential(performByIrFile.kt:65)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invoke(performByIrFile.kt:52)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invoke(performByIrFile.kt:38)
+	at org.jetbrains.kotlin.backend.common.phaser.NamedCompilerPhase.phaseBody(CompilerPhase.kt:166)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:27)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:14)
+	at org.jetbrains.kotlin.backend.common.phaser.NamedCompilerPhase.phaseBody(CompilerPhase.kt:166)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.CompilerPhaseKt.invokeToplevel(CompilerPhase.kt:62)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.invokeCodegen(JvmIrCodegenFactory.kt:371)
+	at org.jetbrains.kotlin.codegen.CodegenFactory.generateModule(CodegenFactory.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.generateModuleInFrontendIRMode(JvmIrCodegenFactory.kt:433)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineKt.generateCodeFromIr(jvmCompilerPipeline.kt:246)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineKt.compileModulesUsingFrontendIrAndLightTree(jvmCompilerPipeline.kt:142)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecute(K2JVMCompiler.kt:148)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecute(K2JVMCompiler.kt:43)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:103)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:49)
+	at org.jetbrains.kotlin.cli.common.CLITool.exec(CLITool.kt:101)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner.runCompiler(IncrementalJvmCompilerRunner.kt:464)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner.runCompiler(IncrementalJvmCompilerRunner.kt:73)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.doCompile(IncrementalCompilerRunner.kt:506)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compileImpl(IncrementalCompilerRunner.kt:423)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally$lambda$9$compile(IncrementalCompilerRunner.kt:249)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally(IncrementalCompilerRunner.kt:267)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:120)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:675)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:92)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:1660)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.base/java.lang.Thread.run(Unknown Source)
+Caused by: java.lang.RuntimeException: Exception while generating code for:
+FUN name:PackDetailList visibility:public modality:FINAL <> (pack:com.andyl.iris.ui.searchscreen.SuggestedPack, rules:kotlin.collections.Map<kotlin.String, kotlin.String>, dailyRules:kotlin.collections.Map<kotlin.String, kotlin.String>, onSlotClick:kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit>, onDownloadFullPack:kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit>, $composer:androidx.compose.runtime.Composer?, $changed:kotlin.Int) returnType:kotlin.Unit
+  annotations:
+    Composable
+    ComposableTarget(applier = "androidx.compose.ui.UiComposable")
+  VALUE_PARAMETER name:pack index:0 type:com.andyl.iris.ui.searchscreen.SuggestedPack
+  VALUE_PARAMETER name:rules index:1 type:kotlin.collections.Map<kotlin.String, kotlin.String>
+  VALUE_PARAMETER name:dailyRules index:2 type:kotlin.collections.Map<kotlin.String, kotlin.String>
+  VALUE_PARAMETER name:onSlotClick index:3 type:kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit>
+  VALUE_PARAMETER name:onDownloadFullPack index:4 type:kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit>
+  VALUE_PARAMETER name:$composer index:5 type:androidx.compose.runtime.Composer? [assignable]
+  VALUE_PARAMETER name:$changed index:6 type:kotlin.Int
+  BLOCK_BODY
+    BLOCK type=kotlin.Unit origin=null
+      SET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Unit origin=null
+        CALL 'public abstract fun startRestartGroup (key: kotlin.Int): androidx.compose.runtime.Composer declared in androidx.compose.runtime.Composer' type=androidx.compose.runtime.Composer origin=null
+          $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+          key: CONST Int type=kotlin.Int value=-570879659
+      CALL 'public final fun sourceInformation (composer: androidx.compose.runtime.Composer, sourceInformation: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+        composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+        sourceInformation: CONST String type=kotlin.String value="C(PackDetailList)P(3,4!1,2)49@2057L7,159@6215L4752,157@6141L4826:PackDetail.kt#ikeejk"
+    VAR name:$dirty type:kotlin.Int [val]
+      GET_VAR '$changed: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=6
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public abstract fun changed (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'pack: com.andyl.iris.ui.searchscreen.SuggestedPack declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.ui.searchscreen.SuggestedPack origin=null
+                then: CONST Int type=kotlin.Int value=4
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=2
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=48
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'rules: kotlin.collections.Map<kotlin.String, kotlin.String> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.Map<kotlin.String, kotlin.String> origin=null
+                then: CONST Int type=kotlin.Int value=32
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=16
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=384
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'dailyRules: kotlin.collections.Map<kotlin.String, kotlin.String> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.Map<kotlin.String, kotlin.String> origin=null
+                then: CONST Int type=kotlin.Int value=256
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=128
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=3072
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'onSlotClick: kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit> origin=null
+                then: CONST Int type=kotlin.Int value=2048
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=1024
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR '$changed: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+            other: CONST Int type=kotlin.Int value=24576
+          arg1: CONST Int type=kotlin.Int value=0
+        then: SET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Unit origin=null
+          CALL 'public final fun or (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+            $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+            other: WHEN type=kotlin.Int origin=IF
+              BRANCH
+                if: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                  value: GET_VAR 'onDownloadFullPack: kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit> origin=null
+                then: CONST Int type=kotlin.Int value=16384
+              BRANCH
+                if: CONST Boolean type=kotlin.Boolean value=true
+                then: CONST Int type=kotlin.Int value=8192
+    WHEN type=kotlin.Unit origin=IF
+      BRANCH
+        if: CALL 'public final fun OROR (arg0: kotlin.Boolean, arg1: kotlin.Boolean): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+          arg0: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+            $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+              arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+                other: CONST Int type=kotlin.Int value=9363
+              arg1: CONST Int type=kotlin.Int value=9362
+          arg1: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+            $this: CALL 'public abstract fun <get-skipping> (): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+              $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+        then: BLOCK type=kotlin.Unit origin=null
+          WHEN type=kotlin.Unit origin=IF
+            BRANCH
+              if: CALL 'public final fun isTraceInProgress (): kotlin.Boolean declared in androidx.compose.runtime.ComposerKt' type=kotlin.Boolean origin=null
+              then: CALL 'public final fun traceEventStart (key: kotlin.Int, dirty1: kotlin.Int, dirty2: kotlin.Int, info: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+                key: CONST Int type=kotlin.Int value=-570879659
+                dirty1: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+                dirty2: CONST Int type=kotlin.Int value=-1
+                info: CONST String type=kotlin.String value="com.andyl.iris.ui.searchscreen.components.PackDetailList (PackDetail.kt:48)"
+          VAR name:context type:android.content.Context [val]
+            CALL 'public final fun <get-current> ($composer: androidx.compose.runtime.Composer?, $changed: kotlin.Int): T of androidx.compose.runtime.CompositionLocal [inline] declared in androidx.compose.runtime.CompositionLocal' type=android.content.Context origin=GET_PROPERTY
+              $this: TYPE_OP type=androidx.compose.runtime.CompositionLocal<T of androidx.compose.runtime.CompositionLocal> origin=IMPLICIT_CAST typeOperand=androidx.compose.runtime.CompositionLocal<T of androidx.compose.runtime.CompositionLocal>
+                CALL 'public final fun <get-LocalContext> (): androidx.compose.runtime.ProvidableCompositionLocal<android.content.Context> declared in androidx.compose.ui.platform.AndroidCompositionLocals_androidKt' type=androidx.compose.runtime.ProvidableCompositionLocal<android.content.Context> origin=GET_PROPERTY
+              $composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+              $changed: CONST Int type=kotlin.Int value=0
+          CLASS CLASS name:SlotStatus modality:FINAL visibility:local [data] superTypes:[kotlin.Any]
+            $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+            CONSTRUCTOR visibility:public <> (uriBoth:kotlin.String?, uriHome:kotlin.String?, uriLock:kotlin.String?) returnType:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus [primary]
+              VALUE_PARAMETER name:uriBoth index:0 type:kotlin.String?
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              VALUE_PARAMETER name:uriHome index:1 type:kotlin.String?
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              VALUE_PARAMETER name:uriLock index:2 type:kotlin.String?
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              BLOCK_BODY
+                DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () [primary] declared in kotlin.Any'
+                BLOCK type=kotlin.Unit origin=null
+                  SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.Unit origin=INITIALIZE_FIELD
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    value: GET_VAR 'uriBoth: kotlin.String? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.String? origin=null
+                  SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.Unit origin=INITIALIZE_FIELD
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    value: GET_VAR 'uriHome: kotlin.String? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.String? origin=null
+                  SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.Unit origin=INITIALIZE_FIELD
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    value: GET_VAR 'uriLock: kotlin.String? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.String? origin=null
+                  SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:hasAny type:kotlin.Boolean visibility:private [final]' type=kotlin.Unit origin=INITIALIZE_FIELD
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    value: CALL 'public final fun OROR (arg0: kotlin.Boolean, arg1: kotlin.Boolean): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                      arg0: CALL 'public final fun OROR (arg0: kotlin.Boolean, arg1: kotlin.Boolean): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                        arg0: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                            arg0: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                              receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                            arg1: CONST Null type=kotlin.Nothing? value=null
+                        arg1: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                            arg0: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                              receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                            arg1: CONST Null type=kotlin.Nothing? value=null
+                      arg1: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                        $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                          arg0: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                            receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                          arg1: CONST Null type=kotlin.Nothing? value=null
+                  SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bestUri type:kotlin.String? visibility:private [final]' type=kotlin.Unit origin=INITIALIZE_FIELD
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    value: BLOCK type=kotlin.String? origin=FOLDED_ELVIS
+                      WHEN type=kotlin.String? origin=FOLDED_ELVIS
+                        BRANCH
+                          if: COMPOSITE type=kotlin.Boolean origin=null
+                            VAR IR_TEMPORARY_VARIABLE name:tmp0_elvis_lhs type:kotlin.String? [val]
+                              GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                                receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                            CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                              $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                arg0: GET_VAR 'val tmp0_elvis_lhs: kotlin.String? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.String? origin=null
+                                arg1: CONST Null type=kotlin.Nothing? value=null
+                          then: GET_VAR 'val tmp0_elvis_lhs: kotlin.String? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.String? origin=null
+                        BRANCH
+                          if: COMPOSITE type=kotlin.Boolean origin=null
+                            VAR IR_TEMPORARY_VARIABLE name:tmp1_elvis_lhs type:kotlin.String? [val]
+                              GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                                receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                            CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                              $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                arg0: GET_VAR 'val tmp1_elvis_lhs: kotlin.String? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.String? origin=null
+                                arg1: CONST Null type=kotlin.Nothing? value=null
+                          then: GET_VAR 'val tmp1_elvis_lhs: kotlin.String? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.String? origin=null
+                        BRANCH
+                          if: CONST Boolean type=kotlin.Boolean value=true
+                          then: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                            receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+            CONSTRUCTOR FUNCTION_FOR_DEFAULT_PARAMETER visibility:public <> (uriBoth:kotlin.String?, uriHome:kotlin.String?, uriLock:kotlin.String?, $mask0:kotlin.Int, $marker:kotlin.jvm.internal.DefaultConstructorMarker?) returnType:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              VALUE_PARAMETER name:uriBoth index:0 type:kotlin.String? [assignable]
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              VALUE_PARAMETER name:uriHome index:1 type:kotlin.String? [assignable]
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              VALUE_PARAMETER name:uriLock index:2 type:kotlin.String? [assignable]
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              VALUE_PARAMETER MASK_FOR_DEFAULT_FUNCTION name:$mask0 index:3 type:kotlin.Int
+              VALUE_PARAMETER DEFAULT_CONSTRUCTOR_MARKER name:$marker index:4 type:kotlin.jvm.internal.DefaultConstructorMarker?
+              BLOCK_BODY
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                        arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                          $this: GET_VAR '$mask0: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.Int origin=null
+                          other: CONST Int type=kotlin.Int value=1
+                        arg1: CONST Int type=kotlin.Int value=0
+                    then: SET_VAR 'uriBoth: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.Unit origin=EQ
+                      CONST Null type=kotlin.Nothing? value=null
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                        arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                          $this: GET_VAR '$mask0: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.Int origin=null
+                          other: CONST Int type=kotlin.Int value=2
+                        arg1: CONST Int type=kotlin.Int value=0
+                    then: SET_VAR 'uriHome: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.Unit origin=EQ
+                      CONST Null type=kotlin.Nothing? value=null
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                        arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                          $this: GET_VAR '$mask0: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.Int origin=null
+                          other: CONST Int type=kotlin.Int value=4
+                        arg1: CONST Int type=kotlin.Int value=0
+                    then: SET_VAR 'uriLock: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.Unit origin=EQ
+                      CONST Null type=kotlin.Nothing? value=null
+                DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> (uriBoth: kotlin.String?, uriHome: kotlin.String?, uriLock: kotlin.String?) [primary] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  uriBoth: GET_VAR 'uriBoth: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.String? origin=null
+                  uriHome: GET_VAR 'uriHome: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.String? origin=null
+                  uriLock: GET_VAR 'uriLock: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<init>' type=kotlin.String? origin=null
+            FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]
+            FUN DEFAULT_PROPERTY_ACCESSOR name:<get-uriBoth> visibility:public modality:FINAL <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus) returnType:kotlin.String?
+              correspondingProperty: PROPERTY name:uriBoth visibility:public modality:FINAL [val]
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun <get-uriBoth> (): kotlin.String? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<get-uriBoth>' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+            FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]
+            FUN DEFAULT_PROPERTY_ACCESSOR name:<get-uriHome> visibility:public modality:FINAL <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus) returnType:kotlin.String?
+              correspondingProperty: PROPERTY name:uriHome visibility:public modality:FINAL [val]
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun <get-uriHome> (): kotlin.String? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<get-uriHome>' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+            FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]
+            FUN DEFAULT_PROPERTY_ACCESSOR name:<get-uriLock> visibility:public modality:FINAL <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus) returnType:kotlin.String?
+              correspondingProperty: PROPERTY name:uriLock visibility:public modality:FINAL [val]
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun <get-uriLock> (): kotlin.String? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<get-uriLock>' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+            FIELD PROPERTY_BACKING_FIELD name:hasAny type:kotlin.Boolean visibility:private [final]
+            FUN DEFAULT_PROPERTY_ACCESSOR name:<get-hasAny> visibility:public modality:FINAL <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus) returnType:kotlin.Boolean
+              correspondingProperty: PROPERTY name:hasAny visibility:public modality:FINAL [val]
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun <get-hasAny> (): kotlin.Boolean declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:hasAny type:kotlin.Boolean visibility:private [final]' type=kotlin.Boolean origin=null
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<get-hasAny>' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+            FIELD PROPERTY_BACKING_FIELD name:bestUri type:kotlin.String? visibility:private [final]
+            FUN DEFAULT_PROPERTY_ACCESSOR name:<get-bestUri> visibility:public modality:FINAL <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus) returnType:kotlin.String?
+              correspondingProperty: PROPERTY name:bestUri visibility:public modality:FINAL [val]
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun <get-bestUri> (): kotlin.String? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:bestUri type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.<get-bestUri>' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+            FUN GENERATED_DATA_CLASS_MEMBER name:component1 visibility:public modality:FINAL <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus) returnType:kotlin.String? [operator]
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun component1 (): kotlin.String? [operator] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.component1' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+            FUN GENERATED_DATA_CLASS_MEMBER name:component2 visibility:public modality:FINAL <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus) returnType:kotlin.String? [operator]
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun component2 (): kotlin.String? [operator] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.component2' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+            FUN GENERATED_DATA_CLASS_MEMBER name:component3 visibility:public modality:FINAL <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus) returnType:kotlin.String? [operator]
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun component3 (): kotlin.String? [operator] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                    receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.component3' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+            FUN GENERATED_DATA_CLASS_MEMBER name:copy visibility:public modality:FINAL <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus, uriBoth:kotlin.String?, uriHome:kotlin.String?, uriLock:kotlin.String?) returnType:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              VALUE_PARAMETER name:uriBoth index:0 type:kotlin.String?
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              VALUE_PARAMETER name:uriHome index:1 type:kotlin.String?
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              VALUE_PARAMETER name:uriLock index:2 type:kotlin.String?
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun copy (uriBoth: kotlin.String?, uriHome: kotlin.String?, uriLock: kotlin.String?): com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  CONSTRUCTOR_CALL 'public constructor <init> (uriBoth: kotlin.String?, uriHome: kotlin.String?, uriLock: kotlin.String?) [primary] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    uriBoth: GET_VAR 'uriBoth: kotlin.String? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy' type=kotlin.String? origin=null
+                    uriHome: GET_VAR 'uriHome: kotlin.String? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy' type=kotlin.String? origin=null
+                    uriLock: GET_VAR 'uriLock: kotlin.String? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy' type=kotlin.String? origin=null
+            FUN FUNCTION_FOR_DEFAULT_PARAMETER name:copy$default visibility:public modality:FINAL <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus, uriBoth:kotlin.String?, uriHome:kotlin.String?, uriLock:kotlin.String?, $mask0:kotlin.Int, $handler:kotlin.Any?) returnType:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              VALUE_PARAMETER MOVED_DISPATCH_RECEIVER name:$this index:0 type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              VALUE_PARAMETER name:uriBoth index:1 type:kotlin.String? [assignable]
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              VALUE_PARAMETER name:uriHome index:2 type:kotlin.String? [assignable]
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              VALUE_PARAMETER name:uriLock index:3 type:kotlin.String? [assignable]
+                EXPRESSION_BODY
+                  ERROR_EXPR 'Default Stub' type=kotlin.String?
+              VALUE_PARAMETER MASK_FOR_DEFAULT_FUNCTION name:$mask0 index:4 type:kotlin.Int
+              VALUE_PARAMETER METHOD_HANDLER_IN_DEFAULT_FUNCTION name:$handler index:5 type:kotlin.Any?
+              BLOCK_BODY
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                        arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                          $this: GET_VAR '$mask0: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=kotlin.Int origin=null
+                          other: CONST Int type=kotlin.Int value=1
+                        arg1: CONST Int type=kotlin.Int value=0
+                    then: SET_VAR 'uriBoth: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=kotlin.Unit origin=EQ
+                      GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                        receiver: GET_VAR '$this: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                        arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                          $this: GET_VAR '$mask0: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=kotlin.Int origin=null
+                          other: CONST Int type=kotlin.Int value=2
+                        arg1: CONST Int type=kotlin.Int value=0
+                    then: SET_VAR 'uriHome: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=kotlin.Unit origin=EQ
+                      GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                        receiver: GET_VAR '$this: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                        arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                          $this: GET_VAR '$mask0: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=kotlin.Int origin=null
+                          other: CONST Int type=kotlin.Int value=4
+                        arg1: CONST Int type=kotlin.Int value=0
+                    then: SET_VAR 'uriLock: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=kotlin.Unit origin=EQ
+                      GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                        receiver: GET_VAR '$this: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                RETURN type=kotlin.Nothing from='public final fun copy$default ($this: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus, uriBoth: kotlin.String?, uriHome: kotlin.String?, uriLock: kotlin.String?, $mask0: kotlin.Int, $handler: kotlin.Any?): com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  CALL 'public final fun copy (uriBoth: kotlin.String?, uriHome: kotlin.String?, uriLock: kotlin.String?): com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=DEFAULT_STUB_CALL_TO_IMPLEMENTATION
+                    $this: GET_VAR '$this: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    uriBoth: GET_VAR 'uriBoth: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=kotlin.String? origin=null
+                    uriHome: GET_VAR 'uriHome: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=kotlin.String? origin=null
+                    uriLock: GET_VAR 'uriLock: kotlin.String? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.copy$default' type=kotlin.String? origin=null
+            FUN GENERATED_DATA_CLASS_MEMBER name:toString visibility:public modality:OPEN <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus) returnType:kotlin.String
+              overridden:
+                public open fun toString (): kotlin.String declared in kotlin.Any
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public open fun toString (): kotlin.String declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  STRING_CONCATENATION type=kotlin.String
+                    CONST String type=kotlin.String value="SlotStatus(uriBoth="
+                    GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                      receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.toString' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    CONST String type=kotlin.String value=", uriHome="
+                    GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                      receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.toString' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    CONST String type=kotlin.String value=", uriLock="
+                    GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                      receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.toString' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    CONST String type=kotlin.String value=")"
+            FUN GENERATED_DATA_CLASS_MEMBER name:hashCode visibility:public modality:OPEN <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus) returnType:kotlin.Int
+              overridden:
+                public open fun hashCode (): kotlin.Int declared in kotlin.Any
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              BLOCK_BODY
+                VAR name:result type:kotlin.Int [var]
+                  WHEN type=kotlin.Int origin=null
+                    BRANCH
+                      if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                        arg0: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                          receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                        arg1: CONST Null type=kotlin.Nothing? value=null
+                      then: CONST Int type=kotlin.Int value=0
+                    BRANCH
+                      if: CONST Boolean type=kotlin.Boolean value=true
+                      then: CALL 'public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.String' type=kotlin.Int origin=null
+                        $this: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                          receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                SET_VAR 'var result: kotlin.Int [var] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=kotlin.Unit origin=EQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
+                    $this: CALL 'public final fun times (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
+                      $this: GET_VAR 'var result: kotlin.Int [var] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=kotlin.Int origin=null
+                      other: CONST Int type=kotlin.Int value=31
+                    other: WHEN type=kotlin.Int origin=null
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                            receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                          arg1: CONST Null type=kotlin.Nothing? value=null
+                        then: CONST Int type=kotlin.Int value=0
+                      BRANCH
+                        if: CONST Boolean type=kotlin.Boolean value=true
+                        then: CALL 'public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.String' type=kotlin.Int origin=null
+                          $this: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                            receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                SET_VAR 'var result: kotlin.Int [var] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=kotlin.Unit origin=EQ
+                  CALL 'public final fun plus (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
+                    $this: CALL 'public final fun times (other: kotlin.Int): kotlin.Int [operator] declared in kotlin.Int' type=kotlin.Int origin=null
+                      $this: GET_VAR 'var result: kotlin.Int [var] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=kotlin.Int origin=null
+                      other: CONST Int type=kotlin.Int value=31
+                    other: WHEN type=kotlin.Int origin=null
+                      BRANCH
+                        if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                          arg0: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                            receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                          arg1: CONST Null type=kotlin.Nothing? value=null
+                        then: CONST Int type=kotlin.Int value=0
+                      BRANCH
+                        if: CONST Boolean type=kotlin.Boolean value=true
+                        then: CALL 'public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.String' type=kotlin.Int origin=null
+                          $this: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                            receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                RETURN type=kotlin.Nothing from='public open fun hashCode (): kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  GET_VAR 'var result: kotlin.Int [var] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.hashCode' type=kotlin.Int origin=null
+            FUN GENERATED_DATA_CLASS_MEMBER name:equals visibility:public modality:OPEN <> ($this:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus, other:kotlin.Any?) returnType:kotlin.Boolean [operator]
+              overridden:
+                public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in kotlin.Any
+              $this: VALUE_PARAMETER name:<this> type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+              VALUE_PARAMETER name:other index:0 type:kotlin.Any?
+              BLOCK_BODY
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun EQEQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQEQ
+                      arg0: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                      arg1: GET_VAR 'other: kotlin.Any? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=kotlin.Any? origin=null
+                    then: RETURN type=kotlin.Nothing from='public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                      CONST Boolean type=kotlin.Boolean value=true
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCL
+                      $this: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus
+                        GET_VAR 'other: kotlin.Any? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=kotlin.Any? origin=null
+                    then: RETURN type=kotlin.Nothing from='public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                      CONST Boolean type=kotlin.Boolean value=false
+                VAR IR_TEMPORARY_VARIABLE name:tmp0_other_with_cast type:com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus [val]
+                  BLOCK type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    CALL 'public final fun checkNotNull (object: kotlin.Any?, message: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                      object: GET_VAR 'other: kotlin.Any? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=kotlin.Any? origin=null
+                      message: CONST String type=kotlin.String value="null cannot be cast to non-null type com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus"
+                    TYPE_OP type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus? origin=CAST typeOperand=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus?
+                      GET_VAR 'other: kotlin.Any? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=kotlin.Any? origin=null
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                        arg0: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                          receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                        arg1: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriBoth type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                          receiver: GET_VAR 'val tmp0_other_with_cast: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    then: RETURN type=kotlin.Nothing from='public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                      CONST Boolean type=kotlin.Boolean value=false
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                        arg0: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                          receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                        arg1: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriHome type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                          receiver: GET_VAR 'val tmp0_other_with_cast: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    then: RETURN type=kotlin.Nothing from='public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                      CONST Boolean type=kotlin.Boolean value=false
+                WHEN type=kotlin.Unit origin=null
+                  BRANCH
+                    if: CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=EXCLEQ
+                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EXCLEQ
+                        arg0: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                          receiver: GET_VAR '<this>: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                        arg1: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:uriLock type:kotlin.String? visibility:private [final]' type=kotlin.String? origin=null
+                          receiver: GET_VAR 'val tmp0_other_with_cast: com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.equals' type=com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus origin=null
+                    then: RETURN type=kotlin.Nothing from='public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                      CONST Boolean type=kotlin.Boolean value=false
+                RETURN type=kotlin.Nothing from='public open fun equals (other: kotlin.Any?): kotlin.Boolean [operator] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus'
+                  CONST Boolean type=kotlin.Boolean value=true
+          COMPOSITE type=kotlin.Unit origin=null
+          VAR name:slots type:kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val]
+            BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=WHEN
+              VAR IR_TEMPORARY_VARIABLE name:tmp0_subject type:com.andyl.iris.ui.searchscreen.SuggestedPack [val]
+                GET_VAR 'pack: com.andyl.iris.ui.searchscreen.SuggestedPack declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.ui.searchscreen.SuggestedPack origin=null
+              WHEN type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=WHEN
+                BRANCH
+                  if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                    arg0: GET_VAR 'val tmp0_subject: com.andyl.iris.ui.searchscreen.SuggestedPack [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.ui.searchscreen.SuggestedPack origin=null
+                    arg1: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:INSTANCE type:com.andyl.iris.ui.searchscreen.SuggestedPack.Days visibility:public [final,static] declared in com.andyl.iris.ui.searchscreen.SuggestedPack.Days' type=com.andyl.iris.ui.searchscreen.SuggestedPack.Days origin=null
+                  then: BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                    CALL 'public final fun map <T, R> (transform: kotlin.Function1<T of kotlin.collections.CollectionsKt.map, R of kotlin.collections.CollectionsKt.map>): kotlin.collections.List<R of kotlin.collections.CollectionsKt.map> [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                      <T>: kotlin.String
+                      <R>: com.andyl.iris.ui.searchscreen.components.SlotData
+                      $receiver: CALL 'public final fun listOf <T> (vararg elements: T of kotlin.collections.CollectionsKt.listOf): kotlin.collections.List<T of kotlin.collections.CollectionsKt.listOf> declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<kotlin.String> origin=null
+                        <T>: kotlin.String
+                        elements: BLOCK type=kotlin.Array<out kotlin.String> origin=null
+                          VAR IR_TEMPORARY_VARIABLE name:tmp0 type:kotlin.Array<out kotlin.String> [val]
+                            CALL 'public final fun arrayOfNulls <T> (size: kotlin.Int): kotlin.Array<T of kotlin.arrayOfNulls?> declared in kotlin' type=kotlin.Array<out kotlin.String> origin=null
+                              <T>: kotlin.String
+                              size: CONST Int type=kotlin.Int value=7
+                          CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                            $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                            index: CONST Int type=kotlin.Int value=0
+                            value: CONST String type=kotlin.String value="monday"
+                          CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                            $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                            index: CONST Int type=kotlin.Int value=1
+                            value: CONST String type=kotlin.String value="tuesday"
+                          CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                            $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                            index: CONST Int type=kotlin.Int value=2
+                            value: CONST String type=kotlin.String value="wednesday"
+                          CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                            $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                            index: CONST Int type=kotlin.Int value=3
+                            value: CONST String type=kotlin.String value="thursday"
+                          CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                            $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                            index: CONST Int type=kotlin.Int value=4
+                            value: CONST String type=kotlin.String value="friday"
+                          CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                            $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                            index: CONST Int type=kotlin.Int value=5
+                            value: CONST String type=kotlin.String value="saturday"
+                          CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                            $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                            index: CONST Int type=kotlin.Int value=6
+                            value: CONST String type=kotlin.String value="sunday"
+                          GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                      transform: BLOCK type=kotlin.Function1<kotlin.String, com.andyl.iris.ui.searchscreen.components.SlotData> origin=LAMBDA
+                        COMPOSITE type=kotlin.Unit origin=null
+                        FUNCTION_REFERENCE 'private final fun PackDetailList$lambda$1 (day: kotlin.String): com.andyl.iris.ui.searchscreen.components.SlotData declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt' type=kotlin.Function1<kotlin.String, com.andyl.iris.ui.searchscreen.components.SlotData> origin=INLINE_LAMBDA reflectionTarget=null
+                BRANCH
+                  if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                    arg0: GET_VAR 'val tmp0_subject: com.andyl.iris.ui.searchscreen.SuggestedPack [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.ui.searchscreen.SuggestedPack origin=null
+                    arg1: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:INSTANCE type:com.andyl.iris.ui.searchscreen.SuggestedPack.Weather visibility:public [final,static] declared in com.andyl.iris.ui.searchscreen.SuggestedPack.Weather' type=com.andyl.iris.ui.searchscreen.SuggestedPack.Weather origin=null
+                  then: BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                    CALL 'public final fun flatMap <T, R> (transform: kotlin.Function1<T of kotlin.collections.CollectionsKt.flatMap, kotlin.collections.Iterable<R of kotlin.collections.CollectionsKt.flatMap>>): kotlin.collections.List<R of kotlin.collections.CollectionsKt.flatMap> [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                      <T>: com.andyl.iris.domain.model.Weather
+                      <R>: com.andyl.iris.ui.searchscreen.components.SlotData
+                      $receiver: CALL 'public final fun all (): kotlin.collections.Set<com.andyl.iris.domain.model.Weather> declared in com.andyl.iris.domain.model.Weather.Companion' type=kotlin.collections.Set<com.andyl.iris.domain.model.Weather> origin=null
+                        $this: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:Companion type:com.andyl.iris.domain.model.Weather.Companion visibility:public [final,static] declared in com.andyl.iris.domain.model.Weather' type=com.andyl.iris.domain.model.Weather.Companion origin=null
+                      transform: BLOCK type=kotlin.Function1<com.andyl.iris.domain.model.Weather, kotlin.collections.Iterable<com.andyl.iris.ui.searchscreen.components.SlotData>> origin=LAMBDA
+                        COMPOSITE type=kotlin.Unit origin=null
+                        FUNCTION_REFERENCE 'private final fun PackDetailList$lambda$3 (weather: com.andyl.iris.domain.model.Weather): kotlin.collections.Iterable<com.andyl.iris.ui.searchscreen.components.SlotData> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt' type=kotlin.Function1<com.andyl.iris.domain.model.Weather, kotlin.collections.Iterable<com.andyl.iris.ui.searchscreen.components.SlotData>> origin=INLINE_LAMBDA reflectionTarget=null
+                BRANCH
+                  if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                    arg0: GET_VAR 'val tmp0_subject: com.andyl.iris.ui.searchscreen.SuggestedPack [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.ui.searchscreen.SuggestedPack origin=null
+                    arg1: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:INSTANCE type:com.andyl.iris.ui.searchscreen.SuggestedPack.Time visibility:public [final,static] declared in com.andyl.iris.ui.searchscreen.SuggestedPack.Time' type=com.andyl.iris.ui.searchscreen.SuggestedPack.Time origin=null
+                  then: BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                    CALL 'public final fun map <T, R> (transform: kotlin.Function1<T of kotlin.collections.CollectionsKt.map, R of kotlin.collections.CollectionsKt.map>): kotlin.collections.List<R of kotlin.collections.CollectionsKt.map> [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                      <T>: com.andyl.iris.domain.model.TimeOfDay
+                      <R>: com.andyl.iris.ui.searchscreen.components.SlotData
+                      $receiver: CALL 'public final fun <get-entries> (): kotlin.enums.EnumEntries<com.andyl.iris.domain.model.TimeOfDay> declared in com.andyl.iris.domain.model.TimeOfDay' type=kotlin.enums.EnumEntries<com.andyl.iris.domain.model.TimeOfDay> origin=GET_PROPERTY
+                      transform: BLOCK type=kotlin.Function1<com.andyl.iris.domain.model.TimeOfDay, com.andyl.iris.ui.searchscreen.components.SlotData> origin=LAMBDA
+                        COMPOSITE type=kotlin.Unit origin=null
+                        FUNCTION_REFERENCE 'private final fun PackDetailList$lambda$4 (time: com.andyl.iris.domain.model.TimeOfDay): com.andyl.iris.ui.searchscreen.components.SlotData declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt' type=kotlin.Function1<com.andyl.iris.domain.model.TimeOfDay, com.andyl.iris.ui.searchscreen.components.SlotData> origin=INLINE_LAMBDA reflectionTarget=null
+                BRANCH
+                  if: TYPE_OP type=kotlin.Boolean origin=INSTANCEOF typeOperand=com.andyl.iris.ui.searchscreen.SuggestedPack.Predefined
+                    GET_VAR 'val tmp0_subject: com.andyl.iris.ui.searchscreen.SuggestedPack [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.ui.searchscreen.SuggestedPack origin=null
+                  then: BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                    VAR name:predefined type:com.andyl.iris.domain.model.PredefinedPack? [val]
+                      CALL 'public final fun find <T> (predicate: kotlin.Function1<T of kotlin.collections.CollectionsKt.find, kotlin.Boolean>): T of kotlin.collections.CollectionsKt.find? [inline] declared in kotlin.collections.CollectionsKt' type=com.andyl.iris.domain.model.PredefinedPack? origin=null
+                        <T>: com.andyl.iris.domain.model.PredefinedPack
+                        $receiver: CALL 'public final fun <get-packs> (): kotlin.collections.List<com.andyl.iris.domain.model.PredefinedPack> declared in com.andyl.iris.domain.model.PredefinedPacks' type=kotlin.collections.List<com.andyl.iris.domain.model.PredefinedPack> origin=GET_PROPERTY
+                          $this: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:INSTANCE type:com.andyl.iris.domain.model.PredefinedPacks visibility:public [final,static] declared in com.andyl.iris.domain.model.PredefinedPacks' type=com.andyl.iris.domain.model.PredefinedPacks origin=null
+                        predicate: BLOCK type=kotlin.Function1<com.andyl.iris.domain.model.PredefinedPack, kotlin.Boolean> origin=LAMBDA
+                          COMPOSITE type=kotlin.Unit origin=null
+                          FUNCTION_REFERENCE 'private final fun PackDetailList$lambda$5 ($pack: com.andyl.iris.ui.searchscreen.SuggestedPack, it: com.andyl.iris.domain.model.PredefinedPack): kotlin.Boolean declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt' type=kotlin.Function1<com.andyl.iris.domain.model.PredefinedPack, kotlin.Boolean> origin=INLINE_LAMBDA reflectionTarget=null
+                            $pack: GET_VAR 'pack: com.andyl.iris.ui.searchscreen.SuggestedPack declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.ui.searchscreen.SuggestedPack origin=null
+                    WHEN type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=IF
+                      BRANCH
+                        if: BLOCK type=kotlin.Boolean origin=null
+                          WHEN type=kotlin.Boolean origin=FOLDED_SAFE_CALL
+                            BRANCH
+                              if: COMPOSITE type=kotlin.Boolean origin=null
+                                CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                  $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                    arg0: GET_VAR 'val predefined: com.andyl.iris.domain.model.PredefinedPack? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.domain.model.PredefinedPack? origin=null
+                                    arg1: CONST Null type=kotlin.Nothing? value=null
+                              then: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                                arg0: CALL 'public final fun <get-isRandom> (): kotlin.Boolean declared in com.andyl.iris.domain.model.PredefinedPack' type=kotlin.Boolean origin=GET_PROPERTY
+                                  $this: GET_VAR 'val predefined: com.andyl.iris.domain.model.PredefinedPack? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.domain.model.PredefinedPack? origin=null
+                                arg1: CONST Boolean type=kotlin.Boolean value=true
+                            BRANCH
+                              if: CONST Boolean type=kotlin.Boolean value=true
+                              then: CONST Boolean type=kotlin.Boolean value=false
+                        then: BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                          WHEN type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=IF
+                            BRANCH
+                              if: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=EQEQ
+                                arg0: CALL 'public final fun <get-type> (): com.andyl.iris.domain.model.PackType declared in com.andyl.iris.domain.model.PredefinedPack' type=com.andyl.iris.domain.model.PackType origin=GET_PROPERTY
+                                  $this: GET_VAR 'val predefined: com.andyl.iris.domain.model.PredefinedPack? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.domain.model.PredefinedPack? origin=null
+                                arg1: GET_FIELD 'FIELD FIELD_FOR_ENUM_ENTRY name:WEEKLY type:com.andyl.iris.domain.model.PackType visibility:public [final,static] declared in com.andyl.iris.domain.model.PackType' type=com.andyl.iris.domain.model.PackType origin=null
+                              then: BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                CALL 'public final fun map <T, R> (transform: kotlin.Function1<T of kotlin.collections.CollectionsKt.map, R of kotlin.collections.CollectionsKt.map>): kotlin.collections.List<R of kotlin.collections.CollectionsKt.map> [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                  <T>: kotlin.String
+                                  <R>: com.andyl.iris.ui.searchscreen.components.SlotData
+                                  $receiver: CALL 'public final fun listOf <T> (vararg elements: T of kotlin.collections.CollectionsKt.listOf): kotlin.collections.List<T of kotlin.collections.CollectionsKt.listOf> declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<kotlin.String> origin=null
+                                    <T>: kotlin.String
+                                    elements: BLOCK type=kotlin.Array<out kotlin.String> origin=null
+                                      VAR IR_TEMPORARY_VARIABLE name:tmp0 type:kotlin.Array<out kotlin.String> [val]
+                                        CALL 'public final fun arrayOfNulls <T> (size: kotlin.Int): kotlin.Array<T of kotlin.arrayOfNulls?> declared in kotlin' type=kotlin.Array<out kotlin.String> origin=null
+                                          <T>: kotlin.String
+                                          size: CONST Int type=kotlin.Int value=7
+                                      CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                                        $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                                        index: CONST Int type=kotlin.Int value=0
+                                        value: CONST String type=kotlin.String value="monday"
+                                      CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                                        $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                                        index: CONST Int type=kotlin.Int value=1
+                                        value: CONST String type=kotlin.String value="tuesday"
+                                      CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                                        $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                                        index: CONST Int type=kotlin.Int value=2
+                                        value: CONST String type=kotlin.String value="wednesday"
+                                      CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                                        $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                                        index: CONST Int type=kotlin.Int value=3
+                                        value: CONST String type=kotlin.String value="thursday"
+                                      CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                                        $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                                        index: CONST Int type=kotlin.Int value=4
+                                        value: CONST String type=kotlin.String value="friday"
+                                      CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                                        $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                                        index: CONST Int type=kotlin.Int value=5
+                                        value: CONST String type=kotlin.String value="saturday"
+                                      CALL 'public final fun set (index: kotlin.Int, value: T of kotlin.Array): kotlin.Unit [operator] declared in kotlin.Array' type=kotlin.Unit origin=null
+                                        $this: GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                                        index: CONST Int type=kotlin.Int value=6
+                                        value: CONST String type=kotlin.String value="sunday"
+                                      GET_VAR 'val tmp0: kotlin.Array<out kotlin.String> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Array<out kotlin.String> origin=null
+                                  transform: BLOCK type=kotlin.Function1<kotlin.String, com.andyl.iris.ui.searchscreen.components.SlotData> origin=LAMBDA
+                                    COMPOSITE type=kotlin.Unit origin=null
+                                    FUNCTION_REFERENCE 'private final fun PackDetailList$lambda$7 ($predefined: com.andyl.iris.domain.model.PredefinedPack?, day: kotlin.String): com.andyl.iris.ui.searchscreen.components.SlotData declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt' type=kotlin.Function1<kotlin.String, com.andyl.iris.ui.searchscreen.components.SlotData> origin=INLINE_LAMBDA reflectionTarget=null
+                                      $predefined: GET_VAR 'val predefined: com.andyl.iris.domain.model.PredefinedPack? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.domain.model.PredefinedPack? origin=null
+                            BRANCH
+                              if: CONST Boolean type=kotlin.Boolean value=true
+                              then: BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                CALL 'public final fun flatMap <T, R> (transform: kotlin.Function1<T of kotlin.collections.CollectionsKt.flatMap, kotlin.collections.Iterable<R of kotlin.collections.CollectionsKt.flatMap>>): kotlin.collections.List<R of kotlin.collections.CollectionsKt.flatMap> [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                  <T>: com.andyl.iris.domain.model.Weather
+                                  <R>: com.andyl.iris.ui.searchscreen.components.SlotData
+                                  $receiver: CALL 'public final fun all (): kotlin.collections.Set<com.andyl.iris.domain.model.Weather> declared in com.andyl.iris.domain.model.Weather.Companion' type=kotlin.collections.Set<com.andyl.iris.domain.model.Weather> origin=null
+                                    $this: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:Companion type:com.andyl.iris.domain.model.Weather.Companion visibility:public [final,static] declared in com.andyl.iris.domain.model.Weather' type=com.andyl.iris.domain.model.Weather.Companion origin=null
+                                  transform: BLOCK type=kotlin.Function1<com.andyl.iris.domain.model.Weather, kotlin.collections.Iterable<com.andyl.iris.ui.searchscreen.components.SlotData>> origin=LAMBDA
+                                    COMPOSITE type=kotlin.Unit origin=null
+                                    FUNCTION_REFERENCE 'private final fun PackDetailList$lambda$9 ($predefined: com.andyl.iris.domain.model.PredefinedPack?, weather: com.andyl.iris.domain.model.Weather): kotlin.collections.Iterable<com.andyl.iris.ui.searchscreen.components.SlotData> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt' type=kotlin.Function1<com.andyl.iris.domain.model.Weather, kotlin.collections.Iterable<com.andyl.iris.ui.searchscreen.components.SlotData>> origin=INLINE_LAMBDA reflectionTarget=null
+                                      $predefined: GET_VAR 'val predefined: com.andyl.iris.domain.model.PredefinedPack? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.domain.model.PredefinedPack? origin=null
+                      BRANCH
+                        if: CONST Boolean type=kotlin.Boolean value=true
+                        then: BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                          VAR name:weatherSlots type:kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val]
+                            BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=FOLDED_ELVIS
+                              WHEN type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=FOLDED_ELVIS
+                                BRANCH
+                                  if: CALL 'public final fun ANDAND (arg0: kotlin.Boolean, arg1: kotlin.Boolean): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                    arg0: CALL 'public final fun ANDAND (arg0: kotlin.Boolean, arg1: kotlin.Boolean): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                      arg0: COMPOSITE type=kotlin.Boolean origin=null
+                                        CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                            arg0: GET_VAR 'val predefined: com.andyl.iris.domain.model.PredefinedPack? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.domain.model.PredefinedPack? origin=null
+                                            arg1: CONST Null type=kotlin.Nothing? value=null
+                                      arg1: COMPOSITE type=kotlin.Boolean origin=null
+                                        VAR IR_TEMPORARY_VARIABLE name:tmp3_safe_receiver type:kotlin.collections.List<com.andyl.iris.domain.model.PredefinedRule> [val]
+                                          CALL 'public final fun <get-weatherRules> (): kotlin.collections.List<com.andyl.iris.domain.model.PredefinedRule> declared in com.andyl.iris.domain.model.PredefinedPack' type=kotlin.collections.List<com.andyl.iris.domain.model.PredefinedRule> origin=GET_PROPERTY
+                                            $this: GET_VAR 'val predefined: com.andyl.iris.domain.model.PredefinedPack? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.domain.model.PredefinedPack? origin=null
+                                        CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                            arg0: GET_VAR 'val tmp3_safe_receiver: kotlin.collections.List<com.andyl.iris.domain.model.PredefinedRule> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.domain.model.PredefinedRule> origin=null
+                                            arg1: CONST Null type=kotlin.Nothing? value=null
+                                    arg1: COMPOSITE type=kotlin.Boolean origin=null
+                                      VAR IR_TEMPORARY_VARIABLE name:tmp4_elvis_lhs type:kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val]
+                                        CALL 'public final fun map <T, R> (transform: kotlin.Function1<T of kotlin.collections.CollectionsKt.map, R of kotlin.collections.CollectionsKt.map>): kotlin.collections.List<R of kotlin.collections.CollectionsKt.map> [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                          <T>: com.andyl.iris.domain.model.PredefinedRule
+                                          <R>: com.andyl.iris.ui.searchscreen.components.SlotData
+                                          $receiver: GET_VAR 'val tmp3_safe_receiver: kotlin.collections.List<com.andyl.iris.domain.model.PredefinedRule> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.domain.model.PredefinedRule>? origin=null
+                                          transform: BLOCK type=kotlin.Function1<com.andyl.iris.domain.model.PredefinedRule, com.andyl.iris.ui.searchscreen.components.SlotData> origin=LAMBDA
+                                            COMPOSITE type=kotlin.Unit origin=null
+                                            FUNCTION_REFERENCE 'private final fun PackDetailList$lambda$10 (rule: com.andyl.iris.domain.model.PredefinedRule): com.andyl.iris.ui.searchscreen.components.SlotData declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt' type=kotlin.Function1<com.andyl.iris.domain.model.PredefinedRule, com.andyl.iris.ui.searchscreen.components.SlotData> origin=INLINE_LAMBDA reflectionTarget=null
+                                      CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                        $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                          arg0: GET_VAR 'val tmp4_elvis_lhs: kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                          arg1: CONST Null type=kotlin.Nothing? value=null
+                                  then: GET_VAR 'val tmp4_elvis_lhs: kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                BRANCH
+                                  if: CONST Boolean type=kotlin.Boolean value=true
+                                  then: CALL 'public final fun emptyList <T> (): kotlin.collections.List<T of kotlin.collections.CollectionsKt.emptyList> declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                    <T>: com.andyl.iris.ui.searchscreen.components.SlotData
+                          VAR name:dailySlots type:kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val]
+                            BLOCK type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=FOLDED_ELVIS
+                              WHEN type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=FOLDED_ELVIS
+                                BRANCH
+                                  if: CALL 'public final fun ANDAND (arg0: kotlin.Boolean, arg1: kotlin.Boolean): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                    arg0: CALL 'public final fun ANDAND (arg0: kotlin.Boolean, arg1: kotlin.Boolean): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                      arg0: COMPOSITE type=kotlin.Boolean origin=null
+                                        CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                            arg0: GET_VAR 'val predefined: com.andyl.iris.domain.model.PredefinedPack? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.domain.model.PredefinedPack? origin=null
+                                            arg1: CONST Null type=kotlin.Nothing? value=null
+                                      arg1: COMPOSITE type=kotlin.Boolean origin=null
+                                        VAR IR_TEMPORARY_VARIABLE name:tmp6_safe_receiver type:kotlin.collections.List<com.andyl.iris.domain.model.PredefinedDailyRule> [val]
+                                          CALL 'public final fun <get-dailyRules> (): kotlin.collections.List<com.andyl.iris.domain.model.PredefinedDailyRule> declared in com.andyl.iris.domain.model.PredefinedPack' type=kotlin.collections.List<com.andyl.iris.domain.model.PredefinedDailyRule> origin=GET_PROPERTY
+                                            $this: GET_VAR 'val predefined: com.andyl.iris.domain.model.PredefinedPack? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.domain.model.PredefinedPack? origin=null
+                                        CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                            arg0: GET_VAR 'val tmp6_safe_receiver: kotlin.collections.List<com.andyl.iris.domain.model.PredefinedDailyRule> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.domain.model.PredefinedDailyRule> origin=null
+                                            arg1: CONST Null type=kotlin.Nothing? value=null
+                                    arg1: COMPOSITE type=kotlin.Boolean origin=null
+                                      VAR IR_TEMPORARY_VARIABLE name:tmp7_elvis_lhs type:kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val]
+                                        CALL 'public final fun map <T, R> (transform: kotlin.Function1<T of kotlin.collections.CollectionsKt.map, R of kotlin.collections.CollectionsKt.map>): kotlin.collections.List<R of kotlin.collections.CollectionsKt.map> [inline] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                          <T>: com.andyl.iris.domain.model.PredefinedDailyRule
+                                          <R>: com.andyl.iris.ui.searchscreen.components.SlotData
+                                          $receiver: GET_VAR 'val tmp6_safe_receiver: kotlin.collections.List<com.andyl.iris.domain.model.PredefinedDailyRule> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.domain.model.PredefinedDailyRule>? origin=null
+                                          transform: BLOCK type=kotlin.Function1<com.andyl.iris.domain.model.PredefinedDailyRule, com.andyl.iris.ui.searchscreen.components.SlotData> origin=LAMBDA
+                                            COMPOSITE type=kotlin.Unit origin=null
+                                            FUNCTION_REFERENCE 'private final fun PackDetailList$lambda$12 (rule: com.andyl.iris.domain.model.PredefinedDailyRule): com.andyl.iris.ui.searchscreen.components.SlotData declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt' type=kotlin.Function1<com.andyl.iris.domain.model.PredefinedDailyRule, com.andyl.iris.ui.searchscreen.components.SlotData> origin=INLINE_LAMBDA reflectionTarget=null
+                                      CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                        $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                          arg0: GET_VAR 'val tmp7_elvis_lhs: kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                          arg1: CONST Null type=kotlin.Nothing? value=null
+                                  then: GET_VAR 'val tmp7_elvis_lhs: kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                BRANCH
+                                  if: CONST Boolean type=kotlin.Boolean value=true
+                                  then: CALL 'public final fun emptyList <T> (): kotlin.collections.List<T of kotlin.collections.CollectionsKt.emptyList> declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                                    <T>: com.andyl.iris.ui.searchscreen.components.SlotData
+                          CALL 'public final fun plus <T> (elements: kotlin.collections.Iterable<T of kotlin.collections.CollectionsKt.plus>): kotlin.collections.List<T of kotlin.collections.CollectionsKt.plus> [operator] declared in kotlin.collections.CollectionsKt' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=PLUS
+                            <T>: com.andyl.iris.ui.searchscreen.components.SlotData
+                            $receiver: GET_VAR 'val weatherSlots: kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                            elements: GET_VAR 'val dailySlots: kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                BRANCH
+                  if: CONST Boolean type=kotlin.Boolean value=true
+                  then: BLOCK type=kotlin.Nothing origin=null
+                    CALL 'public final fun noWhenBranchMatchedException (): kotlin.Nothing declared in kotlin.internal.ir' type=kotlin.Nothing origin=null
+                    CALL 'public final fun throwKotlinNothingValueException (): kotlin.Nothing declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Nothing origin=null
+          CALL 'public final fun LazyColumn (modifier: androidx.compose.ui.Modifier?, state: androidx.compose.foundation.lazy.LazyListState?, contentPadding: androidx.compose.foundation.layout.PaddingValues?, reverseLayout: kotlin.Boolean, verticalArrangement: androidx.compose.foundation.layout.Arrangement.Vertical?, horizontalAlignment: androidx.compose.ui.Alignment.Horizontal?, flingBehavior: androidx.compose.foundation.gestures.FlingBehavior?, userScrollEnabled: kotlin.Boolean, overscrollEffect: androidx.compose.foundation.OverscrollEffect?, content: @[ExtensionFunctionType] kotlin.Function1<androidx.compose.foundation.lazy.LazyListScope, kotlin.Unit>, $composer: androidx.compose.runtime.Composer?, $changed: kotlin.Int, $default: kotlin.Int): kotlin.Unit declared in androidx.compose.foundation.lazy.LazyDslKt' type=kotlin.Unit origin=null
+            modifier: CALL 'public final fun padding-VpY3zN4$default (horizontal: androidx.compose.ui.unit.Dp, vertical: androidx.compose.ui.unit.Dp, $mask0: kotlin.Int, $handler: kotlin.Any?): androidx.compose.ui.Modifier declared in androidx.compose.foundation.layout.PaddingKt' type=androidx.compose.ui.Modifier origin=DEFAULT_DISPATCH_CALL
+              $receiver: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:Companion type:androidx.compose.ui.Modifier.Companion visibility:public [final,static] declared in androidx.compose.ui.Modifier' type=androidx.compose.ui.Modifier.Companion origin=null
+              horizontal: CALL 'public final fun <get-dp> (): androidx.compose.ui.unit.Dp [inline] declared in androidx.compose.ui.unit.DpKt' type=androidx.compose.ui.unit.Dp origin=GET_PROPERTY
+                $receiver: CONST Int type=kotlin.Int value=20
+              vertical: COMPOSITE type=androidx.compose.ui.unit.Dp origin=DEFAULT_VALUE
+                CALL 'public final fun <unsafe-coerce> <T, R> (v: T of kotlin.jvm.internal.<unsafe-coerce>): R of kotlin.jvm.internal.<unsafe-coerce> declared in kotlin.jvm.internal' type=androidx.compose.ui.unit.Dp origin=null
+                  <T>: kotlin.Float
+                  <R>: androidx.compose.ui.unit.Dp
+                  v: CONST Float type=kotlin.Float value=0.0
+              $mask0: CONST Int type=kotlin.Int value=2
+              $handler: CONST Null type=kotlin.Any? value=null
+            state: COMPOSITE type=kotlin.Nothing? origin=DEFAULT_VALUE
+              CONST Null type=kotlin.Nothing? value=null
+            contentPadding: COMPOSITE type=kotlin.Nothing? origin=DEFAULT_VALUE
+              CONST Null type=kotlin.Nothing? value=null
+            reverseLayout: COMPOSITE type=kotlin.Boolean origin=DEFAULT_VALUE
+              CONST Boolean type=kotlin.Boolean value=false
+            verticalArrangement: COMPOSITE type=kotlin.Nothing? origin=DEFAULT_VALUE
+              CONST Null type=kotlin.Nothing? value=null
+            horizontalAlignment: COMPOSITE type=kotlin.Nothing? origin=DEFAULT_VALUE
+              CONST Null type=kotlin.Nothing? value=null
+            flingBehavior: COMPOSITE type=kotlin.Nothing? origin=DEFAULT_VALUE
+              CONST Null type=kotlin.Nothing? value=null
+            userScrollEnabled: COMPOSITE type=kotlin.Boolean origin=DEFAULT_VALUE
+              CONST Boolean type=kotlin.Boolean value=false
+            overscrollEffect: COMPOSITE type=kotlin.Nothing? origin=DEFAULT_VALUE
+              CONST Null type=kotlin.Nothing? value=null
+            content: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<androidx.compose.foundation.lazy.LazyListScope, kotlin.Unit> origin=null
+              BLOCK type=kotlin.Unit origin=null
+                CALL 'public abstract fun startReplaceGroup (key: kotlin.Int): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                  key: CONST Int type=kotlin.Int value=1850468390
+                CALL 'public final fun sourceInformation (composer: androidx.compose.runtime.Composer, sourceInformation: kotlin.String): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+                  composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                  sourceInformation: CONST String type=kotlin.String value="CC(remember):PackDetail.kt#9igjgp"
+              VAR IR_TEMPORARY_VARIABLE name:tmp0_group type:@[ExtensionFunctionType] kotlin.Function1<androidx.compose.foundation.lazy.LazyListScope, kotlin.Unit> [val]
+                CALL 'public final fun cache <T> (invalid: kotlin.Boolean, block: @[DisallowComposableCalls] kotlin.Function0<T of androidx.compose.runtime.ComposerKt.cache>): T of androidx.compose.runtime.ComposerKt.cache [inline] declared in androidx.compose.runtime.ComposerKt' type=@[ExtensionFunctionType] kotlin.Function1<androidx.compose.foundation.lazy.LazyListScope, kotlin.Unit> origin=null
+                  <T>: @[ExtensionFunctionType] kotlin.Function1<androidx.compose.foundation.lazy.LazyListScope, kotlin.Unit>
+                  $receiver: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                  invalid: CALL 'public final fun or (other: kotlin.Boolean): kotlin.Boolean [infix] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                    $this: CALL 'public final fun or (other: kotlin.Boolean): kotlin.Boolean [infix] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                      $this: CALL 'public final fun or (other: kotlin.Boolean): kotlin.Boolean [infix] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                        $this: CALL 'public final fun or (other: kotlin.Boolean): kotlin.Boolean [infix] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                          $this: CALL 'public final fun or (other: kotlin.Boolean): kotlin.Boolean [infix] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                            $this: CALL 'public final fun or (other: kotlin.Boolean): kotlin.Boolean [infix] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                              $this: CALL 'public final fun or (other: kotlin.Boolean): kotlin.Boolean [infix] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                                    $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+                                    other: CONST Int type=kotlin.Int value=14
+                                  arg1: CONST Int type=kotlin.Int value=4
+                                other: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                  arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                                    $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+                                    other: CONST Int type=kotlin.Int value=57344
+                                  arg1: CONST Int type=kotlin.Int value=16384
+                              other: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                                $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                                value: GET_VAR 'val slots: kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                            other: CALL 'public abstract fun changed (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                              $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                              value: GET_VAR 'val tmp0_elvis_lhs: kotlin.String? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.bestUri' type=kotlin.String? origin=null
+                          other: CALL 'public abstract fun changed (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                            $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                            value: GET_VAR 'val tmp1_elvis_lhs: kotlin.String? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList.SlotStatus.bestUri' type=kotlin.String? origin=null
+                        other: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                          $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                          value: GET_VAR 'dailyRules: kotlin.collections.Map<kotlin.String, kotlin.String> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.Map<kotlin.String, kotlin.String> origin=null
+                      other: CALL 'public open fun changedInstance (value: kotlin.Any?): kotlin.Boolean declared in androidx.compose.runtime.Composer' type=kotlin.Boolean origin=null
+                        $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+                        value: GET_VAR 'rules: kotlin.collections.Map<kotlin.String, kotlin.String> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.Map<kotlin.String, kotlin.String> origin=null
+                    other: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                      arg0: CALL 'public final fun and (other: kotlin.Int): kotlin.Int [infix] declared in kotlin.Int' type=kotlin.Int origin=null
+                        $this: GET_VAR 'val $dirty: kotlin.Int [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+                        other: CONST Int type=kotlin.Int value=7168
+                      arg1: CONST Int type=kotlin.Int value=2048
+                  block: BLOCK type=kotlin.Function0<@[ExtensionFunctionType] kotlin.Function1<androidx.compose.foundation.lazy.LazyListScope, kotlin.Unit>> origin=LAMBDA
+                    COMPOSITE type=kotlin.Unit origin=null
+                    FUNCTION_REFERENCE 'private final fun PackDetailList$lambda$16 ($slots: kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData>, $pack: com.andyl.iris.ui.searchscreen.SuggestedPack, $onDownloadFullPack: kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit>, $onSlotClick: kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit>, $dailyRules: kotlin.collections.Map<kotlin.String, kotlin.String>, $rules: kotlin.collections.Map<kotlin.String, kotlin.String>): @[ExtensionFunctionType] kotlin.Function1<androidx.compose.foundation.lazy.LazyListScope, kotlin.Unit> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt' type=kotlin.Function0<@[ExtensionFunctionType] kotlin.Function1<androidx.compose.foundation.lazy.LazyListScope, kotlin.Unit>> origin=INLINE_LAMBDA reflectionTarget=null
+                      $slots: GET_VAR 'val slots: kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.List<com.andyl.iris.ui.searchscreen.components.SlotData> origin=null
+                      $pack: GET_VAR 'pack: com.andyl.iris.ui.searchscreen.SuggestedPack declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.ui.searchscreen.SuggestedPack origin=null
+                      $onDownloadFullPack: GET_VAR 'onDownloadFullPack: kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit> origin=null
+                      $onSlotClick: GET_VAR 'onSlotClick: kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit> origin=null
+                      $dailyRules: GET_VAR 'dailyRules: kotlin.collections.Map<kotlin.String, kotlin.String> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.Map<kotlin.String, kotlin.String> origin=null
+                      $rules: GET_VAR 'rules: kotlin.collections.Map<kotlin.String, kotlin.String> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.Map<kotlin.String, kotlin.String> origin=null
+              CALL 'public abstract fun endReplaceGroup (): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+                $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+              GET_VAR 'val tmp0_group: @[ExtensionFunctionType] kotlin.Function1<androidx.compose.foundation.lazy.LazyListScope, kotlin.Unit> [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=@[ExtensionFunctionType] kotlin.Function1<androidx.compose.foundation.lazy.LazyListScope, kotlin.Unit> origin=null
+            $composer: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+            $changed: CONST Int type=kotlin.Int value=6
+            $default: CONST Int type=kotlin.Int value=510
+          WHEN type=kotlin.Unit origin=IF
+            BRANCH
+              if: CALL 'public final fun isTraceInProgress (): kotlin.Boolean declared in androidx.compose.runtime.ComposerKt' type=kotlin.Boolean origin=null
+              then: CALL 'public final fun traceEventEnd (): kotlin.Unit declared in androidx.compose.runtime.ComposerKt' type=kotlin.Unit origin=null
+      BRANCH
+        if: CONST Boolean type=kotlin.Boolean value=true
+        then: CALL 'public abstract fun skipToGroupEnd (): kotlin.Unit declared in androidx.compose.runtime.Composer' type=kotlin.Unit origin=null
+          $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+    BLOCK type=kotlin.Unit origin=null
+      BLOCK type=kotlin.Unit origin=FOLDED_SAFE_CALL
+        WHEN type=kotlin.Unit origin=FOLDED_SAFE_CALL
+          BRANCH
+            if: COMPOSITE type=kotlin.Boolean origin=null
+              VAR IR_TEMPORARY_VARIABLE name:tmp1_safe_receiver type:androidx.compose.runtime.ScopeUpdateScope? [val]
+                CALL 'public abstract fun endRestartGroup (): androidx.compose.runtime.ScopeUpdateScope? declared in androidx.compose.runtime.Composer' type=androidx.compose.runtime.ScopeUpdateScope? origin=null
+                  $this: GET_VAR '$composer: androidx.compose.runtime.Composer? [assignable] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.Composer? origin=null
+              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                  arg0: GET_VAR 'val tmp1_safe_receiver: androidx.compose.runtime.ScopeUpdateScope? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.ScopeUpdateScope? origin=null
+                  arg1: CONST Null type=kotlin.Nothing? value=null
+            then: CALL 'public abstract fun updateScope (block: kotlin.Function2<androidx.compose.runtime.Composer, kotlin.Int, kotlin.Unit>): kotlin.Unit declared in androidx.compose.runtime.ScopeUpdateScope' type=kotlin.Unit origin=null
+              $this: GET_VAR 'val tmp1_safe_receiver: androidx.compose.runtime.ScopeUpdateScope? [val] declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=androidx.compose.runtime.ScopeUpdateScope? origin=null
+              block: BLOCK type=kotlin.Function2<androidx.compose.runtime.Composer?, kotlin.Int, kotlin.Unit> origin=LAMBDA
+                COMPOSITE type=kotlin.Unit origin=null
+                CALL 'public final fun <jvm-indy> <T> (dynamicCall: T of kotlin.jvm.internal.<jvm-indy>, bootstrapMethodHandle: kotlin.Any, vararg bootstrapMethodArguments: kotlin.Any): T of kotlin.jvm.internal.<jvm-indy> declared in kotlin.jvm.internal' type=kotlin.Function2<androidx.compose.runtime.Composer?, kotlin.Int, kotlin.Unit> origin=null
+                  <T>: kotlin.Function2<androidx.compose.runtime.Composer?, kotlin.Int, kotlin.Unit>
+                  dynamicCall: CALL 'public final fun invoke (p0: com.andyl.iris.ui.searchscreen.SuggestedPack, p1: kotlin.collections.Map<kotlin.String, kotlin.String>, p2: kotlin.collections.Map<kotlin.String, kotlin.String>, p3: kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit>, p4: kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit>, p5: kotlin.Int): kotlin.Function2<androidx.compose.runtime.Composer?, kotlin.Int, kotlin.Unit> declared in kotlin.jvm.internal.invokeDynamic' type=kotlin.Function2<androidx.compose.runtime.Composer?, kotlin.Int, kotlin.Unit> origin=null
+                    p0: GET_VAR 'pack: com.andyl.iris.ui.searchscreen.SuggestedPack declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=com.andyl.iris.ui.searchscreen.SuggestedPack origin=null
+                    p1: GET_VAR 'rules: kotlin.collections.Map<kotlin.String, kotlin.String> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.Map<kotlin.String, kotlin.String> origin=null
+                    p2: GET_VAR 'dailyRules: kotlin.collections.Map<kotlin.String, kotlin.String> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.collections.Map<kotlin.String, kotlin.String> origin=null
+                    p3: GET_VAR 'onSlotClick: kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit> origin=null
+                    p4: GET_VAR 'onDownloadFullPack: kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit> declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit> origin=null
+                    p5: GET_VAR '$changed: kotlin.Int declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt.PackDetailList' type=kotlin.Int origin=null
+                  bootstrapMethodHandle: CALL 'public final fun <jvm-method-handle> (tag: kotlin.Int, owner: kotlin.String, name: kotlin.String, descriptor: kotlin.String, isInterface: kotlin.Boolean): kotlin.Any declared in kotlin.jvm.internal' type=kotlin.Any origin=null
+                    tag: CONST Int type=kotlin.Int value=6
+                    owner: CONST String type=kotlin.String value="java/lang/invoke/LambdaMetafactory"
+                    name: CONST String type=kotlin.String value="metafactory"
+                    descriptor: CONST String type=kotlin.String value="(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;"
+                    isInterface: CONST Boolean type=kotlin.Boolean value=false
+                  bootstrapMethodArguments: VARARG type=kotlin.Array<kotlin.Any> varargElementType=kotlin.Any
+                    CALL 'public final fun <jvm-original-method-type> (method: kotlin.Any): kotlin.Any declared in kotlin.jvm.internal' type=kotlin.Any origin=null
+                      method: RAW_FUNCTION_REFERENCE 'public abstract fun invoke (p1: P1 of kotlin.Function2, p2: P2 of kotlin.Function2): R of kotlin.Function2 [operator] declared in kotlin.Function2' type=kotlin.Any
+                    RAW_FUNCTION_REFERENCE 'private final fun PackDetailList$lambda$17 ($pack: com.andyl.iris.ui.searchscreen.SuggestedPack, $rules: kotlin.collections.Map<kotlin.String, kotlin.String>, $dailyRules: kotlin.collections.Map<kotlin.String, kotlin.String>, $onSlotClick: kotlin.Function4<com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, kotlin.String?, kotlin.String, kotlin.Unit>, $onDownloadFullPack: kotlin.Function1<com.andyl.iris.ui.searchscreen.SuggestedPack, kotlin.Unit>, $$changed: kotlin.Int, $composer: androidx.compose.runtime.Composer?, $force: kotlin.Int): kotlin.Unit? declared in com.andyl.iris.ui.searchscreen.components.PackDetailKt' type=kotlin.Any
+                    CALL 'public final fun <jvm-original-method-type> (method: kotlin.Any): kotlin.Any declared in kotlin.jvm.internal' type=kotlin.Any origin=null
+                      method: RAW_FUNCTION_REFERENCE 'public abstract fun invoke (p1: androidx.compose.runtime.Composer?, p2: kotlin.Int?): kotlin.Unit? [fake_override,operator] declared in kotlin.jvm.internal.invokeDynamic.<fake>' type=kotlin.Any
+          BRANCH
+            if: CONST Boolean type=kotlin.Boolean value=true
+            then: CONST Null type=kotlin.Any? value=null
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate$default(FunctionCodegen.kt:40)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethodNode(ClassCodegen.kt:406)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethod(ClassCodegen.kt:423)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generate(ClassCodegen.kt:168)
+	at org.jetbrains.kotlin.backend.jvm.FileCodegen.lower(JvmPhases.kt:39)
+	at org.jetbrains.kotlin.backend.common.phaser.PhaseFactoriesKt.createFilePhase$lambda$4(PhaseFactories.kt:71)
+	at org.jetbrains.kotlin.backend.common.phaser.PhaseBuildersKt$createSimpleNamedCompilerPhase$1.phaseBody(PhaseBuilders.kt:69)
+	at org.jetbrains.kotlin.backend.common.phaser.SimpleNamedCompilerPhase.phaseBody(CompilerPhase.kt:226)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invokeSequential(performByIrFile.kt:62)
+	... 44 more
+Caused by: java.lang.IllegalStateException: No mapping for symbol: VAR IR_TEMPORARY_VARIABLE name:tmp0_elvis_lhs type:kotlin.String? [val]
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrFrameMap.typeOf(irCodegenUtils.kt:59)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitGetValue(ExpressionCodegen.kt:807)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitGetValue(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrGetValue.accept(IrGetValue.kt:18)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.gen(ExpressionCodegen.kt:217)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrCallGenerator.genValueAndPut(IrCallGenerator.kt:48)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall$handleParameter(ExpressionCodegen.kt:616)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:644)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.gen(ExpressionCodegen.kt:217)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.genArg(IntrinsicFunction.kt:70)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.loadArguments(IntrinsicFunction.kt:53)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.invoke(IntrinsicFunction.kt:39)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicMethod.invoke(IntrinsicMethod.kt:25)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:600)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.gen(ExpressionCodegen.kt:217)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.genArg(IntrinsicFunction.kt:70)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.loadArguments(IntrinsicFunction.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.invoke(IntrinsicFunction.kt:39)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicMethod.invoke(IntrinsicMethod.kt:25)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:600)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.gen(ExpressionCodegen.kt:217)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.genArg(IntrinsicFunction.kt:70)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.loadArguments(IntrinsicFunction.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.invoke(IntrinsicFunction.kt:39)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicMethod.invoke(IntrinsicMethod.kt:25)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:600)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.gen(ExpressionCodegen.kt:217)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.genArg(IntrinsicFunction.kt:70)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.loadArguments(IntrinsicFunction.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.invoke(IntrinsicFunction.kt:39)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicMethod.invoke(IntrinsicMethod.kt:25)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:600)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.gen(ExpressionCodegen.kt:217)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.genArg(IntrinsicFunction.kt:70)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.loadArguments(IntrinsicFunction.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicFunction.invoke(IntrinsicFunction.kt:39)
+	at org.jetbrains.kotlin.backend.jvm.intrinsics.IntrinsicMethod.invoke(IntrinsicMethod.kt:25)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:600)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.gen(ExpressionCodegen.kt:217)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.genToStackValue(ExpressionCodegen.kt:222)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.genOrGetLocal$backend_jvm_codegen(ExpressionCodegen.kt:820)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrInlineCodegen.genValueAndPut(IrInlineCodegen.kt:142)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall$handleParameter(ExpressionCodegen.kt:616)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:644)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:790)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.declarations.IrVariable.accept(IrVariable.kt:36)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:593)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitBlock(IrElementVisitor.kt:122)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:413)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrBlock.accept(IrBlock.kt:18)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.gen(ExpressionCodegen.kt:217)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrCallGenerator.genValueAndPut(IrCallGenerator.kt:48)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall$handleParameter(ExpressionCodegen.kt:616)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:644)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:593)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitBlock(IrElementVisitor.kt:122)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:413)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrBlock.accept(IrBlock.kt:18)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitWhen(ExpressionCodegen.kt:1101)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitWhen(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrWhen.accept(IrWhen.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:584)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrBlockBody.accept(IrBlockBody.kt:20)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.generate(ExpressionCodegen.kt:240)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.doGenerate(FunctionCodegen.kt:123)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:44)
+	... 54 more
+
+

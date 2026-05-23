@@ -32,66 +32,67 @@ object PredefinedPacks {
         PredefinedPack(
             id = "nature_weather_1",
             name = "Cinematic Nature",
-            description = "High-quality landscapes for every weather condition.",
-            previewUrl = "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=1000",
+            description = "Epic landscapes that shift with the weather and time.",
+            previewUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000",
             weatherRules = createNatureWeatherRules(),
             type = PackType.WEATHER
         ),
         PredefinedPack(
             id = "urban_weather_1",
             name = "Neon Soul",
-            description = "City vibes with cyberpunk night colors.",
+            description = "City vibes, neon lights, and cyberpunk aesthetics.",
             previewUrl = "https://images.unsplash.com/photo-1514565131-fce0801e5785?q=80&w=1000",
             weatherRules = createUrbanWeatherRules(),
             type = PackType.WEATHER
         ),
         PredefinedPack(
-            id = "minimalist_weather",
-            name = "Minimalist Art",
-            description = "Clean lines and soft colors for your screen.",
-            previewUrl = "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?q=80&w=1000",
-            weatherRules = createMinimalistWeatherRules(),
-            type = PackType.WEATHER
-        ),
-        PredefinedPack(
-            id = "random_space_weekly",
-            name = "Surprise Space",
-            description = "Random galaxies for every day. Every install is a new journey!",
-            previewUrl = "https://images.unsplash.com/photo-1464802686167-b939a6910659?q=80&w=1000",
+            id = "random_nature_weather",
+            name = "Nature Discovery",
+            description = "Random epic landscapes. Every install is a new adventure.",
+            previewUrl = "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1000",
             isRandom = true,
-            randomQuery = "galaxy space stars",
-            type = PackType.WEEKLY
+            randomQuery = "nature landscape",
+            type = PackType.WEATHER
         ),
         PredefinedPack(
             id = "weekly_tour",
             name = "World Tour",
-            description = "A famous city for every day of the week.",
-            previewUrl = "https://images.unsplash.com/photo-1449156003053-910c6718a999?q=80&w=1000",
+            description = "Travel the globe! A famous city for every day of the week.",
+            previewUrl = "https://images.unsplash.com/photo-1518391846015-55a9cc003b25?q=80&w=1000",
             type = PackType.WEEKLY,
             dailyRules = listOf(
-                PredefinedDailyRule("monday", "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("tuesday", "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("wednesday", "https://images.unsplash.com/photo-1525625239513-445c475ca421?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("thursday", "https://images.unsplash.com/photo-1534430480872-3498386e7a56?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("friday", "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("saturday", "https://images.unsplash.com/photo-1518684079-3c830dcef090?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("sunday", "https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=1600&ar=9:16&fit=crop")
+                PredefinedDailyRule("monday", "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=1600&ar=9:16&fit=crop"), // London
+                PredefinedDailyRule("tuesday", "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1600&ar=9:16&fit=crop"), // Paris
+                PredefinedDailyRule("wednesday", "https://images.unsplash.com/photo-1525625239513-445c475ca421?q=80&w=1600&ar=9:16&fit=crop"), // Tokyo
+                PredefinedDailyRule("thursday", "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?q=80&w=1600&ar=9:16&fit=crop"), // New York
+                PredefinedDailyRule("friday", "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=1600&ar=9:16&fit=crop"), // Sydney
+                PredefinedDailyRule("saturday", "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1600&ar=9:16&fit=crop"), // Dubai
+                PredefinedDailyRule("sunday", "https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1600&ar=9:16&fit=crop") // Rome
             )
         ),
         PredefinedPack(
-            id = "coffee_weekly",
-            name = "Coffee Culture",
-            description = "Start your day with a fresh brew.",
-            previewUrl = "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1000",
+            id = "random_animals_weekly",
+            name = "Animal Kingdom",
+            description = "A surprise majestic animal for every day of the week.",
+            previewUrl = "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?q=80&w=1000",
+            isRandom = true,
+            randomQuery = "wildlife animal",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "cyberpunk_weekly",
+            name = "Cyber Week",
+            description = "Glitch art and futuristic neon for every day.",
+            previewUrl = "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1000",
             type = PackType.WEEKLY,
             dailyRules = listOf(
-                PredefinedDailyRule("monday", "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("tuesday", "https://images.unsplash.com/photo-1511920170033-f8396924c34b?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("wednesday", "https://images.unsplash.com/photo-1497933322465-047242c7f17d?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("thursday", "https://images.unsplash.com/photo-1459755484557-4ba185393f96?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("friday", "https://images.unsplash.com/photo-1509042239035-111030d71588?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("saturday", "https://images.unsplash.com/photo-1442336874590-6dd4f3a97a4a?q=80&w=1600&ar=9:16&fit=crop"),
-                PredefinedDailyRule("sunday", "https://images.unsplash.com/photo-1512568400614-62ada71af90e?q=80&w=1600&ar=9:16&fit=crop")
+                PredefinedDailyRule("monday", "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1600&ar=9:16&fit=crop"),
+                PredefinedDailyRule("tuesday", "https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?q=80&w=1600&ar=9:16&fit=crop"),
+                PredefinedDailyRule("wednesday", "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1600&ar=9:16&fit=crop"),
+                PredefinedDailyRule("thursday", "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=1600&ar=9:16&fit=crop"),
+                PredefinedDailyRule("friday", "https://images.unsplash.com/photo-1535223289827-42f1e9919769?q=80&w=1600&ar=9:16&fit=crop"),
+                PredefinedDailyRule("saturday", "https://images.unsplash.com/photo-1504333638930-c8787321eba0?q=80&w=1600&ar=9:16&fit=crop"),
+                PredefinedDailyRule("sunday", "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&ar=9:16&fit=crop")
             )
         )
     )
@@ -126,13 +127,13 @@ object PredefinedPacks {
             
             (Weather.Storm to TimeOfDay.DAWN) to "1492014758011-57d22bf73d52",
             (Weather.Storm to TimeOfDay.DAY) to "1511289080750-b1d2d14145b8",
-            (Weather.Storm to TimeOfDay.DUSK) to "1511289080750-b1d2d14145b8",
+            (Weather.Storm to TimeOfDay.DUSK) to "1441974231531-c6227db76b6e",
             (Weather.Storm to TimeOfDay.NIGHT) to "1441974231531-c6227db76b6e"
         )
         
         Weather.all().forEach { w ->
             TimeOfDay.entries.forEach { t ->
-                val id = images[w to t] ?: "1506744038136-46273834b3fb"
+                val id = images[w to t] ?: images[Weather.Clear to t] ?: "1506744038136-46273834b3fb"
                 rules.add(PredefinedRule(w, t, "https://images.unsplash.com/photo-$id?q=80&w=1600&ar=9:16&fit=crop"))
             }
         }
@@ -165,32 +166,17 @@ object PredefinedPacks {
             (Weather.Fog to TimeOfDay.DAWN) to "1520551061730-681b898d970f",
             (Weather.Fog to TimeOfDay.DAY) to "1518391846015-55a9cc003b25",
             (Weather.Fog to TimeOfDay.DUSK) to "1505322022379-7c3353ee0373",
-            (Weather.Fog to TimeOfDay.NIGHT) to "1511289080750-b1d2d14145b8"
-        )
-        
-        Weather.all().forEach { w ->
-            TimeOfDay.entries.forEach { t ->
-                val id = images[w to t] ?: "1514565131-fce0801e5785"
-                rules.add(PredefinedRule(w, t, "https://images.unsplash.com/photo-$id?q=80&w=1600&ar=9:16&fit=crop"))
-            }
-        }
-        return rules
-    }
+            (Weather.Fog to TimeOfDay.NIGHT) to "1511289080750-b1d2d14145b8",
 
-    private fun createMinimalistWeatherRules(): List<PredefinedRule> {
-        val rules = mutableListOf<PredefinedRule>()
-        val images = mapOf(
-            (Weather.Clear to TimeOfDay.DAY) to "1496304841283-f39b1747dec3",
-            (Weather.Clear to TimeOfDay.NIGHT) to "1475855531693-bb210250df92",
-            (Weather.Cloudy to TimeOfDay.DAY) to "1494438639946-1ebd1d20bf85",
-            (Weather.Cloudy to TimeOfDay.NIGHT) to "1501785888041-af3ef285b470",
-            (Weather.Rain to TimeOfDay.DAY) to "1515694346937-94d85e41e6f0",
-            (Weather.Rain to TimeOfDay.NIGHT) to "1534313313039-4fd92c20693a"
+            (Weather.Storm to TimeOfDay.DAWN) to "1511289080750-b1d2d14145b8",
+            (Weather.Storm to TimeOfDay.DAY) to "1511289080750-b1d2d14145b8",
+            (Weather.Storm to TimeOfDay.DUSK) to "1511289080750-b1d2d14145b8",
+            (Weather.Storm to TimeOfDay.NIGHT) to "1511289080750-b1d2d14145b8"
         )
         
         Weather.all().forEach { w ->
             TimeOfDay.entries.forEach { t ->
-                val id = images[w to t] ?: images[Weather.Clear to TimeOfDay.DAY]!!
+                val id = images[w to t] ?: images[Weather.Clear to t] ?: "1514565131-fce0801e5785"
                 rules.add(PredefinedRule(w, t, "https://images.unsplash.com/photo-$id?q=80&w=1600&ar=9:16&fit=crop"))
             }
         }

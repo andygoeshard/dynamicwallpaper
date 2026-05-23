@@ -39,6 +39,36 @@ import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import com.andyl.iris.domain.mapper.toKey
 
+private data class SlotStatus(
+    val uriBoth: String? = null,
+    val uriHome: String? = null,
+    val uriLock: String? = null
+) {
+    val hasAny = uriBoth != null || uriHome != null || uriLock != null
+    val bestUri = uriBoth ?: uriHome ?: uriLock
+}
+
+private fun getSlotStatus(
+    slot: SlotData,
+    rules: Map<String, String>,
+    dailyRules: Map<String, String>
+): SlotStatus {
+    return if (slot.dayName != null) {
+        SlotStatus(
+            uriBoth = dailyRules[slot.dayName] ?: dailyRules["${slot.dayName}-3"],
+            uriHome = dailyRules["${slot.dayName}-1"],
+            uriLock = dailyRules["${slot.dayName}-2"]
+        )
+    } else if (slot.weather != null && slot.time != null) {
+        val baseKey = "${slot.weather.toKey()} - ${slot.time}"
+        SlotStatus(
+            uriBoth = rules["$baseKey - 3"],
+            uriHome = rules["$baseKey - 1"],
+            uriLock = rules["$baseKey - 2"]
+        )
+    } else SlotStatus()
+}
+
 @Composable
 fun PackDetailList(
     pack: SuggestedPack,
@@ -47,17 +77,6 @@ fun PackDetailList(
     onSlotClick: (Weather?, TimeOfDay?, String?, String) -> Unit,
     onDownloadFullPack: (SuggestedPack) -> Unit
 ) {
-    val context = LocalContext.current
-    
-    fun getExistingUri(slot: SlotData): String? {
-        return if (slot.dayName != null) {
-            dailyRules[slot.dayName] ?: dailyRules["${slot.dayName}-3"]
-        } else if (slot.weather != null && slot.time != null) {
-            rules["${slot.weather.toKey()} - ${slot.time} - 3"] ?:
-            rules["${slot.weather.toKey()} - ${slot.time} - 1"]
-        } else null
-    }
-
     val slots = when (pack) {
         SuggestedPack.Days -> {
             listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
@@ -180,8 +199,8 @@ fun PackDetailList(
             }
             
             val isPredefinedPreview = pack is SuggestedPack.Predefined
-            val existingUri = if (isPredefinedPreview) null else getExistingUri(slot)
-            val displayUri = existingUri ?: slot.remoteUrl
+            val status = if (isPredefinedPreview) SlotStatus() else getSlotStatus(slot, rules, dailyRules)
+            val displayUri = status.bestUri ?: slot.remoteUrl
 
             Card(
                 modifier = Modifier
@@ -190,7 +209,7 @@ fun PackDetailList(
                     .clickable { onSlotClick(slot.weather, slot.time, slot.dayName, label) },
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (existingUri != null) 
+                    containerColor = if (status.hasAny) 
                         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
                     else 
                         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
@@ -219,17 +238,26 @@ fun PackDetailList(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
+                        
+                        val statusText = when {
+                            status.uriBoth != null -> "Configured for Both"
+                            status.uriHome != null && status.uriLock != null -> "Configured for Home & Lock"
+                            status.uriHome != null -> "Configured for Home"
+                            status.uriLock != null -> "Configured for Lock"
+                            else -> "Tap to search a photo"
+                        }
+                        
                         Text(
-                            text = if (existingUri != null) "Wallpaper configured" else "Tap to search a photo",
+                            text = statusText,
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (existingUri != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            color = if (status.hasAny) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
                     }
                     
                     Icon(
-                        imageVector = if (existingUri != null) Icons.Default.Check else Icons.Default.Add,
+                        imageVector = if (status.hasAny) Icons.Default.Check else Icons.Default.Add,
                         contentDescription = null,
-                        tint = if (existingUri != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (status.hasAny) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

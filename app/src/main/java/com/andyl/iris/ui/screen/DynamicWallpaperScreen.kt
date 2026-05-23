@@ -144,7 +144,6 @@ fun DynamicWallpaperScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                modifier = Modifier.padding(top = 64.dp),
                 navigationIcon = {
                     IrisLogo(
                         modifier = Modifier

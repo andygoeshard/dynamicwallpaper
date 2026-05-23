@@ -90,7 +90,8 @@ class SearchViewModel(
                     wallpaperViewModel.onEvent(
                         WallpaperEvent.SetDailyWallpaper(
                             dayName = slot.dayName,
-                            uri = file.absolutePath
+                            uri = file.absolutePath,
+                            target = target
                         )
                     )
                 }
