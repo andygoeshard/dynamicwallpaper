@@ -1,7 +1,9 @@
 package com.andyl.iris.ui.searchscreen.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,30 +19,29 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.andyl.iris.domain.mapper.toKey
 import com.andyl.iris.domain.model.PackType
 import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.ui.searchscreen.SuggestedPack
-import androidx.compose.ui.res.stringResource
-import androidx.compose.foundation.layout.size
-import androidx.compose.ui.draw.clip
-import coil.compose.AsyncImage
-import androidx.compose.ui.layout.ContentScale
-import com.andyl.iris.domain.mapper.toKey
 
 private data class SlotStatus(
     val uriBoth: String? = null,
@@ -78,6 +80,7 @@ private fun getSlotStatus(
     } else SlotStatus()
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PackDetailList(
     pack: SuggestedPack,
@@ -87,7 +90,7 @@ fun PackDetailList(
     previewImages: List<String> = emptyList(),
     onSlotClick: (Weather?, TimeOfDay?, String?, String?, String) -> Unit,
     onDownloadFullPack: (SuggestedPack) -> Unit,
-    onLongPressInstall: () -> Unit,
+    onLongPressInstall: () -> Unit = {},
     onAddCustomTime: () -> Unit = {}
 ) {
     val slots = when (pack) {
@@ -115,9 +118,9 @@ fun PackDetailList(
         SuggestedPack.Time -> {
             val defaultTimes = listOf(
                 "06:00" to "Dawn",
-                "10:00" to "Day",
+                "09:00" to "Day",
                 "18:00" to "Dusk",
-                "22:00" to "Night"
+                "21:00" to "Night"
             )
             
             val standardSlots = defaultTimes.map { (time, label) ->
@@ -166,10 +169,11 @@ fun PackDetailList(
                         }
                 }
                 else -> {
+                    val weatherList = Weather.all().toList()
                     val imagesPerWeather = if (previewImages.size >= 6) previewImages.size / 6 else 1
                     
-                    Weather.all().flatMap { weather ->
-                        val weatherIndex = Weather.all().indexOf(weather)
+                    weatherList.flatMap { weather ->
+                        val weatherIndex = weatherList.indexOf(weather)
                         TimeOfDay.entries.map { time ->
                             val timeIndex = TimeOfDay.entries.indexOf(time)
                             val url = previewImages.getOrNull((weatherIndex * imagesPerWeather + timeIndex) % previewImages.size.coerceAtLeast(1))
@@ -207,25 +211,32 @@ fun PackDetailList(
                 
                 Spacer(modifier = Modifier.height(20.dp))
                 
-                Button(
-                    onClick = { /* No-op, handled by pointerInput */ },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onLongPress = { onLongPressInstall() },
-                                onTap = { onDownloadFullPack(pack) }
-                            )
-                        },
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                    color = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
-                    Icon(Icons.Default.Add, null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Install Full Pack", fontWeight = FontWeight.Bold)
+                    val interactionSource = remember { MutableInteractionSource() }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                interactionSource = interactionSource,
+                                indication = ripple(),
+                                onClick = { onDownloadFullPack(pack) },
+                                onLongClick = { onLongPressInstall() }
+                            )
+                            .padding(vertical = 14.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Add, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Install Full Pack", fontWeight = FontWeight.Bold)
+                    }
                 }
+
                 Text(
                     "Tip: Long press to install into an existing pack.",
                     style = MaterialTheme.typography.labelSmall,

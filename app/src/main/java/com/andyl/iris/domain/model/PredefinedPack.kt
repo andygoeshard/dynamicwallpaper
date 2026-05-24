@@ -104,7 +104,7 @@ object PredefinedPacks {
             id = "animals_weekly",
             name = "Animal Kingdom",
             description = "Beautiful wildlife and adorable animals to start your day.",
-            previewUrl = "https://images.unsplash.com/photo-1543946207-39bd91e70ca7?auto=format&fit=crop&w=800&q=80",
+            previewUrl = "https://images.unsplash.com/photo-1474511320721-9a6ee3ef716d?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "wildlife animals nature",
             type = PackType.WEEKLY
         ),
@@ -166,7 +166,7 @@ object PredefinedPacks {
             id = "cyberpunk_streets_weekly",
             name = "Neon Syndicate",
             description = "Hardcore cyberpunk cityscapes and robotic aesthetics.",
-            previewUrl = "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=800&q=80",
+            previewUrl = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "cyberpunk cyborg neon city",
             type = PackType.WEEKLY
         ),
@@ -183,7 +183,7 @@ object PredefinedPacks {
             id = "vaporwave_vibe_time",
             name = "Retro Wave",
             description = "Syntwave and 80s retro-futurism for your daily cycle.",
-            previewUrl = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800&q=80",
+            previewUrl = "https://images.unsplash.com/photo-1614850523296-e8c041de4398?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "vaporwave synthwave retro aesthetic",
             type = PackType.WEATHER,
             isTimeBased = true
