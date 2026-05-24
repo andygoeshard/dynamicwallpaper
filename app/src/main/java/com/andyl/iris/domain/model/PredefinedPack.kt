@@ -55,7 +55,7 @@ object PredefinedPacks {
             name = "Ghibli Scenery",
             description = "Hand-painted style landscapes inspired by legendary anime films.",
             previewUrl = "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=800&q=80",
-            categoryQuery = "ghibli scenery anime",
+            categoryQuery = "anime landscape art",
             type = PackType.WEATHER
         ),
         PredefinedPack(
@@ -68,39 +68,38 @@ object PredefinedPacks {
             isFullRandom = true
         ),
 
-        // --- WEEKLY BASED PACKS (3 + 1 Random) ---
+        // --- WEEKLY BASED PACKS ---
         PredefinedPack(
-            id = "world_tour_weekly",
-            name = "Global Journey",
-            description = "Travel to a different iconic world capital every day.",
-            previewUrl = "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?auto=format&fit=crop&w=800&q=80",
-            categoryQuery = "city architecture travel",
+            id = "cozy_weekly",
+            name = "Cozy Retreat",
+            description = "Warm interiors and peaceful cabin vibes for every day.",
+            previewUrl = "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "cozy interior cabin aesthetic",
             type = PackType.WEEKLY
         ),
         PredefinedPack(
-            id = "wildlife_weekly",
-            name = "Wild Sanctuary",
-            description = "A majestic animal encounter for each day of the week.",
-            previewUrl = "https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=800&q=80",
+            id = "neon_weekly",
+            name = "Neon Dreams",
+            description = "Vibrant neon lights and glowing city nights.",
+            previewUrl = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "neon lights night city",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "cyberpunk_weekly",
+            name = "Cyberpunk Future",
+            description = "High-tech, low-life aesthetic from a futuristic world.",
+            previewUrl = "https://images.unsplash.com/photo-1515630278258-407f66498911?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "cyberpunk city street futuristic",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "animals_weekly",
+            name = "Animal Kingdom",
+            description = "Beautiful wildlife and adorable animals to start your day.",
+            previewUrl = "https://images.unsplash.com/photo-1474511320721-9a6ee3ef716d?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "wildlife animals nature",
             type = PackType.WEEKLY
-        ),
-        PredefinedPack(
-            id = "cosmic_weekly",
-            name = "Cosmic Voyage",
-            description = "Explore the vast mysteries of deep space every day.",
-            previewUrl = "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=800&q=80",
-            categoryQuery = "galaxy nebula space cosmos",
-            type = PackType.WEEKLY
-        ),
-        PredefinedPack(
-            id = "random_weekly_surprise",
-            name = "Weekly Surprise",
-            description = "A unique set of random high-quality wallpapers for your week.",
-            previewUrl = "https://images.unsplash.com/photo-1493612276216-ee3925520721?auto=format&fit=crop&w=800&q=80",
-            categoryQuery = "nature abstract",
-            type = PackType.WEEKLY,
-            isFullRandom = true
         ),
 
         // --- TIME-BASED OVERRIDE PACKS (3 + 1 Random) ---

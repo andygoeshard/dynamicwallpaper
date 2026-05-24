@@ -160,16 +160,20 @@ fun PackDetailList(
                             SlotData(
                                 label = day.replaceFirstChar { it.uppercase() },
                                 dayName = day,
-                                remoteUrl = previewImages.getOrNull(i % previewImages.size.coerceAtLeast(1))
+                                remoteUrl = previewImages.getOrNull(i)
                             )
                         }
                 }
                 else -> {
-                    var counter = 0
+                    val imagesPerWeather = if (previewImages.size >= 6) previewImages.size / 6 else 1
+                    
                     Weather.all().flatMap { weather ->
+                        val weatherIndex = Weather.all().indexOf(weather)
                         TimeOfDay.entries.map { time ->
-                            val url = previewImages.getOrNull(counter % previewImages.size.coerceAtLeast(1))
-                            counter++
+                            val timeIndex = TimeOfDay.entries.indexOf(time)
+                            // Better distribution: try to pick an image based on weather index first
+                            val url = previewImages.getOrNull((weatherIndex * imagesPerWeather + timeIndex) % previewImages.size.coerceAtLeast(1))
+
                             SlotData(
                                 label = "",
                                 labelRes = weather.stringRes,

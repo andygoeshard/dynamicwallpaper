@@ -1,5 +1,6 @@
 package com.andyl.iris.ui.searchscreen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.andyl.iris.data.imagesprovider.datasource.UnsplashRemoteDataSource
@@ -60,7 +61,6 @@ class SearchViewModel(
         }
     }
 
-    // 1. Navegación entre paquetes
     fun selectPack(pack: SuggestedPack?) {
         _uiState.update { 
             it.copy(
@@ -86,34 +86,43 @@ class SearchViewModel(
         val predefined = PredefinedPacks.packs.find { it.id == packId } ?: return
         viewModelScope.launch {
             val baseQuery = if (predefined.isFullRandom) "" else predefined.categoryQuery
-            val usedIds = mutableSetOf<String>()
+            val usedIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
             
             val previewQueries = when {
                 predefined.type == PackType.WEEKLY -> {
-                    listOf("monday", "wednesday", "friday", "sunday").map { if (baseQuery.isEmpty()) it else "$baseQuery $it" }
+                    listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+                        .map { if (baseQuery.isEmpty()) it else "$baseQuery $it" }
                 }
                 predefined.isTimeBased -> {
-                    TimeOfDay.entries.map { if (baseQuery.isEmpty()) it.queryTerm else "$baseQuery ${it.queryTerm}" }
+                    listOf("06:00", "10:00", "18:00", "22:00").map { time ->
+                        val term = when(time) {
+                            "06:00" -> TimeOfDay.DAWN.queryTerm
+                            "10:00" -> TimeOfDay.DAY.queryTerm
+                            "18:00" -> TimeOfDay.DUSK.queryTerm
+                            else -> TimeOfDay.NIGHT.queryTerm
+                        }
+                        if (baseQuery.isEmpty()) term else "$baseQuery $term"
+                    }
                 }
                 else -> {
-                    listOf(
-                        Weather.Clear to TimeOfDay.DAY,
-                        Weather.Rain to TimeOfDay.NIGHT,
-                        Weather.Snow to TimeOfDay.DAY,
-                        Weather.Cloudy to TimeOfDay.DUSK
-                    ).map { (w, t) -> 
-                        if (baseQuery.isEmpty()) "${w.queryTerm} ${t.queryTerm}" 
-                        else "$baseQuery ${w.queryTerm} ${t.queryTerm}" 
+                    Weather.all().map { w ->
+                        if (baseQuery.isEmpty()) w.queryTerm else "$baseQuery ${w.queryTerm}"
                     }
                 }
             }
 
             val urls = previewQueries.map { query ->
                 async {
-                    val images = remoteDataSource.getRandomPhotos(query, count = 3).getOrNull() ?: emptyList()
-                    val unique = images.find { it.id !in usedIds } ?: images.firstOrNull()
-                    unique?.let { usedIds.add(it.id) }
-                    unique?.urls?.small
+                    var foundUrl: String? = null
+                    remoteDataSource.getRandomPhotos(query, count = 10)
+                        .onSuccess { images ->
+                            val unique = images.filter { it.id !in usedIds }.shuffled().firstOrNull() ?: images.firstOrNull()
+                            unique?.let { 
+                                usedIds.add(it.id)
+                                foundUrl = it.urls.small
+                            }
+                        }
+                    foundUrl
                 }
             }.awaitAll().filterNotNull().map { "$it&ar=9:16&fit=crop" }
 
@@ -137,12 +146,11 @@ class SearchViewModel(
             val timeTerm = slot.time?.queryTerm ?: ""
             val dayTerm = slot.dayName ?: ""
             
-            // Map fixed times to TimeOfDay terms if possible to keep consistency
             val fixedTimeTerm = when (slot.fixedTime) {
                 "06:00" -> TimeOfDay.DAWN.queryTerm
-                "09:00", "10:00" -> TimeOfDay.DAY.queryTerm
+                "10:00" -> TimeOfDay.DAY.queryTerm
                 "18:00" -> TimeOfDay.DUSK.queryTerm
-                "21:00", "22:00" -> TimeOfDay.NIGHT.queryTerm
+                "22:00" -> TimeOfDay.NIGHT.queryTerm
                 else -> ""
             }
 
@@ -186,7 +194,6 @@ class SearchViewModel(
         }
     }
 
-    // 2. Búsqueda en API (Internal)
     private suspend fun performSearch(query: String) {
         _uiState.update { it.copy(isLoading = true) }
         remoteDataSource.searchPhotos(query)
@@ -199,7 +206,6 @@ class SearchViewModel(
             }
     }
 
-    // 3. LA POSTA: Descarga e Impacto en el Pack
     fun confirmAndDownload(context: android.content.Context, image: UnsplashImage, target: Int) {
         val slot = _uiState.value.activeSlot ?: return
 
