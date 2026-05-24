@@ -25,4 +25,5 @@ val networkModule = module {
     }
 
     single { UnsplashRemoteDataSource(get()) }
+    single { com.andyl.iris.data.imagesprovider.datasource.PexelsRemoteDataSource(get()) }
 }

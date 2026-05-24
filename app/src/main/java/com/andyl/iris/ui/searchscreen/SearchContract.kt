@@ -1,12 +1,12 @@
 package com.andyl.iris.ui.searchscreen
 
-import com.andyl.iris.data.imagesprovider.dto.UnsplashImage
+import com.andyl.iris.domain.model.ImageResult
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
 
 data class SearchUiState(
     val isLoading: Boolean = false,
-    val searchResults: List<UnsplashImage> = emptyList(),
+    val searchResults: List<ImageResult> = emptyList(),
     val previewImages: List<String> = emptyList(), // Store dynamic previews for the selected pack
     val error: String? = null,
 

@@ -1,7 +1,6 @@
 package com.andyl.iris.domain.usecase.impl
 
 import android.util.Log
-import com.andyl.iris.data.imagesprovider.datasource.UnsplashRemoteDataSource
 import com.andyl.iris.domain.model.PredefinedPack
 import com.andyl.iris.domain.model.PredefinedRule
 import com.andyl.iris.domain.model.PredefinedDailyRule
@@ -13,7 +12,9 @@ import com.andyl.iris.domain.model.WallpaperId
 import com.andyl.iris.domain.model.WallpaperRule
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.model.ScaleMode
+import com.andyl.iris.domain.model.ImageResult
 import com.andyl.iris.domain.repository.UserPreferencesRepository
+import com.andyl.iris.domain.repository.ImageRepository
 import com.andyl.iris.domain.usecase.contract.ApplyDynamicWallpaperUseCase
 import com.andyl.iris.domain.usecase.contract.InstallPredefinedPackUseCase
 import kotlinx.coroutines.Dispatchers
@@ -23,19 +24,18 @@ import kotlinx.coroutines.withContext
 
 import com.andyl.iris.domain.helper.AlarmHelper
 import android.content.Context
-import com.andyl.iris.data.imagesprovider.dto.UnsplashImage
 
 class InstallPredefinedPackUseCaseImpl(
     private val context: Context,
     private val downloadUseCase: DownloadWallpaperUseCase,
     private val preferencesRepository: UserPreferencesRepository,
     private val applyUseCase: ApplyDynamicWallpaperUseCase,
-    private val unsplashRemoteDataSource: UnsplashRemoteDataSource
+    private val imageRepository: ImageRepository
 ) : InstallPredefinedPackUseCase {
 
     override suspend fun invoke(pack: PredefinedPack): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            Log.d("IRIS_INSTALL", "🚀 Starting Optimized Installation: ${pack.name}")
+            Log.d("IRIS_INSTALL", "🚀 Starting High-Variety Multi-Provider Install: ${pack.name}")
             
             val weatherRulesToDownload = mutableListOf<PredefinedRule>()
             val dailyRulesToDownload = mutableListOf<PredefinedDailyRule>()
@@ -45,12 +45,11 @@ class InstallPredefinedPackUseCaseImpl(
             val usedImageIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
 
             when {
-                // 1. TIME-BASED PACKS: 4 calls total
                 pack.isTimeBased -> {
                     TimeOfDay.entries.map { timeOfDay ->
                         async {
-                            val q = if (baseQuery.isEmpty()) timeOfDay.queryTerm else "$baseQuery ${timeOfDay.queryTerm}"
-                            unsplashRemoteDataSource.getRandomPhotos(q, count = 10).onSuccess { images ->
+                            val q = buildCombinedQuery(baseQuery, timeOfDay.queryTerm)
+                            imageRepository.searchImages(q).onSuccess { images ->
                                 val image = images.find { it.id !in usedImageIds } ?: images.shuffled().firstOrNull()
                                 image?.let {
                                     usedImageIds.add(it.id)
@@ -60,39 +59,36 @@ class InstallPredefinedPackUseCaseImpl(
                                         TimeOfDay.DUSK -> "18:00"
                                         TimeOfDay.NIGHT -> "22:00"
                                     }
-                                    fixedRulesToDownload.add(PredefinedFixedTimeRule(timeStr, "${it.urls.full}&ar=9:16&fit=crop"))
+                                    fixedRulesToDownload.add(PredefinedFixedTimeRule(timeStr, it.urlFull))
                                 }
                             }
                         }
                     }.awaitAll()
                 }
 
-                // 2. WEEKLY PACKS: 1 call total (Efficiency 700%)
                 pack.type == PackType.WEEKLY -> {
-                    unsplashRemoteDataSource.getRandomPhotos(baseQuery, count = 30).onSuccess { images ->
+                    imageRepository.getRandomImages(baseQuery, count = 30).onSuccess { images ->
                         val shuffledImages = images.shuffled()
                         val days = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
                         days.forEachIndexed { i, day ->
                             val image = shuffledImages.getOrNull(i)
                             image?.let {
-                                dailyRulesToDownload.add(PredefinedDailyRule(day, "${it.urls.full}&ar=9:16&fit=crop"))
+                                dailyRulesToDownload.add(PredefinedDailyRule(day, it.urlFull))
                             }
                         }
                     }
                 }
 
-                // 3. WEATHER PACKS: 6 calls total (Efficiency 400%)
                 else -> {
                     Weather.all().map { weather ->
                         async {
-                            val q = if (baseQuery.isEmpty()) weather.queryTerm else "$baseQuery ${weather.queryTerm}"
-                            unsplashRemoteDataSource.getRandomPhotos(q, count = 20).onSuccess { pool ->
-                                // For each weather, assign unique images to the 4 time slots
+                            val q = buildWeatherQuery(baseQuery, weather)
+                            imageRepository.getRandomImages(q, count = 15).onSuccess { pool ->
                                 TimeOfDay.entries.forEach { time ->
                                     val image = pool.filter { it.id !in usedImageIds }.shuffled().firstOrNull() ?: pool.shuffled().firstOrNull()
                                     image?.let {
                                         usedImageIds.add(it.id)
-                                        weatherRulesToDownload.add(PredefinedRule(weather, time, "${it.urls.full}&ar=9:16&fit=crop"))
+                                        weatherRulesToDownload.add(PredefinedRule(weather, time, it.urlFull))
                                     }
                                 }
                             }
@@ -101,7 +97,6 @@ class InstallPredefinedPackUseCaseImpl(
                 }
             }
 
-            // --- DOWNLOAD & INSTALL ---
             val allUrls = (weatherRulesToDownload.map { it.imageUrl } + 
                           dailyRulesToDownload.map { it.imageUrl } + 
                           fixedRulesToDownload.map { it.imageUrl }).distinct()
@@ -143,11 +138,13 @@ class InstallPredefinedPackUseCaseImpl(
 
             localFixedRules.keys.forEach { time -> AlarmHelper.scheduleFixedTimeAlarm(context, time) }
             
-            Log.d("IRIS_INSTALL", "✅ Success. Total API calls for this install: ${if(pack.type == PackType.WEEKLY) 1 else if(pack.isTimeBased) 4 else 6}")
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e("IRIS_INSTALL", "💥 Install failed", e)
             Result.failure(e)
         }
     }
+
+    private fun buildCombinedQuery(base: String, term: String) = if (base.isEmpty()) term else "$base $term"
+    private fun buildWeatherQuery(base: String, weather: Weather) = if (base.isEmpty()) weather.queryTerm else "$base ${weather.queryTerm}"
 }

@@ -23,7 +23,7 @@ val viewModelModule = module {
     }
     viewModel { params ->
         SearchViewModel(
-            remoteDataSource = get(),
+            imageRepository = get(),
             downloadUseCase = get(),
             installPredefinedPackUseCase = get(),
             wallpaperViewModel = params.get()

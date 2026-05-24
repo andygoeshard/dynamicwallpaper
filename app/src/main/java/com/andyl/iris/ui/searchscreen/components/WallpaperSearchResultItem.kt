@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,11 +34,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.andyl.iris.data.imagesprovider.dto.UnsplashImage
+import com.andyl.iris.domain.model.ImageResult
 
 @Composable
 fun WallpaperSearchResultItem(
-    image: UnsplashImage,
+    image: ImageResult,
     onConfirm: (uri: String, target: Int) -> Unit
 ) {
     var selectedTarget by remember { mutableStateOf(3) }
@@ -54,9 +53,8 @@ fun WallpaperSearchResultItem(
         )
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            // IMAGEN CON BORDES REDONDEADOS
             AsyncImage(
-                model = image.urls.small,
+                model = image.urlSmall,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -77,7 +75,6 @@ fun WallpaperSearchResultItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // SELECTOR DE TARGET MEJORADO
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -90,7 +87,7 @@ fun WallpaperSearchResultItem(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { onConfirm(image.urls.full, selectedTarget) },
+                onClick = { onConfirm(image.urlFull, selectedTarget) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -101,6 +98,13 @@ fun WallpaperSearchResultItem(
                 Spacer(Modifier.width(8.dp))
                 Text("Confirm & Apply", fontWeight = FontWeight.Bold)
             }
+            
+            Text(
+                text = "Provider: ${image.provider.uppercase()}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.align(Alignment.End).padding(top = 8.dp)
+            )
         }
     }
 }

@@ -3,18 +3,16 @@ package com.andyl.iris.ui.searchscreen
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.andyl.iris.data.imagesprovider.datasource.UnsplashRemoteDataSource
-import com.andyl.iris.data.imagesprovider.dto.UnsplashImage
 import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.domain.model.PackType
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.model.TimeOfDay
+import com.andyl.iris.domain.model.ImageResult
+import com.andyl.iris.domain.repository.ImageRepository
 import com.andyl.iris.domain.usecase.contract.InstallPredefinedPackUseCase
 import com.andyl.iris.domain.usecase.impl.DownloadWallpaperUseCase
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -26,7 +24,7 @@ import kotlinx.coroutines.FlowPreview
 
 @OptIn(FlowPreview::class)
 class SearchViewModel(
-    private val remoteDataSource: UnsplashRemoteDataSource,
+    private val imageRepository: ImageRepository,
     private val downloadUseCase: DownloadWallpaperUseCase,
     private val installPredefinedPackUseCase: InstallPredefinedPackUseCase,
     val wallpaperViewModel: DynamicWallpaperViewModel
@@ -38,7 +36,6 @@ class SearchViewModel(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
-    private val searchCache = mutableMapOf<String, List<UnsplashImage>>()
     private val packPreviewCache = mutableMapOf<String, List<String>>()
 
     init {
@@ -48,16 +45,26 @@ class SearchViewModel(
     private fun setupSearchDebounce() {
         viewModelScope.launch {
             _searchQuery
-                .debounce(700)
+                .debounce(800)
                 .filter { it.isNotBlank() && it.length > 2 }
                 .distinctUntilChanged()
                 .collect { query ->
-                    if (searchCache.containsKey(query)) {
-                        _uiState.update { it.copy(searchResults = searchCache[query]!!, isLoading = false) }
-                    } else {
-                        performSearch(query)
+                    // El repositorio ya maneja el caché de Room internamente
+                    performSearch(query)
+                }
+        }
+
+        // CAPA PREDICTIVA: Escucha cambios inmediatos pero solo consulta a ROOM
+        viewModelScope.launch {
+            _searchQuery.collect { query ->
+                if (query.length > 2) {
+                    // Actualización rápida desde caché local sin bloquear hilos
+                    val quickResults = imageRepository.searchImages(query, forceRefresh = false).getOrNull()
+                    if (quickResults != null && quickResults.isNotEmpty() && _uiState.value.searchResults.isEmpty()) {
+                        _uiState.update { it.copy(searchResults = quickResults) }
                     }
                 }
+            }
         }
     }
 
@@ -87,9 +94,8 @@ class SearchViewModel(
         viewModelScope.launch {
             val baseQuery = if (predefined.isFullRandom) "wallpaper" else predefined.categoryQuery
             
-            // OPTIMIZATION: Fetch a large batch in ONE call instead of many
-            remoteDataSource.getRandomPhotos(baseQuery, count = 30).onSuccess { images ->
-                val urls = images.shuffled().take(10).map { "${it.urls.small}&ar=9:16&fit=crop" }
+            imageRepository.getRandomImages(baseQuery, count = 30).onSuccess { images ->
+                val urls = images.shuffled().take(10).map { "${it.urlSmall}&ar=9:16&fit=crop" }
                 if (urls.isNotEmpty()) {
                     packPreviewCache[packId] = urls
                     _uiState.update { it.copy(previewImages = urls) }
@@ -125,9 +131,7 @@ class SearchViewModel(
                 .trim()
 
             _searchQuery.value = finalQuery.ifEmpty {
-                slot.label
-                    .replace("Override: ", "")
-                    .replace("Time: ", "")
+                slot.label.replace("Override: ", "").replace("Time: ", "")
             }
         } else {
             _searchQuery.value = ""
@@ -161,78 +165,52 @@ class SearchViewModel(
 
     private suspend fun performSearch(query: String) {
         _uiState.update { it.copy(isLoading = true) }
-        remoteDataSource.searchPhotos(query)
+        imageRepository.searchImages(query)
             .onSuccess { res -> 
-                searchCache[query] = res.results
-                _uiState.update { it.copy(searchResults = res.results, isLoading = false) } 
+                _uiState.update { it.copy(searchResults = res, isLoading = false) } 
             }
             .onFailure { e -> 
                 _uiState.update { it.copy(error = e.message, isLoading = false) } 
             }
     }
 
-    fun confirmAndDownload(context: android.content.Context, image: UnsplashImage, target: Int) {
+    fun confirmAndDownload(context: android.content.Context, image: ImageResult, target: Int) {
         val slot = _uiState.value.activeSlot ?: return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
             val file = downloadUseCase.execute(
-                url = image.urls.full,
+                url = image.urlFull,
                 fileName = "iris_${System.currentTimeMillis()}"
             )
 
             if (file != null) {
-                if (slot.fixedTime != null) {
-                    wallpaperViewModel.onEvent(
-                        WallpaperEvent.SetFixedTimeWallpaper(
-                            context = context,
-                            time = slot.fixedTime,
-                            uri = file.absolutePath,
-                            target = target
-                        )
-                    )
-                } else if (slot.weather != null && slot.time != null) {
-                    val currentPack = _uiState.value.currentPack
-                    val isTimeBased = currentPack == SuggestedPack.Time || 
-                        (currentPack is SuggestedPack.Predefined && 
-                         PredefinedPacks.packs.find { it.id == currentPack.packId }?.isTimeBased == true)
-
-                    if (isTimeBased) {
-                        com.andyl.iris.domain.model.Weather.all().forEach { w ->
-                            wallpaperViewModel.onEvent(
-                                WallpaperEvent.SetWallpaperRule(
-                                    weather = w,
-                                    timeOfDay = slot.time,
-                                    wallpaperUri = file.absolutePath,
-                                    target = target
-                                )
-                            )
-                        }
-                    } else {
-                        wallpaperViewModel.onEvent(
-                            WallpaperEvent.SetWallpaperRule(
-                                weather = slot.weather,
-                                timeOfDay = slot.time,
-                                wallpaperUri = file.absolutePath,
-                                target = target
-                            )
-                        )
-                    }
-                } else if (slot.dayName != null) {
-                    wallpaperViewModel.onEvent(
-                        WallpaperEvent.SetDailyWallpaper(
-                            dayName = slot.dayName,
-                            uri = file.absolutePath,
-                            target = target
-                        )
-                    )
-                }
-
+                processDownloadedFile(context, file.absolutePath, target, slot)
                 _uiState.update { it.copy(isLoading = false, activeSlot = null, searchResults = emptyList()) }
             } else {
                 _uiState.update { it.copy(isLoading = false, error = "Error al descargar imagen") }
             }
+        }
+    }
+
+    private fun processDownloadedFile(context: android.content.Context, path: String, target: Int, slot: WallpaperSlot) {
+        if (slot.fixedTime != null) {
+            wallpaperViewModel.onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, slot.fixedTime, path, target))
+        } else if (slot.weather != null && slot.time != null) {
+            val currentPack = _uiState.value.currentPack
+            val isTimeBased = currentPack == SuggestedPack.Time || 
+                (currentPack is SuggestedPack.Predefined && PredefinedPacks.packs.find { it.id == currentPack.packId }?.isTimeBased == true)
+
+            if (isTimeBased) {
+                Weather.all().forEach { w ->
+                    wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(w, slot.time, path, target))
+                }
+            } else {
+                wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(slot.weather, slot.time, path, target))
+            }
+        } else if (slot.dayName != null) {
+            wallpaperViewModel.onEvent(WallpaperEvent.SetDailyWallpaper(slot.dayName, path, target))
         }
     }
 }
