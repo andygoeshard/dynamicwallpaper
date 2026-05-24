@@ -84,18 +84,16 @@ class SearchViewModel(
             val baseQuery = if (predefined.isFullRandom) "wallpaper" else predefined.categoryQuery
             
             val queries = when {
-                predefined.type == PackType.WEEKLY -> listOf("$baseQuery monday", "$baseQuery friday")
-                predefined.isTimeBased -> listOf("$baseQuery day", "$baseQuery night")
-                else -> listOf("$baseQuery sunny", "$baseQuery rainy", "$baseQuery night")
+                predefined.type == PackType.WEEKLY -> listOf("$baseQuery monday", "$baseQuery wednesday", "$baseQuery friday", "$baseQuery sunday")
+                predefined.isTimeBased -> listOf("$baseQuery dawn", "$baseQuery day", "$baseQuery dusk", "$baseQuery night")
+                else -> listOf("$baseQuery sunny", "$baseQuery rainy", "$baseQuery cloudy", "$baseQuery snowy", "$baseQuery night")
             }
 
-            val urls = queries.map { q ->
-                async {
-                    imageRepository.getRandomImages(q, count = 5).getOrNull()?.shuffled()?.firstOrNull()?.let { 
-                        formatUrl(it, isSmall = true)
-                    }
-                }
-            }.awaitAll().filterNotNull()
+            // Fetch multiple images per representative query to fill the detail list with variety
+            val urls = queries.flatMap { q ->
+                val results = imageRepository.getRandomImages(q, count = 10).getOrNull() ?: emptyList()
+                results.take(3).map { formatUrl(it, isSmall = true) }
+            }.distinct()
 
             if (urls.isNotEmpty()) {
                 packPreviewCache[packId] = urls
@@ -158,12 +156,12 @@ class SearchViewModel(
         }
     }
 
-    fun installPack(suggestedPack: SuggestedPack, onSuccess: () -> Unit) {
+    fun installPack(suggestedPack: SuggestedPack, targetId: String? = null, onSuccess: () -> Unit) {
         val predefinedPack = PredefinedPacks.packs.find { it.id == suggestedPack.id } ?: return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            installPredefinedPackUseCase(predefinedPack)
+            _uiState.update { it.copy(isLoading = true, showPackSelectionDialog = false) }
+            installPredefinedPackUseCase(predefinedPack, targetId)
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false, currentPack = null) }
                     wallpaperViewModel.onEvent(WallpaperEvent.OnLoadInitialConfig)
@@ -173,6 +171,17 @@ class SearchViewModel(
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }
         }
+    }
+
+    fun onLongPressInstall() {
+        viewModelScope.launch {
+            val packs = wallpaperViewModel.uiState.value.availablePacks
+            _uiState.update { it.copy(showPackSelectionDialog = true, availablePacks = packs) }
+        }
+    }
+
+    fun dismissPackSelection() {
+        _uiState.update { it.copy(showPackSelectionDialog = false) }
     }
 
     private suspend fun performSearch(query: String) {

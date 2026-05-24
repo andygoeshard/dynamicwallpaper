@@ -13,7 +13,9 @@ data class SearchUiState(
     val currentPack: SuggestedPack? = null,
     val activeSlot: WallpaperSlot? = null,
 
-    val downloadProgress: Float? = null
+    val downloadProgress: Float? = null,
+    val showPackSelectionDialog: Boolean = false,
+    val availablePacks: List<com.andyl.iris.domain.model.PackInfo> = emptyList()
 )
 
 data class WallpaperSlot(

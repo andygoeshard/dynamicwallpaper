@@ -12,7 +12,6 @@ import com.andyl.iris.domain.model.WallpaperId
 import com.andyl.iris.domain.model.WallpaperRule
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.model.ScaleMode
-import com.andyl.iris.domain.model.ImageResult
 import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.domain.repository.ImageRepository
 import com.andyl.iris.domain.usecase.contract.ApplyDynamicWallpaperUseCase
@@ -33,9 +32,9 @@ class InstallPredefinedPackUseCaseImpl(
     private val imageRepository: ImageRepository
 ) : InstallPredefinedPackUseCase {
 
-    override suspend fun invoke(pack: PredefinedPack): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun invoke(pack: PredefinedPack, targetPackId: String?): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            Log.d("IRIS_INSTALL", "🚀 Starting High-Variety Multi-Provider Install: ${pack.name}")
+            Log.d("IRIS_INSTALL", "🚀 Installing high-variety pack: ${pack.name} onto target: ${targetPackId ?: "NEW"}")
             
             val weatherRulesToDownload = mutableListOf<PredefinedRule>()
             val dailyRulesToDownload = mutableListOf<PredefinedDailyRule>()
@@ -45,6 +44,7 @@ class InstallPredefinedPackUseCaseImpl(
             val usedImageIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
 
             when {
+                // 1. TIME-BASED PACKS
                 pack.isTimeBased -> {
                     TimeOfDay.entries.map { timeOfDay ->
                         async {
@@ -66,30 +66,32 @@ class InstallPredefinedPackUseCaseImpl(
                     }.awaitAll()
                 }
 
+                // 2. WEEKLY PACKS
                 pack.type == PackType.WEEKLY -> {
-                    imageRepository.getRandomImages(baseQuery, count = 30).onSuccess { images ->
-                        val shuffledImages = images.shuffled()
+                    imageRepository.getRandomImages(baseQuery, count = 50).onSuccess { images ->
+                        val shuffledImages = images.filter { it.id !in usedImageIds }.shuffled()
                         val days = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
                         days.forEachIndexed { i, day ->
-                            val image = shuffledImages.getOrNull(i)
+                            val image = shuffledImages.getOrNull(i) ?: images.getOrNull(i)
                             image?.let {
+                                usedImageIds.add(it.id)
                                 dailyRulesToDownload.add(PredefinedDailyRule(day, it.urlFull))
                             }
                         }
                     }
                 }
 
+                // 3. WEATHER PACKS
                 else -> {
-                    Weather.all().map { weather ->
+                    val weatherPairs = Weather.all().flatMap { w -> TimeOfDay.entries.map { t -> w to t } }
+                    weatherPairs.map { (weather, time) ->
                         async {
-                            val q = buildWeatherQuery(baseQuery, weather)
-                            imageRepository.getRandomImages(q, count = 15).onSuccess { pool ->
-                                TimeOfDay.entries.forEach { time ->
-                                    val image = pool.filter { it.id !in usedImageIds }.shuffled().firstOrNull() ?: pool.shuffled().firstOrNull()
-                                    image?.let {
-                                        usedImageIds.add(it.id)
-                                        weatherRulesToDownload.add(PredefinedRule(weather, time, it.urlFull))
-                                    }
+                            val q = buildWeatherTimeQuery(baseQuery, weather, time)
+                            imageRepository.searchImages(q).onSuccess { pool ->
+                                val image = pool.filter { it.id !in usedImageIds }.shuffled().firstOrNull() ?: pool.shuffled().firstOrNull()
+                                image?.let {
+                                    usedImageIds.add(it.id)
+                                    weatherRulesToDownload.add(PredefinedRule(weather, time, it.urlFull))
                                 }
                             }
                         }
@@ -97,6 +99,7 @@ class InstallPredefinedPackUseCaseImpl(
                 }
             }
 
+            // --- DOWNLOAD ---
             val allUrls = (weatherRulesToDownload.map { it.imageUrl } + 
                           dailyRulesToDownload.map { it.imageUrl } + 
                           fixedRulesToDownload.map { it.imageUrl }).distinct()
@@ -105,46 +108,62 @@ class InstallPredefinedPackUseCaseImpl(
 
             val downloadedFiles = allUrls.map { url ->
                 async {
-                    val file = downloadUseCase.execute(url, "iris_pack_${pack.id}_${url.hashCode()}")
+                    val fileName = "iris_pack_${pack.id}_${url.hashCode()}"
+                    val file = downloadUseCase.execute(url, fileName)
                     url to file?.absolutePath
                 }
             }.awaitAll().toMap()
 
-            val localWeatherRules = weatherRulesToDownload.mapNotNull { rule ->
+            // --- SMART MERGE LOGIC ---
+            val existingConfig = targetPackId?.let { preferencesRepository.getWallpaperConfig(it) }
+            
+            val newWeatherRules = weatherRulesToDownload.mapNotNull { rule ->
                 downloadedFiles[rule.imageUrl]?.let { path -> WallpaperRule(rule.weather, rule.timeOfDay, WallpaperId(path)) }
             }
-
-            val localDailyRules = dailyRulesToDownload.mapNotNull { rule ->
+            val newDailyRules = dailyRulesToDownload.mapNotNull { rule ->
                 downloadedFiles[rule.imageUrl]?.let { path -> rule.dayName to path }
             }.toMap()
-            
-            val localFixedRules = fixedRulesToDownload.mapNotNull { rule ->
+            val newFixedRules = fixedRulesToDownload.mapNotNull { rule ->
                 downloadedFiles[rule.imageUrl]?.let { path -> rule.time to path }
             }.toMap()
 
-            val config = WallpaperConfig(
-                id = "predefined_${pack.id}_${System.currentTimeMillis()}",
-                name = pack.name,
-                rules = localWeatherRules,
-                dailyRules = localDailyRules,
-                fixedTimeRules = localFixedRules,
-                activePackId = pack.id,
-                scaleMode = ScaleMode.CROP
-            )
+            val finalConfig = if (existingConfig != null) {
+                // Update existing: overwrite categories provided by the new pack, keep others
+                existingConfig.copy(
+                    rules = if (newWeatherRules.isNotEmpty()) newWeatherRules else existingConfig.rules,
+                    dailyRules = existingConfig.dailyRules + newDailyRules,
+                    fixedTimeRules = existingConfig.fixedTimeRules + newFixedRules
+                )
+            } else {
+                // Create new
+                val newId = "predefined_${pack.id}_${System.currentTimeMillis()}"
+                WallpaperConfig(
+                    id = newId,
+                    name = pack.name,
+                    rules = newWeatherRules,
+                    dailyRules = newDailyRules,
+                    fixedTimeRules = newFixedRules,
+                    activePackId = newId,
+                    scaleMode = ScaleMode.CROP
+                )
+            }
 
-            preferencesRepository.setWallpaperConfig(config)
-            preferencesRepository.setActivePackId(config.id)
-            applyUseCase(config.id)
+            preferencesRepository.setWallpaperConfig(finalConfig)
+            preferencesRepository.setActivePackId(finalConfig.id)
+            applyUseCase(finalConfig.id)
 
-            localFixedRules.keys.forEach { time -> AlarmHelper.scheduleFixedTimeAlarm(context, time) }
+            finalConfig.fixedTimeRules.keys.forEach { time ->
+                AlarmHelper.scheduleFixedTimeAlarm(context, time)
+            }
             
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e("IRIS_INSTALL", "💥 Install failed", e)
+            Log.e("IRIS_INSTALL", "Install failed", e)
             Result.failure(e)
         }
     }
 
     private fun buildCombinedQuery(base: String, term: String) = if (base.isEmpty()) term else "$base $term"
-    private fun buildWeatherQuery(base: String, weather: Weather) = if (base.isEmpty()) weather.queryTerm else "$base ${weather.queryTerm}"
+    private fun buildWeatherTimeQuery(base: String, weather: Weather, time: TimeOfDay) = 
+        if (base.isEmpty()) "${weather.queryTerm} ${time.queryTerm}" else "$base ${weather.queryTerm} ${time.queryTerm}"
 }

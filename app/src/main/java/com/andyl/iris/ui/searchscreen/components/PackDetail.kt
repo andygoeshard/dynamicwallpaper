@@ -1,6 +1,7 @@
 package com.andyl.iris.ui.searchscreen.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,11 +26,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.domain.model.PackType
+import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.ui.searchscreen.SuggestedPack
@@ -39,7 +40,6 @@ import androidx.compose.ui.draw.clip
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import com.andyl.iris.domain.mapper.toKey
-import com.andyl.iris.ui.searchscreen.WallpaperSlot
 
 private data class SlotStatus(
     val uriBoth: String? = null,
@@ -87,6 +87,7 @@ fun PackDetailList(
     previewImages: List<String> = emptyList(),
     onSlotClick: (Weather?, TimeOfDay?, String?, String?, String) -> Unit,
     onDownloadFullPack: (SuggestedPack) -> Unit,
+    onLongPressInstall: () -> Unit,
     onAddCustomTime: () -> Unit = {}
 ) {
     val slots = when (pack) {
@@ -114,9 +115,9 @@ fun PackDetailList(
         SuggestedPack.Time -> {
             val defaultTimes = listOf(
                 "06:00" to "Dawn",
-                "09:00" to "Day",
+                "10:00" to "Day",
                 "18:00" to "Dusk",
-                "21:00" to "Night"
+                "22:00" to "Night"
             )
             
             val standardSlots = defaultTimes.map { (time, label) ->
@@ -171,7 +172,6 @@ fun PackDetailList(
                         val weatherIndex = Weather.all().indexOf(weather)
                         TimeOfDay.entries.map { time ->
                             val timeIndex = TimeOfDay.entries.indexOf(time)
-                            // Better distribution: try to pick an image based on weather index first
                             val url = previewImages.getOrNull((weatherIndex * imagesPerWeather + timeIndex) % previewImages.size.coerceAtLeast(1))
 
                             SlotData(
@@ -208,8 +208,15 @@ fun PackDetailList(
                 Spacer(modifier = Modifier.height(20.dp))
                 
                 Button(
-                    onClick = { onDownloadFullPack(pack) },
-                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { /* No-op, handled by pointerInput */ },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onLongPress = { onLongPressInstall() },
+                                onTap = { onDownloadFullPack(pack) }
+                            )
+                        },
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
@@ -219,6 +226,12 @@ fun PackDetailList(
                     Spacer(Modifier.width(8.dp))
                     Text("Install Full Pack", fontWeight = FontWeight.Bold)
                 }
+                Text(
+                    "Tip: Long press to install into an existing pack.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(top = 8.dp).align(Alignment.CenterHorizontally)
+                )
             }
         }
         

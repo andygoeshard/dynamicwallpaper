@@ -46,7 +46,7 @@ object PredefinedPacks {
             id = "urban_weather",
             name = "Neon Symphony",
             description = "The vibrant soul of the city, from neon nights to rainy days.",
-            previewUrl = "https://images.pexels.com/photos/161963/chicago-illinois-night-cityscape-161963.jpeg?auto=compress&cs=tinysrgb&w=800",
+            previewUrl = "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "urban cyberpunk city",
             type = PackType.WEATHER
         ),
@@ -74,6 +74,14 @@ object PredefinedPacks {
             categoryQuery = "anime girl art background",
             type = PackType.WEATHER
         ),
+        PredefinedPack(
+            id = "fcb_fem_weather",
+            name = "Barça Femení: Blaugrana Sky",
+            description = "The champions of everything, matching your local weather conditions.",
+            previewUrl = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "FC Barcelona Femení football",
+            type = PackType.WEATHER
+        ),
 
         // --- WEEKLY BASED PACKS ---
         PredefinedPack(
@@ -96,7 +104,7 @@ object PredefinedPacks {
             id = "animals_weekly",
             name = "Animal Kingdom",
             description = "Beautiful wildlife and adorable animals to start your day.",
-            previewUrl = "https://images.unsplash.com/photo-1474511320721-9a6ee3ef716d?auto=format&fit=crop&w=800&q=80",
+            previewUrl = "https://images.unsplash.com/photo-1543946207-39bd91e70ca7?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "wildlife animals nature",
             type = PackType.WEEKLY
         ),
@@ -106,6 +114,14 @@ object PredefinedPacks {
             description = "Iconic landmarks and hidden gems from across the globe.",
             previewUrl = "https://images.pexels.com/photos/1008155/pexels-photo-1008155.jpeg?auto=compress&cs=tinysrgb&w=800",
             categoryQuery = "travel landmarks city",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "fcb_fem_weekly",
+            name = "Barça Femení: Daily Passion",
+            description = "Celebrate the talent and glory of the world's best team every day.",
+            previewUrl = "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "FC Barcelona Femení team",
             type = PackType.WEEKLY
         ),
 
@@ -150,7 +166,7 @@ object PredefinedPacks {
             id = "cyberpunk_streets_weekly",
             name = "Neon Syndicate",
             description = "Hardcore cyberpunk cityscapes and robotic aesthetics.",
-            previewUrl = "https://images.pexels.com/photos/2127333/pexels-photo-2127333.jpeg?auto=compress&cs=tinysrgb&w=800",
+            previewUrl = "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "cyberpunk cyborg neon city",
             type = PackType.WEEKLY
         ),
@@ -167,7 +183,7 @@ object PredefinedPacks {
             id = "vaporwave_vibe_time",
             name = "Retro Wave",
             description = "Syntwave and 80s retro-futurism for your daily cycle.",
-            previewUrl = "https://images.pexels.com/photos/1421000/pexels-photo-1421000.jpeg?auto=compress&cs=tinysrgb&w=800",
+            previewUrl = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "vaporwave synthwave retro aesthetic",
             type = PackType.WEATHER,
             isTimeBased = true

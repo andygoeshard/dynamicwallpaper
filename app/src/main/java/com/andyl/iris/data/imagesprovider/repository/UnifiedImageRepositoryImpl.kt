@@ -23,15 +23,17 @@ class UnifiedImageRepositoryImpl(
         val cleanQuery = query.lowercase().trim()
         if (cleanQuery.isEmpty()) return Result.success(emptyList())
 
-        // 1. SEMANTIC LOCAL SEARCH
+        // 1. SEMANTIC LOCAL SEARCH (Broadened threshold)
         val localResults = cacheDao.predictImages(cleanQuery)
         
-        if (!forceRefresh && localResults.size >= 20) {
+        // Satisfied only if we have a healthy pool of unique images
+        if (!forceRefresh && localResults.size >= 40) {
             Log.d("IRIS_ROBUST", "🎯 SEMANTIC HIT: Found ${localResults.size} matches for '$cleanQuery'")
             return Result.success(localResults.map { it.toDomain() })
         }
 
-        // 2. MULTI-PROVIDER FETCH
+        Log.w("IRIS_ROBUST", "📡 API REQUEST: Fetching fresh results for '$cleanQuery'")
+        
         return coroutineScope {
             val uDef = async { unsplashDataSource.searchPhotos(cleanQuery).getOrNull()?.results ?: emptyList() }
             val pDef = async { pexelsDataSource.searchPhotos(cleanQuery).getOrNull()?.photos ?: emptyList() }
@@ -47,13 +49,14 @@ class UnifiedImageRepositoryImpl(
                 cacheDao.insertImages(combined.map { it.toEntity(cleanQuery) })
             }
             
-            // Mix local with new for best results
+            // Mix local with new for maximum variety
             val finalResult = (combined + localResults.map { it.toDomain() }).distinctBy { it.id }.shuffled()
             Result.success(finalResult)
         }
     }
 
     override suspend fun getRandomImages(query: String, count: Int): Result<List<ImageResult>> {
+        // Broaden the search by returning more results than requested to ensure variety in caller
         return searchImages(query, forceRefresh = false)
     }
 
@@ -67,8 +70,8 @@ class UnifiedImageRepositoryImpl(
 
     private fun com.andyl.iris.data.imagesprovider.dto.PexelsPhoto.toDomain() = ImageResult(
         id = "p_$id",
-        urlSmall = src.medium, // Optimized for grid
-        urlFull = src.portrait, // Optimized for mobile wallpaper (not huge original)
+        urlSmall = src.medium,
+        urlFull = src.portrait,
         provider = "pexels",
         alt = alt
     )
