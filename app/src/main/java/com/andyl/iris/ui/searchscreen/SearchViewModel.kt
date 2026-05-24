@@ -85,50 +85,15 @@ class SearchViewModel(
     private fun fetchPreviewImages(packId: String) {
         val predefined = PredefinedPacks.packs.find { it.id == packId } ?: return
         viewModelScope.launch {
-            val baseQuery = if (predefined.isFullRandom) "" else predefined.categoryQuery
-            val usedIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+            val baseQuery = if (predefined.isFullRandom) "wallpaper" else predefined.categoryQuery
             
-            val previewQueries = when {
-                predefined.type == PackType.WEEKLY -> {
-                    listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
-                        .map { if (baseQuery.isEmpty()) it else "$baseQuery $it" }
+            // OPTIMIZATION: Fetch a large batch in ONE call instead of many
+            remoteDataSource.getRandomPhotos(baseQuery, count = 30).onSuccess { images ->
+                val urls = images.shuffled().take(10).map { "${it.urls.small}&ar=9:16&fit=crop" }
+                if (urls.isNotEmpty()) {
+                    packPreviewCache[packId] = urls
+                    _uiState.update { it.copy(previewImages = urls) }
                 }
-                predefined.isTimeBased -> {
-                    listOf("06:00", "10:00", "18:00", "22:00").map { time ->
-                        val term = when(time) {
-                            "06:00" -> TimeOfDay.DAWN.queryTerm
-                            "10:00" -> TimeOfDay.DAY.queryTerm
-                            "18:00" -> TimeOfDay.DUSK.queryTerm
-                            else -> TimeOfDay.NIGHT.queryTerm
-                        }
-                        if (baseQuery.isEmpty()) term else "$baseQuery $term"
-                    }
-                }
-                else -> {
-                    Weather.all().map { w ->
-                        if (baseQuery.isEmpty()) w.queryTerm else "$baseQuery ${w.queryTerm}"
-                    }
-                }
-            }
-
-            val urls = previewQueries.map { query ->
-                async {
-                    var foundUrl: String? = null
-                    remoteDataSource.getRandomPhotos(query, count = 10)
-                        .onSuccess { images ->
-                            val unique = images.filter { it.id !in usedIds }.shuffled().firstOrNull() ?: images.firstOrNull()
-                            unique?.let { 
-                                usedIds.add(it.id)
-                                foundUrl = it.urls.small
-                            }
-                        }
-                    foundUrl
-                }
-            }.awaitAll().filterNotNull().map { "$it&ar=9:16&fit=crop" }
-
-            if (urls.isNotEmpty()) {
-                packPreviewCache[packId] = urls
-                _uiState.update { it.copy(previewImages = urls) }
             }
         }
     }

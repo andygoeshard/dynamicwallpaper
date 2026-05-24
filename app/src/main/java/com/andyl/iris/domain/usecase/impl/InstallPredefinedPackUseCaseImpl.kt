@@ -35,7 +35,7 @@ class InstallPredefinedPackUseCaseImpl(
 
     override suspend fun invoke(pack: PredefinedPack): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            Log.d("IRIS_INSTALL", "🚀 Starting installation of pack: ${pack.name}")
+            Log.d("IRIS_INSTALL", "🚀 Starting Optimized Installation: ${pack.name}")
             
             val weatherRulesToDownload = mutableListOf<PredefinedRule>()
             val dailyRulesToDownload = mutableListOf<PredefinedDailyRule>()
@@ -45,82 +45,59 @@ class InstallPredefinedPackUseCaseImpl(
             val usedImageIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
 
             when {
-                // 1. TIME-BASED OVERRIDE PACKS
+                // 1. TIME-BASED PACKS: 4 calls total
                 pack.isTimeBased -> {
-                    val timeMapping = mapOf(
-                        "06:00" to TimeOfDay.DAWN,
-                        "10:00" to TimeOfDay.DAY,
-                        "18:00" to TimeOfDay.DUSK,
-                        "22:00" to TimeOfDay.NIGHT
-                    )
-                    
-                    timeMapping.map { (time, timeOfDay) ->
+                    TimeOfDay.entries.map { timeOfDay ->
                         async {
-                            val searchQuery = buildCombinedQuery(baseQuery, timeOfDay.queryTerm)
-                            unsplashRemoteDataSource.getRandomPhotos(searchQuery, count = 10)
-                                .onSuccess { images ->
-                                    val image = images.find { it.id !in usedImageIds } ?: images.firstOrNull()
-                                    image?.let {
-                                        usedImageIds.add(it.id)
-                                        fixedRulesToDownload.add(PredefinedFixedTimeRule(time, "${it.urls.full}&ar=9:16&fit=crop"))
+                            val q = if (baseQuery.isEmpty()) timeOfDay.queryTerm else "$baseQuery ${timeOfDay.queryTerm}"
+                            unsplashRemoteDataSource.getRandomPhotos(q, count = 10).onSuccess { images ->
+                                val image = images.find { it.id !in usedImageIds } ?: images.shuffled().firstOrNull()
+                                image?.let {
+                                    usedImageIds.add(it.id)
+                                    val timeStr = when(timeOfDay) {
+                                        TimeOfDay.DAWN -> "06:00"
+                                        TimeOfDay.DAY -> "10:00"
+                                        TimeOfDay.DUSK -> "18:00"
+                                        TimeOfDay.NIGHT -> "22:00"
                                     }
+                                    fixedRulesToDownload.add(PredefinedFixedTimeRule(timeStr, "${it.urls.full}&ar=9:16&fit=crop"))
                                 }
+                            }
                         }
                     }.awaitAll()
                 }
 
-                // 2. WEEKLY PACKS
+                // 2. WEEKLY PACKS: 1 call total (Efficiency 700%)
                 pack.type == PackType.WEEKLY -> {
-                    val days = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
-                    days.map { day ->
-                        async {
-                            val searchQuery = buildCombinedQuery(baseQuery, day)
-                            unsplashRemoteDataSource.getRandomPhotos(searchQuery, count = 10)
-                                .onSuccess { images ->
-                                    val image = images.find { it.id !in usedImageIds } ?: images.firstOrNull()
-                                    image?.let {
-                                        usedImageIds.add(it.id)
-                                        dailyRulesToDownload.add(PredefinedDailyRule(day, "${it.urls.full}&ar=9:16&fit=crop"))
-                                    }
-                                }
-                        }
-                    }.awaitAll()
-                }
-
-                // 3. WEATHER PACKS
-                else -> {
-                    val weatherPairs = Weather.all().flatMap { w -> TimeOfDay.entries.map { t -> w to t } }
-                    val queryResultsCache = mutableMapOf<String, List<UnsplashImage>>()
-
-                    // Fetch in batches to avoid rate limit issues if possible, but keep it async for speed
-                    val uniqueQueries = weatherPairs.map { (w, t) -> buildWeatherQuery(baseQuery, w, t) }.distinct()
-                    
-                    uniqueQueries.map { q ->
-                        async {
-                            unsplashRemoteDataSource.getRandomPhotos(q, count = 15)
-                                .onSuccess { images -> 
-                                    synchronized(queryResultsCache) { queryResultsCache[q] = images }
-                                }
-                                .onFailure { Log.e("IRIS_INSTALL", "Failed to fetch images for query: $q", it) }
-                        }
-                    }.awaitAll()
-
-                    weatherPairs.forEach { (weather, time) ->
-                        val q = buildWeatherQuery(baseQuery, weather, time)
-                        val pool = queryResultsCache[q] ?: emptyList()
-                        
-                        // Try to find a unique image
-                        val image = pool.filter { it.id !in usedImageIds }.shuffled().firstOrNull() 
-                            ?: pool.shuffled().firstOrNull()
-                            
-                        if (image != null) {
-                            usedImageIds.add(image.id)
-                            weatherRulesToDownload.add(PredefinedRule(weather, time, "${image.urls.full}&ar=9:16&fit=crop"))
-                            Log.d("IRIS_CONSISTENCY", "✅ Assigned ${image.id} to ${weather.queryTerm}-${time.queryTerm}")
-                        } else {
-                            Log.e("IRIS_CONSISTENCY", "❌ No images found for ${weather.queryTerm}-${time.queryTerm} using query: $q")
+                    unsplashRemoteDataSource.getRandomPhotos(baseQuery, count = 30).onSuccess { images ->
+                        val shuffledImages = images.shuffled()
+                        val days = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+                        days.forEachIndexed { i, day ->
+                            val image = shuffledImages.getOrNull(i)
+                            image?.let {
+                                dailyRulesToDownload.add(PredefinedDailyRule(day, "${it.urls.full}&ar=9:16&fit=crop"))
+                            }
                         }
                     }
+                }
+
+                // 3. WEATHER PACKS: 6 calls total (Efficiency 400%)
+                else -> {
+                    Weather.all().map { weather ->
+                        async {
+                            val q = if (baseQuery.isEmpty()) weather.queryTerm else "$baseQuery ${weather.queryTerm}"
+                            unsplashRemoteDataSource.getRandomPhotos(q, count = 20).onSuccess { pool ->
+                                // For each weather, assign unique images to the 4 time slots
+                                TimeOfDay.entries.forEach { time ->
+                                    val image = pool.filter { it.id !in usedImageIds }.shuffled().firstOrNull() ?: pool.shuffled().firstOrNull()
+                                    image?.let {
+                                        usedImageIds.add(it.id)
+                                        weatherRulesToDownload.add(PredefinedRule(weather, time, "${it.urls.full}&ar=9:16&fit=crop"))
+                                    }
+                                }
+                            }
+                        }
+                    }.awaitAll()
                 }
             }
 
@@ -129,17 +106,11 @@ class InstallPredefinedPackUseCaseImpl(
                           dailyRulesToDownload.map { it.imageUrl } + 
                           fixedRulesToDownload.map { it.imageUrl }).distinct()
 
-            if (allUrls.isEmpty()) {
-                Log.e("IRIS_INSTALL", "No URLs to download. Installation aborted.")
-                return@withContext Result.failure(Exception("No images found for this pack."))
-            }
-
-            Log.d("IRIS_INSTALL", "Downloading ${allUrls.size} unique images...")
+            if (allUrls.isEmpty()) return@withContext Result.failure(Exception("No images found"))
 
             val downloadedFiles = allUrls.map { url ->
                 async {
-                    val fileName = "iris_pack_${pack.id}_${url.hashCode()}"
-                    val file = downloadUseCase.execute(url, fileName)
+                    val file = downloadUseCase.execute(url, "iris_pack_${pack.id}_${url.hashCode()}")
                     url to file?.absolutePath
                 }
             }.awaitAll().toMap()
@@ -170,28 +141,13 @@ class InstallPredefinedPackUseCaseImpl(
             preferencesRepository.setActivePackId(config.id)
             applyUseCase(config.id)
 
-            localFixedRules.keys.forEach { time ->
-                AlarmHelper.scheduleFixedTimeAlarm(context, time)
-            }
+            localFixedRules.keys.forEach { time -> AlarmHelper.scheduleFixedTimeAlarm(context, time) }
             
-            Log.d("IRIS_INSTALL", "✅ Pack installed successfully: ${pack.name}")
+            Log.d("IRIS_INSTALL", "✅ Success. Total API calls for this install: ${if(pack.type == PackType.WEEKLY) 1 else if(pack.isTimeBased) 4 else 6}")
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e("IRIS_INSTALL", "💥 Critical failure during install", e)
+            Log.e("IRIS_INSTALL", "💥 Install failed", e)
             Result.failure(e)
-        }
-    }
-
-    private fun buildCombinedQuery(base: String, term: String): String {
-        return if (base.isEmpty()) term else "$base $term"
-    }
-
-    private fun buildWeatherQuery(base: String, weather: Weather, time: TimeOfDay): String {
-        // Broaden the search by using only base and weather if base is specific enough
-        return if (base.isEmpty()) {
-            "${weather.queryTerm} ${time.queryTerm}"
-        } else {
-            "$base ${weather.queryTerm} ${time.queryTerm}"
         }
     }
 }

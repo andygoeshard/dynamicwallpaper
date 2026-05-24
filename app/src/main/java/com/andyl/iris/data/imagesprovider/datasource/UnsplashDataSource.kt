@@ -15,7 +15,16 @@ class UnsplashRemoteDataSource(private val client: HttpClient) {
     private val ACCESS_KEY = "HGwYWODpC40PFOh4hfaTEDEPmYjEHbyD4JCkaU4px6o"
     private val BASE_URL = "https://api.unsplash.com"
 
+    // Persistent cache to avoid redundant API calls across the entire app session
+    private val globalCache = mutableMapOf<String, List<UnsplashImage>>()
+
     suspend fun searchPhotos(query: String, page: Int = 1): Result<UnsplashResponse> = runCatching {
+        val cacheKey = "search_$query"
+        if (globalCache.containsKey(cacheKey)) {
+            Log.d("IRIS_API", "📦 Using cached results for search: $query")
+            return@runCatching UnsplashResponse(globalCache[cacheKey]!!)
+        }
+
         val response: HttpResponse = client.get("$BASE_URL/search/photos") {
             header("Authorization", "Client-ID $ACCESS_KEY")
             parameter("query", query)
@@ -27,16 +36,21 @@ class UnsplashRemoteDataSource(private val client: HttpClient) {
         logResponse("SearchPhotos", response)
         
         if (response.status.value in 200..299) {
-            response.body<UnsplashResponse>()
+            val body = response.body<UnsplashResponse>()
+            globalCache[cacheKey] = body.results
+            body
         } else {
-            val errorBody = response.body<String>()
-            throw Exception("API Error ${response.status.value}: $errorBody")
+            throw Exception("API Error ${response.status.value}")
         }
-    }.onFailure {
-        Log.e("IRIS_API", "Search error for query '$query'", it)
     }
 
     suspend fun getRandomPhotos(query: String, count: Int = 30): Result<List<UnsplashImage>> = runCatching {
+        val cacheKey = "random_$query"
+        if (globalCache.containsKey(cacheKey) && globalCache[cacheKey]!!.size >= count) {
+            Log.d("IRIS_API", "📦 Using cached results for random: $query")
+            return@runCatching globalCache[cacheKey]!!.take(count)
+        }
+
         val response: HttpResponse = client.get("$BASE_URL/photos/random") {
             header("Authorization", "Client-ID $ACCESS_KEY")
             parameter("query", query)
@@ -47,24 +61,17 @@ class UnsplashRemoteDataSource(private val client: HttpClient) {
         logResponse("RandomPhotos", response)
 
         if (response.status.value in 200..299) {
-            response.body<List<UnsplashImage>>()
+            val body = response.body<List<UnsplashImage>>()
+            globalCache[cacheKey] = body
+            body
         } else {
-            val errorBody = response.body<String>()
-            throw Exception("API Error ${response.status.value}: $errorBody")
+            throw Exception("API Error ${response.status.value}")
         }
-    }.onFailure {
-        Log.e("IRIS_API", "Random error for query '$query'", it)
     }
 
     private fun logResponse(tag: String, response: HttpResponse) {
         val remaining = response.headers["X-Ratelimit-Remaining"]
         val limit = response.headers["X-Ratelimit-Limit"]
         Log.d("IRIS_API_STATS", "[$tag] Status: ${response.status.value} | RateLimit: $remaining/$limit")
-        
-        if (response.status.value == 403) {
-            Log.e("IRIS_API_STATS", "❌ RATE LIMIT EXCEEDED! Unsplash only allows 50 requests per hour on free tier.")
-        } else if (response.status.value == 401) {
-            Log.e("IRIS_API_STATS", "❌ UNAUTHORIZED! Check your Access Key.")
-        }
     }
 }
