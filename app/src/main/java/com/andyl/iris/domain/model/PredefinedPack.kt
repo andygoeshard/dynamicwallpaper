@@ -66,6 +66,14 @@ object PredefinedPacks {
             categoryQuery = "minimalist architecture",
             type = PackType.WEATHER
         ),
+        PredefinedPack(
+            id = "waifu_weather",
+            name = "Ethereal Waifus",
+            description = "Anime heroines that adapt to the shifting weather and sky.",
+            previewUrl = "https://images.pexels.com/photos/15942493/pexels-photo-15942493.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "anime girl art background",
+            type = PackType.WEATHER
+        ),
 
         // --- WEEKLY BASED PACKS ---
         PredefinedPack(
