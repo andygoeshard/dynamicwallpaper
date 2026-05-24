@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -43,7 +42,8 @@ fun SearchScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val wallpaperState by viewModel.wallpaperViewModel.uiState.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     // LOCAL BACK NAVIGATION MANAGEMENT
     BackHandler(enabled = state.currentPack != null || state.activeSlot != null) {
@@ -63,10 +63,8 @@ fun SearchScreen(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = {
-                searchQuery = it
-                if (it.length > 2) {
-                    viewModel.search(it)
-                } else if (it.isEmpty() && state.activeSlot == null) {
+                viewModel.onSearchQueryChanged(it)
+                if (it.isEmpty() && state.activeSlot == null) {
                     viewModel.selectPack(null)
                 }
             },
@@ -90,7 +88,7 @@ fun SearchScreen(
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { 
-                        searchQuery = ""
+                        viewModel.onSearchQueryChanged("")
                         if (state.activeSlot == null) viewModel.selectPack(null)
                     }) {
                         Icon(Icons.Default.Close, contentDescription = "Clear")
@@ -139,8 +137,8 @@ fun SearchScreen(
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
                             items(state.searchResults) { image ->
                                 WallpaperSearchResultItem(image) { uri, target ->
-                                    viewModel.confirmAndDownload(image, target)
-                                    searchQuery = ""
+                                    viewModel.confirmAndDownload(context, image, target)
+                                    viewModel.onSearchQueryChanged("")
                                 }
                             }
                         }
@@ -153,14 +151,22 @@ fun SearchScreen(
                         pack = state.currentPack!!,
                         rules = wallpaperState.rules,
                         dailyRules = wallpaperState.dailyRules,
-                        onSlotClick = { weather, time, dayName, label ->
-                            viewModel.selectSlot(WallpaperSlot(weather, time, dayName, label))
-                            searchQuery = label
+                        fixedRules = wallpaperState.fixedRules,
+                        previewImages = state.previewImages, // Pass dynamic previews
+                        onSlotClick = { weather, time, dayName, fixedTime, label ->
+                            viewModel.selectSlot(WallpaperSlot(weather, time, dayName, fixedTime, label))
                         },
                         onDownloadFullPack = { pack ->
                             viewModel.installPack(pack) {
                                 onNavigateHome()
                             }
+                        },
+                        onAddCustomTime = {
+                            val calendar = java.util.Calendar.getInstance()
+                            android.app.TimePickerDialog(context, { _, hour, minute ->
+                                val timeStr = String.format("%02d:%02d", hour, minute)
+                                viewModel.selectSlot(WallpaperSlot(null, null, null, timeStr, "Override: $timeStr"))
+                            }, calendar.get(java.util.Calendar.HOUR_OF_DAY), calendar.get(java.util.Calendar.MINUTE), true).show()
                         }
                     )
                 }

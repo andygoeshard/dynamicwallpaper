@@ -1,6 +1,7 @@
 package com.andyl.iris.ui.searchscreen.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,26 +39,34 @@ import androidx.compose.ui.draw.clip
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import com.andyl.iris.domain.mapper.toKey
+import com.andyl.iris.ui.searchscreen.WallpaperSlot
 
 private data class SlotStatus(
     val uriBoth: String? = null,
     val uriHome: String? = null,
-    val uriLock: String? = null
+    val uriLock: String? = null,
 ) {
-    val hasAny = uriBoth != null || uriHome != null || uriLock != null
+    val hasAny = (uriBoth != null || uriHome != null || uriLock != null)
     val bestUri = uriBoth ?: uriHome ?: uriLock
 }
 
 private fun getSlotStatus(
     slot: SlotData,
     rules: Map<String, String>,
-    dailyRules: Map<String, String>
+    dailyRules: Map<String, String>,
+    fixedRules: Map<String, String>
 ): SlotStatus {
     return if (slot.dayName != null) {
         SlotStatus(
             uriBoth = dailyRules[slot.dayName] ?: dailyRules["${slot.dayName}-3"],
             uriHome = dailyRules["${slot.dayName}-1"],
             uriLock = dailyRules["${slot.dayName}-2"]
+        )
+    } else if (slot.fixedTime != null) {
+        SlotStatus(
+            uriBoth = fixedRules[slot.fixedTime],
+            uriHome = fixedRules["${slot.fixedTime}-1"],
+            uriLock = fixedRules["${slot.fixedTime}-2"]
         )
     } else if (slot.weather != null && slot.time != null) {
         val baseKey = "${slot.weather.toKey()} - ${slot.time}"
@@ -74,8 +83,11 @@ fun PackDetailList(
     pack: SuggestedPack,
     rules: Map<String, String>,
     dailyRules: Map<String, String>,
-    onSlotClick: (Weather?, TimeOfDay?, String?, String) -> Unit,
-    onDownloadFullPack: (SuggestedPack) -> Unit
+    fixedRules: Map<String, String> = emptyMap(),
+    previewImages: List<String> = emptyList(),
+    onSlotClick: (Weather?, TimeOfDay?, String?, String?, String) -> Unit,
+    onDownloadFullPack: (SuggestedPack) -> Unit,
+    onAddCustomTime: () -> Unit = {}
 ) {
     val slots = when (pack) {
         SuggestedPack.Days -> {
@@ -100,59 +112,74 @@ fun PackDetailList(
             }
         }
         SuggestedPack.Time -> {
-            TimeOfDay.entries.map { time ->
+            val defaultTimes = listOf(
+                "06:00" to "Dawn",
+                "09:00" to "Day",
+                "18:00" to "Dusk",
+                "21:00" to "Night"
+            )
+            
+            val standardSlots = defaultTimes.map { (time, label) ->
                 SlotData(
-                    label = "Time: ${time.name}",
-                    weather = Weather.Clear,
-                    time = time
+                    label = label,
+                    fixedTime = time
                 )
             }
+
+            val customOverrideSlots = fixedRules.keys
+                .map { it.split("-")[0] }
+                .distinct()
+                .filter { time -> defaultTimes.none { it.first == time } }
+                .sorted()
+                .map { time ->
+                    SlotData(
+                        label = "Override: $time",
+                        fixedTime = time
+                    )
+                }
+
+            standardSlots + customOverrideSlots
         }
         is SuggestedPack.Predefined -> {
             val predefined = PredefinedPacks.packs.find { it.id == pack.id }
-            if (predefined?.isRandom == true) {
-                if (predefined.type == PackType.WEEKLY) {
+            
+            when {
+                predefined?.isTimeBased == true -> {
+                    val times = listOf("06:00", "10:00", "18:00", "22:00")
+                    times.mapIndexed { i, time ->
+                        SlotData(
+                            label = "Alarm: $time",
+                            fixedTime = time,
+                            remoteUrl = previewImages.getOrNull(i % previewImages.size.coerceAtLeast(1))
+                        )
+                    }
+                }
+                predefined?.type == PackType.WEEKLY -> {
                     listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
-                        .map { day ->
+                        .mapIndexed { i, day ->
                             SlotData(
                                 label = day.replaceFirstChar { it.uppercase() },
                                 dayName = day,
-                                remoteUrl = predefined.previewUrl
+                                remoteUrl = previewImages.getOrNull(i % previewImages.size.coerceAtLeast(1))
                             )
                         }
-                } else {
+                }
+                else -> {
+                    var counter = 0
                     Weather.all().flatMap { weather ->
                         TimeOfDay.entries.map { time ->
+                            val url = previewImages.getOrNull(counter % previewImages.size.coerceAtLeast(1))
+                            counter++
                             SlotData(
                                 label = "",
                                 labelRes = weather.stringRes,
                                 weather = weather,
                                 time = time,
-                                remoteUrl = predefined.previewUrl
+                                remoteUrl = url
                             )
                         }
                     }
                 }
-            } else {
-                val weatherSlots = predefined?.weatherRules?.map { rule ->
-                    SlotData(
-                        label = "",
-                        labelRes = rule.weather.stringRes,
-                        weather = rule.weather,
-                        time = rule.timeOfDay,
-                        remoteUrl = rule.imageUrl
-                    )
-                } ?: emptyList()
-                
-                val dailySlots = predefined?.dailyRules?.map { rule ->
-                    SlotData(
-                        label = rule.dayName.replaceFirstChar { it.uppercase() },
-                        dayName = rule.dayName,
-                        remoteUrl = rule.imageUrl
-                    )
-                } ?: emptyList()
-                
-                weatherSlots + dailySlots
             }
         }
     }
@@ -199,14 +226,14 @@ fun PackDetailList(
             }
             
             val isPredefinedPreview = pack is SuggestedPack.Predefined
-            val status = if (isPredefinedPreview) SlotStatus() else getSlotStatus(slot, rules, dailyRules)
+            val status = if (isPredefinedPreview) SlotStatus() else getSlotStatus(slot, rules, dailyRules, fixedRules)
             val displayUri = status.bestUri ?: slot.remoteUrl
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 6.dp)
-                    .clickable { onSlotClick(slot.weather, slot.time, slot.dayName, label) },
+                    .clickable { onSlotClick(slot.weather, slot.time, slot.dayName, slot.fixedTime, label) },
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = if (status.hasAny) 
@@ -240,10 +267,10 @@ fun PackDetailList(
                         )
                         
                         val statusText = when {
-                            status.uriBoth != null -> "Configured for Both"
-                            status.uriHome != null && status.uriLock != null -> "Configured for Home & Lock"
-                            status.uriHome != null -> "Configured for Home"
-                            status.uriLock != null -> "Configured for Lock"
+                            status.uriBoth != null -> "Active Alarm"
+                            status.uriHome != null && status.uriLock != null -> "Home & Lock Alarms"
+                            status.uriHome != null -> "Home Alarm"
+                            status.uriLock != null -> "Lock Alarm"
                             else -> "Tap to search a photo"
                         }
                         
@@ -262,6 +289,40 @@ fun PackDetailList(
                 }
             }
         }
+
+        if (pack == SuggestedPack.Time) {
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp)
+                        .clickable { onAddCustomTime() },
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Add custom time override",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
         
         item { Spacer(modifier = Modifier.height(24.dp)) }
     }
@@ -273,5 +334,6 @@ private data class SlotData(
     val weather: Weather? = null,
     val time: TimeOfDay? = null,
     val dayName: String? = null,
+    val fixedTime: String? = null,
     val remoteUrl: String? = null
 )

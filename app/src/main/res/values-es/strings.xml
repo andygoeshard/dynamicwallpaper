@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">IrisWallpaper</string>
-    <string name="top_barr_name">Iris</string>
+    <string name="top_bar_name">Iris</string>
     <string name="btn_delete">Eliminar</string>
     <string name="btn_add">Añadir</string>
     <string name="weekCalendar">Calendario Semanal</string>
@@ -19,7 +19,7 @@
     <string name="time_rule_item_interrupt">Interrupción por horario</string>
 
     <string name="weather_cfg_card_dawn">Amanecer</string>
-    <string name="weather_cfg_car_day">Día</string>
+    <string name="weather_cfg_card_day">Día</string>
     <string name="weather_cfg_card_dusk">Atardecer</string>
     <string name="weather_cfg_card_night">Noche</string>
 

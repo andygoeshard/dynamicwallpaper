@@ -152,7 +152,7 @@ fun DynamicWallpaperScreen(
                     )
                 },
                 title = {
-                    Text(stringResource(R.string.top_barr_name), fontWeight = FontWeight.Black) },
+                    Text(stringResource(R.string.top_bar_name), fontWeight = FontWeight.Black) },
                 actions = {
                     IconButton(onClick = onNavigateToSearch) {
                         Icon(

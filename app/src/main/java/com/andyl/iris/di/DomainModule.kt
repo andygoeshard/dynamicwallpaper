@@ -96,7 +96,7 @@ val domainModule = module {
     }
 
     factory<InstallPredefinedPackUseCase> {
-        InstallPredefinedPackUseCaseImpl(get(), get(), get(), get())
+        InstallPredefinedPackUseCaseImpl(get(), get(), get(), get(), get())
     }
 
     single{ DownloadWallpaperUseCase(get(), get()) }

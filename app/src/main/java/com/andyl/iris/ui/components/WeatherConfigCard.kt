@@ -102,7 +102,7 @@ fun WeatherConfigCard(
                     ) {
                         val times = listOf(
                             TimeOfDay.DAWN to stringResource(R.string.weather_cfg_card_dawn),
-                            TimeOfDay.DAY to stringResource(R.string.weather_cfg_car_day),
+                            TimeOfDay.DAY to stringResource(R.string.weather_cfg_card_day),
                             TimeOfDay.DUSK to stringResource(R.string.weather_cfg_card_dusk),
                             TimeOfDay.NIGHT to stringResource(R.string.weather_cfg_card_night)
                         )
