@@ -54,7 +54,7 @@ object PredefinedPacks {
             id = "anime_weather",
             name = "Ghibli Scenery",
             description = "Hand-painted style landscapes inspired by legendary anime films.",
-            previewUrl = "https://images.unsplash.com/photo-1506704990130-b8f051223a67?auto=format&fit=crop&w=800&q=80",
+            previewUrl = "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "ghibli scenery anime",
             type = PackType.WEATHER
         ),
