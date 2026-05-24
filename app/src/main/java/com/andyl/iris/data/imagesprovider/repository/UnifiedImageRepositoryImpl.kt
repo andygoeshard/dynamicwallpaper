@@ -17,24 +17,21 @@ class UnifiedImageRepositoryImpl(
     private val cacheDao: ImageCacheDao
 ) : ImageRepository {
 
-    private val CACHE_EXPIRY = TimeUnit.DAYS.toMillis(15) // Cacheamos por 15 días para máximo ahorro
+    private val CACHE_EXPIRY = TimeUnit.DAYS.toMillis(15)
 
     override suspend fun searchImages(query: String, forceRefresh: Boolean): Result<List<ImageResult>> {
         val cleanQuery = query.lowercase().trim()
         if (cleanQuery.isEmpty()) return Result.success(emptyList())
 
-        // 1. BUSQUEDA SEMÁNTICA LOCAL (Impacto 0 si ya hay datos similares)
+        // 1. SEMANTIC LOCAL SEARCH
         val localResults = cacheDao.predictImages(cleanQuery)
         
-        // Si tenemos suficientes resultados locales (ej. 15), evitamos la API por completo
-        if (!forceRefresh && localResults.size >= 15) {
-            Log.d("IRIS_ROBUST", "🚀 ZERO API IMPACT: Found ${localResults.size} semantic matches for '$cleanQuery'")
+        if (!forceRefresh && localResults.size >= 20) {
+            Log.d("IRIS_ROBUST", "🎯 SEMANTIC HIT: Found ${localResults.size} matches for '$cleanQuery'")
             return Result.success(localResults.map { it.toDomain() })
         }
 
-        // 2. SOLO SI ES NECESARIO, CONSUMIMOS CUOTA
-        Log.w("IRIS_ROBUST", "📡 API REQUEST: Insufficient local data for '$cleanQuery'. Fetching...")
-        
+        // 2. MULTI-PROVIDER FETCH
         return coroutineScope {
             val uDef = async { unsplashDataSource.searchPhotos(cleanQuery).getOrNull()?.results ?: emptyList() }
             val pDef = async { pexelsDataSource.searchPhotos(cleanQuery).getOrNull()?.photos ?: emptyList() }
@@ -42,7 +39,6 @@ class UnifiedImageRepositoryImpl(
             val uRes = uDef.await()
             val pRes = pDef.await()
             
-            // Guardamos con descripción para futuras búsquedas semánticas
             val combined = mutableListOf<ImageResult>()
             uRes.forEach { combined.add(it.toDomain()) }
             pRes.forEach { combined.add(it.toDomain()) }
@@ -51,7 +47,7 @@ class UnifiedImageRepositoryImpl(
                 cacheDao.insertImages(combined.map { it.toEntity(cleanQuery) })
             }
             
-            // Mezclamos local + nuevo para dar la mejor experiencia
+            // Mix local with new for best results
             val finalResult = (combined + localResults.map { it.toDomain() }).distinctBy { it.id }.shuffled()
             Result.success(finalResult)
         }
@@ -71,8 +67,8 @@ class UnifiedImageRepositoryImpl(
 
     private fun com.andyl.iris.data.imagesprovider.dto.PexelsPhoto.toDomain() = ImageResult(
         id = "p_$id",
-        urlSmall = src.medium,
-        urlFull = src.original,
+        urlSmall = src.medium, // Optimized for grid
+        urlFull = src.portrait, // Optimized for mobile wallpaper (not huge original)
         provider = "pexels",
         alt = alt
     )

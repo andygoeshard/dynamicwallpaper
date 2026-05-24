@@ -13,6 +13,8 @@ import com.andyl.iris.domain.usecase.contract.InstallPredefinedPackUseCase
 import com.andyl.iris.domain.usecase.impl.DownloadWallpaperUseCase
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -49,22 +51,8 @@ class SearchViewModel(
                 .filter { it.isNotBlank() && it.length > 2 }
                 .distinctUntilChanged()
                 .collect { query ->
-                    // El repositorio ya maneja el caché de Room internamente
                     performSearch(query)
                 }
-        }
-
-        // CAPA PREDICTIVA: Escucha cambios inmediatos pero solo consulta a ROOM
-        viewModelScope.launch {
-            _searchQuery.collect { query ->
-                if (query.length > 2) {
-                    // Actualización rápida desde caché local sin bloquear hilos
-                    val quickResults = imageRepository.searchImages(query, forceRefresh = false).getOrNull()
-                    if (quickResults != null && quickResults.isNotEmpty() && _uiState.value.searchResults.isEmpty()) {
-                        _uiState.update { it.copy(searchResults = quickResults) }
-                    }
-                }
-            }
         }
     }
 
@@ -92,15 +80,39 @@ class SearchViewModel(
     private fun fetchPreviewImages(packId: String) {
         val predefined = PredefinedPacks.packs.find { it.id == packId } ?: return
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             val baseQuery = if (predefined.isFullRandom) "wallpaper" else predefined.categoryQuery
             
-            imageRepository.getRandomImages(baseQuery, count = 30).onSuccess { images ->
-                val urls = images.shuffled().take(10).map { "${it.urlSmall}&ar=9:16&fit=crop" }
-                if (urls.isNotEmpty()) {
-                    packPreviewCache[packId] = urls
-                    _uiState.update { it.copy(previewImages = urls) }
-                }
+            val queries = when {
+                predefined.type == PackType.WEEKLY -> listOf("$baseQuery monday", "$baseQuery friday")
+                predefined.isTimeBased -> listOf("$baseQuery day", "$baseQuery night")
+                else -> listOf("$baseQuery sunny", "$baseQuery rainy", "$baseQuery night")
             }
+
+            val urls = queries.map { q ->
+                async {
+                    imageRepository.getRandomImages(q, count = 5).getOrNull()?.shuffled()?.firstOrNull()?.let { 
+                        formatUrl(it, isSmall = true)
+                    }
+                }
+            }.awaitAll().filterNotNull()
+
+            if (urls.isNotEmpty()) {
+                packPreviewCache[packId] = urls
+                _uiState.update { it.copy(previewImages = urls, isLoading = false) }
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    private fun formatUrl(image: ImageResult, isSmall: Boolean): String {
+        return if (image.provider == "unsplash") {
+            val size = if (isSmall) "w=400" else "w=1080"
+            "${image.urlSmall}&$size&ar=9:16&fit=crop"
+        } else {
+            // Pexels already provides specific sizes, we use their portrait if available
+            image.urlSmall
         }
     }
 
