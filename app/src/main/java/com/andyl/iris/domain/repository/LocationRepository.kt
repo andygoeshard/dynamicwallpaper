@@ -8,4 +8,6 @@ interface LocationRepository {
     suspend fun searchCity(query: String): List<CityResult>
     suspend fun saveSelectedCity(city: CityResult)
     suspend fun getSavedCityName(): String?
+    suspend fun setUseGps(enabled: Boolean)
+    suspend fun shouldUseGps(): Boolean
 }

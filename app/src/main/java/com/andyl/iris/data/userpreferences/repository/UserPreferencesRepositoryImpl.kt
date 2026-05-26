@@ -229,6 +229,13 @@ class UserPreferencesRepositoryImpl(
         prefs.edit { putBoolean(KEY_GLOBAL_FIRST_APPLY, false) }
     }
 
+    override suspend fun setUseGps(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_USE_GPS, enabled) }
+    }
+
+    override suspend fun shouldUseGps(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_USE_GPS, true)
+    }
 
     companion object {
         private const val KEY_PACK_DATA = "wallpaper_pack_data"
@@ -238,6 +245,7 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_LAST_LON = "last_longitude"
         private const val KEY_CITY_NAME = "last_city_name"
         private const val KEY_GLOBAL_FIRST_APPLY = "global_first_apply_done"
+        private const val KEY_USE_GPS = "use_gps"
     }
 }
 

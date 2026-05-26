@@ -30,6 +30,7 @@ sealed interface WallpaperEvent{
     data class UpdateScaleMode(val mode: ScaleMode) : WallpaperEvent
     object OnDismissFirstTimeDialog : WallpaperEvent
     object OnConfirmFirstTime : WallpaperEvent
+    data class OnToggleGps(val enabled: Boolean) : WallpaperEvent
 }
 
 

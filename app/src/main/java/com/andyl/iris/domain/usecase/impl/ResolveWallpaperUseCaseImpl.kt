@@ -52,6 +52,7 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
         // 3. Reglas por Clima/Momento
         val weatherToMatch = weather ?: Weather.Clear
         val weatherMatches = config.rules.filter { rule ->
+            // If weather is null (disabled), we don't filter by weather, we just match time later
             val matchesWeather = rule.weather == weatherToMatch && config.enabledWeathers.contains(weatherToMatch)
             val matchesTime = rule.timeOfDay == timeOfDay
             matchesWeather && matchesTime
@@ -59,10 +60,14 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
 
         if (weatherMatches.isNotEmpty()) return weatherMatches
 
-        // Fallback final: Reglas que coincidan con el momento del día
-        val timeMatches = config.rules.filter { it.timeOfDay == timeOfDay }
+        // Fallback 1: Reglas que coincidan con el momento del día ignorando el clima
+        val timeMatches = config.rules.filter { it.timeOfDay == timeOfDay && it.wallpaperId.value.isNotEmpty() }
         if (timeMatches.isNotEmpty()) return timeMatches
 
-        return config.rules.take(1)
+        // Fallback 2: Cualquier regla que tenga una imagen válida
+        val anyMatches = config.rules.filter { it.wallpaperId.value.isNotEmpty() }
+        if (anyMatches.isNotEmpty()) return anyMatches.take(1)
+
+        return emptyList()
     }
 }

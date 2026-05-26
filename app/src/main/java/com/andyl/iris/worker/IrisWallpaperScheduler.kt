@@ -12,20 +12,19 @@ object IrisWallpaperScheduler {
 
     fun schedule(context: Context) {
         val request = PeriodicWorkRequestBuilder<IrisWallpaperWorker>(
-            1, TimeUnit.HOURS,
-            15, TimeUnit.MINUTES
+            15, TimeUnit.MINUTES,
+            5, TimeUnit.MINUTES
         )
             .setConstraints(
                 Constraints.Builder()
-                    .setRequiresBatteryNotLow(true)
-                    .build()
+                    .build() // Removed setRequiresBatteryNotLow to be more aggressive
             )
             .addTag(WORK_NAME)
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.UPDATE, // Better to UPDATE than KEEP to ensure new constraints/intervals apply
             request
         )
     }

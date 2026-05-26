@@ -21,5 +21,7 @@ interface UserPreferencesRepository {
     suspend fun deletePack(packId: String)
     suspend fun isFirstApplyGlobal(): Boolean
     suspend fun setGlobalFirstApplyDone()
+    suspend fun setUseGps(enabled: Boolean)
+    suspend fun shouldUseGps(): Boolean
 }
 

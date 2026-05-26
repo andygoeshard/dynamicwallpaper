@@ -116,6 +116,20 @@ class DynamicWallpaperViewModel(
             is WallpaperEvent.OnConfirmFirstTime -> confirmFirstTimeApply()
 
             is WallpaperEvent.OnDismissFirstTimeDialog -> onDismissFirstTimeDialog()
+
+            is WallpaperEvent.OnToggleGps -> toggleGps(event.enabled)
+        }
+    }
+
+    private fun toggleGps(enabled: Boolean) {
+        _uiState.update { it.copy(useGps = enabled) }
+        viewModelScope.launch {
+            locationRepository.setUseGps(enabled)
+            if (enabled) {
+                _searchQuery.value = ""
+                _searchResults.value = emptyList()
+                applyDynamicWallpaperUseCase()
+            }
         }
     }
 
@@ -195,7 +209,7 @@ class DynamicWallpaperViewModel(
                 locationRepository.saveSelectedCity(city)
                 _searchResults.value = emptyList()
                 _searchQuery.value = city.name
-                _uiState.update { it.copy(isApplied = true) }
+                _uiState.update { it.copy(isApplied = true, useGps = false) }
             }.onFailure { e ->
                 Log.e("WallpaperVM", "Error al guardar ciudad: ${e.message}")
             }
@@ -258,6 +272,7 @@ class DynamicWallpaperViewModel(
                 val activeId = allPacks.find { it.isActive }?.id ?: "1"
                 val config = getWallpaperConfigUseCase(activeId)
                 val isFirstTime = getFirstTimeKeyUseCase()
+                val useGps = locationRepository.shouldUseGps()
 
                 val rulesMap = config.rules
                     .filter { it.wallpaperId.value.isNotEmpty() }
@@ -268,6 +283,7 @@ class DynamicWallpaperViewModel(
                     val conf = config
                     val rules = rulesMap
                     val firstTime = isFirstTime
+                    val gps = useGps
                 }
             }.onSuccess { data ->
                 _uiState.update { it.copy(
@@ -282,8 +298,13 @@ class DynamicWallpaperViewModel(
                     isLoading = false,
                     scaleMode = data.conf.scaleMode,
                     isFirstTimeGlobal = data.firstTime,
-                    showFirstTimeDialog = false
+                    showFirstTimeDialog = false,
+                    useGps = data.gps
                 ) }
+                
+                if (!data.gps) {
+                    loadSavedCityName()
+                }
             }.onFailure { t ->
                 _uiState.update { it.copy(isLoading = false, error = t.message) }
             }

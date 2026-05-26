@@ -1,28 +1,76 @@
 package com.andyl.iris.worker
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import com.andyl.iris.R
 import com.andyl.iris.domain.usecase.contract.ApplyDynamicWallpaperUseCase
 
 class IrisWallpaperWorker(
-    context: Context,
+    private val context: Context,
     params: WorkerParameters,
     private val applyUseCase: ApplyDynamicWallpaperUseCase
 ) : CoroutineWorker(context, params) {
 
+    companion object {
+        private const val NOTIFICATION_ID = 101
+        private const val CHANNEL_ID = "iris_wallpaper_service"
+    }
+
     override suspend fun doWork(): Result {
-        Log.e("WallpaperWorker", ">>> ¡WORKER VIVO! (ID: ${id})")
-        Log.wtf("WallpaperWorker TEST", "EJECUTANDO WORKER AHORA")
+        Log.d("IrisWorker", "🚀 Worker starting... ID: ${id}")
+        
+        // Android requires Foreground for reliable background tasks
+        try {
+            setForeground(createForegroundInfo())
+        } catch (e: Exception) {
+            Log.e("IrisWorker", "Failed to set foreground", e)
+        }
 
         return try {
             applyUseCase()
-            Log.d("WallpaperWorker", ">>> Caso de uso ejecutado con éxito")
+            Log.d("IrisWorker", "✅ Wallpaper update successful")
             Result.success()
         } catch (e: Exception) {
-            Log.e("WallpaperWorker", ">>> Error en Worker: ${e.message}", e)
-            if (runAttemptCount < 3) Result.retry() else Result.failure()
+            Log.e("IrisWorker", "❌ Error in Worker: ${e.message}", e)
+            if (runAttemptCount < 2) Result.retry() else Result.failure()
+        }
+    }
+
+    private fun createForegroundInfo(): ForegroundInfo {
+        createNotificationChannel()
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setContentTitle("Iris is active")
+            .setContentText("Keeping your wallpaper in sync with weather and time.")
+            .setSmallIcon(R.mipmap.ic_iris)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .build()
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            ForegroundInfo(NOTIFICATION_ID, notification)
+        }
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Iris Wallpaper Service"
+            val descriptionText = "Ensures background wallpaper updates"
+            val importance = NotificationManager.IMPORTANCE_LOW
+            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
         }
     }
 }
