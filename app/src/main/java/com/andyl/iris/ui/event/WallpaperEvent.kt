@@ -20,7 +20,13 @@ sealed interface WallpaperEvent{
     data class OnToggleWeather(val weather: Weather): WallpaperEvent
     data class SetDailyWallpaper(val dayName: String, val uri: String, val target: Int): WallpaperEvent
     data class SetFixedTimeWallpaper(val context: Context, val time: String, val uri: String, val target: Int): WallpaperEvent
-    data class SetWallpaperRule(val weather: Weather, val timeOfDay: TimeOfDay, val wallpaperUri: String, val target: Int): WallpaperEvent
+    data class SetWallpaperRule(
+        val weather: Weather, 
+        val timeOfDay: TimeOfDay, 
+        val wallpaperUri: String, 
+        val target: Int,
+        val scaleMode: ScaleMode? = null
+    ): WallpaperEvent
     data class RequestExactAlarmPermission(val context: Context): WallpaperEvent
     object OnAddNewPack: WallpaperEvent
     data class OnDeletePack(val packId: String): WallpaperEvent
@@ -32,5 +38,3 @@ sealed interface WallpaperEvent{
     object OnConfirmFirstTime : WallpaperEvent
     data class OnToggleGps(val enabled: Boolean) : WallpaperEvent
 }
-
-

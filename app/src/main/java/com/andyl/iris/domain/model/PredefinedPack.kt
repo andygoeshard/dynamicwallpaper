@@ -82,6 +82,22 @@ object PredefinedPacks {
             categoryQuery = "FC Barcelona Femení football",
             type = PackType.WEATHER
         ),
+        PredefinedPack(
+            id = "wildlife_nature_weather",
+            name = "Wild Whispers",
+            description = "Majestic animals in their natural habitat, changing with the elements.",
+            previewUrl = "https://cdn.pixabay.com/photo/2016/11/23/13/48/animal-1852903_1280.jpg",
+            categoryQuery = "wildlife nature animals",
+            type = PackType.WEATHER
+        ),
+        PredefinedPack(
+            id = "pixabay_girls_weather",
+            name = "Urban Muse",
+            description = "Elegant portraits that mirror the local weather and atmospheric mood.",
+            previewUrl = "https://cdn.pixabay.com/photo/2018/01/13/19/39/fashion-3080644_1280.jpg",
+            categoryQuery = "girl portrait fashion",
+            type = PackType.WEATHER
+        ),
 
         // --- WEEKLY BASED PACKS ---
         PredefinedPack(
@@ -122,6 +138,22 @@ object PredefinedPacks {
             description = "Celebrate the talent and glory of the world's best team every day.",
             previewUrl = "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "FC Barcelona Femení team",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "architecture_weekly",
+            name = "Urban Geometry",
+            description = "Abstract perspectives of world-class architecture for your week.",
+            previewUrl = "https://cdn.pixabay.com/photo/2016/11/18/17/46/architecture-1836070_1280.jpg",
+            categoryQuery = "modern architecture minimal",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "anime_girl_weekly",
+            name = "Otaku Journey",
+            description = "A unique anime-style heroine for every day of your week.",
+            previewUrl = "https://images.unsplash.com/photo-1613373123746-10b1a4725b7b?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "anime girl illustration manga",
             type = PackType.WEEKLY
         ),
 

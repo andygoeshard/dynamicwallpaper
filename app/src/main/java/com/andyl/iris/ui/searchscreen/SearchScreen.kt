@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -100,6 +102,8 @@ fun SearchScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
         // 1. SEARCH BAR
         OutlinedTextField(
@@ -178,8 +182,8 @@ fun SearchScreen(
 
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
                             items(state.searchResults) { image ->
-                                WallpaperSearchResultItem(image) { uri, target ->
-                                    viewModel.confirmAndDownload(context, image, target)
+                                WallpaperSearchResultItem(image) { uri, target, scaleMode ->
+                                    viewModel.confirmAndDownload(context, image, target, scaleMode)
                                     viewModel.onSearchQueryChanged("")
                                 }
                             }

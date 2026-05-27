@@ -4,7 +4,7 @@ import androidx.room.Room
 import com.andyl.iris.data.database.IrisDatabase
 import com.andyl.iris.data.imagesprovider.repository.UnifiedImageRepositoryImpl
 import com.andyl.iris.data.location.datasource.AndroidLocationDataSource
-import com.andyl.iris.data.location.datasource.NominatimRemoteDataSource
+import com.andyl.iris.data.location.datasource.GeocodingRemoteDataSource
 import com.andyl.iris.data.location.repository.LocationRepositoryImpl
 import com.andyl.iris.data.time.datasource.TimeOfDayDataSource
 import com.andyl.iris.data.userpreferences.repository.UserPreferencesRepositoryImpl
@@ -35,6 +35,7 @@ val dataModule = module {
         UnifiedImageRepositoryImpl(
             unsplashDataSource = get(),
             pexelsDataSource = get(),
+            pixabayDataSource = get(),
             cacheDao = get()
         )
     }
@@ -59,8 +60,8 @@ val dataModule = module {
     single<LocationRepository> {
         LocationRepositoryImpl(
             dataSource = get(),
-            get(),
-            get()
+            remoteDataSource = get(),
+            preferencesRepository = get()
         )
     }
 
@@ -82,6 +83,6 @@ val dataModule = module {
         )
     }
 
-    single { NominatimRemoteDataSource(get()) }
+    single { GeocodingRemoteDataSource(get()) }
 
 }

@@ -4,6 +4,7 @@ import android.util.Log
 import com.andyl.iris.data.database.dao.ImageCacheDao
 import com.andyl.iris.data.database.entity.CachedImage
 import com.andyl.iris.data.imagesprovider.datasource.PexelsRemoteDataSource
+import com.andyl.iris.data.imagesprovider.datasource.PixabayRemoteDataSource
 import com.andyl.iris.data.imagesprovider.datasource.UnsplashRemoteDataSource
 import com.andyl.iris.domain.model.ImageResult
 import com.andyl.iris.domain.repository.ImageRepository
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit
 class UnifiedImageRepositoryImpl(
     private val unsplashDataSource: UnsplashRemoteDataSource,
     private val pexelsDataSource: PexelsRemoteDataSource,
+    private val pixabayDataSource: PixabayRemoteDataSource,
     private val cacheDao: ImageCacheDao
 ) : ImageRepository {
 
@@ -23,10 +25,9 @@ class UnifiedImageRepositoryImpl(
         val cleanQuery = query.lowercase().trim()
         if (cleanQuery.isEmpty()) return Result.success(emptyList())
 
-        // 1. SEMANTIC LOCAL SEARCH (Broadened threshold)
+        // 1. SEMANTIC LOCAL SEARCH
         val localResults = cacheDao.predictImages(cleanQuery)
         
-        // Satisfied only if we have a healthy pool of unique images
         if (!forceRefresh && localResults.size >= 40) {
             Log.d("IRIS_ROBUST", "🎯 SEMANTIC HIT: Found ${localResults.size} matches for '$cleanQuery'")
             return Result.success(localResults.map { it.toDomain() })
@@ -35,15 +36,16 @@ class UnifiedImageRepositoryImpl(
         Log.w("IRIS_ROBUST", "📡 API REQUEST: Fetching fresh results for '$cleanQuery'")
         
         return coroutineScope {
-            val uDef = async { unsplashDataSource.searchPhotos(cleanQuery).getOrNull()?.results ?: emptyList() }
-            val pDef = async { pexelsDataSource.searchPhotos(cleanQuery).getOrNull()?.photos ?: emptyList() }
+            val uDef = async { unsplashDataSource.searchPhotos(cleanQuery).getOrNull()?.results?.map { it.toDomain() } ?: emptyList() }
+            val pDef = async { pexelsDataSource.searchPhotos(cleanQuery).getOrNull()?.photos?.map { it.toDomain() } ?: emptyList() }
+            val pixDef = async { pixabayDataSource.searchPhotos(cleanQuery).getOrNull()?.hits?.map { it.toDomain() } ?: emptyList() }
 
             val uRes = uDef.await()
             val pRes = pDef.await()
+            val pixRes = pixDef.await()
             
-            val combined = mutableListOf<ImageResult>()
-            uRes.forEach { combined.add(it.toDomain()) }
-            pRes.forEach { combined.add(it.toDomain()) }
+            // Interleave results from all 3 providers
+            val combined = interleave(uRes, pRes, pixRes)
 
             if (combined.isNotEmpty()) {
                 cacheDao.insertImages(combined.map { it.toEntity(cleanQuery) })
@@ -56,8 +58,23 @@ class UnifiedImageRepositoryImpl(
     }
 
     override suspend fun getRandomImages(query: String, count: Int): Result<List<ImageResult>> {
-        // Broaden the search by returning more results than requested to ensure variety in caller
         return searchImages(query, forceRefresh = false)
+    }
+
+    private fun interleave(vararg lists: List<ImageResult>): List<ImageResult> {
+        val result = mutableListOf<ImageResult>()
+        val iterators = lists.map { it.iterator() }
+        var hasMore = true
+        while (hasMore) {
+            hasMore = false
+            for (it in iterators) {
+                if (it.hasNext()) {
+                    result.add(it.next())
+                    hasMore = true
+                }
+            }
+        }
+        return result
     }
 
     private fun com.andyl.iris.data.imagesprovider.dto.UnsplashImage.toDomain() = ImageResult(
@@ -74,6 +91,14 @@ class UnifiedImageRepositoryImpl(
         urlFull = src.portrait,
         provider = "pexels",
         alt = alt
+    )
+
+    private fun com.andyl.iris.data.imagesprovider.dto.PixabayHit.toDomain() = ImageResult(
+        id = "pix_$id",
+        urlSmall = webformatURL,
+        urlFull = largeImageURL,
+        provider = "pixabay",
+        alt = tags
     )
 
     private fun CachedImage.toDomain() = ImageResult(

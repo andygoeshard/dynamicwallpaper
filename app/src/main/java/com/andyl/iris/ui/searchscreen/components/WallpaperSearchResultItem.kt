@@ -35,13 +35,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.andyl.iris.domain.model.ImageResult
+import com.andyl.iris.domain.model.ScaleMode
+import com.andyl.iris.ui.components.ScaleModeSelector
 
 @Composable
 fun WallpaperSearchResultItem(
     image: ImageResult,
-    onConfirm: (uri: String, target: Int) -> Unit
+    onConfirm: (uri: String, target: Int, scaleMode: ScaleMode) -> Unit
 ) {
     var selectedTarget by remember { mutableStateOf(3) }
+    var selectedScaleMode by remember { mutableStateOf(ScaleMode.CROP) }
 
     Card(
         modifier = Modifier
@@ -65,18 +68,16 @@ fun WallpaperSearchResultItem(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // DONDE
             Text(
                 text = "Apply to:",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 4.dp)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 TargetOption("Both", isSelected = selectedTarget == 3, modifier = Modifier.weight(1f)) { selectedTarget = 3 }
@@ -84,10 +85,27 @@ fun WallpaperSearchResultItem(
                 TargetOption("Lock", isSelected = selectedTarget == 2, modifier = Modifier.weight(1f)) { selectedTarget = 2 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // COMO
+            Text(
+                text = "Scale Mode:",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Box(modifier = Modifier.padding(vertical = 8.dp)) {
+                ScaleModeSelector(
+                    selectedMode = selectedScaleMode,
+                    onModeSelected = { selectedScaleMode = it }
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { onConfirm(image.urlFull, selectedTarget) },
+                onClick = { onConfirm(image.urlFull, selectedTarget, selectedScaleMode) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(

@@ -39,7 +39,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Collections.emptyList
 
 @OptIn(FlowPreview::class)
 class DynamicWallpaperViewModel(
@@ -70,7 +69,6 @@ class DynamicWallpaperViewModel(
             loadInitialConfig()
         }
         setupSearchDebounce()
-        loadSavedCityName()
     }
 
     fun onEvent(event: WallpaperEvent){
@@ -97,7 +95,7 @@ class DynamicWallpaperViewModel(
 
             is WallpaperEvent.SetFixedTimeWallpaper -> setFixedTimeWallpaper(event.context, event.time, event.uri, event.target)
 
-            is WallpaperEvent.SetWallpaperRule -> setWallpaperRule(event.weather, event.timeOfDay, event.wallpaperUri, event.target)
+            is WallpaperEvent.SetWallpaperRule -> setWallpaperRule(event.weather, event.timeOfDay, event.wallpaperUri, event.target, event.scaleMode)
 
             WallpaperEvent.OnAddNewPack -> addNewPack()
 
@@ -135,26 +133,10 @@ class DynamicWallpaperViewModel(
 
     private fun updateScaleMode(mode: ScaleMode) {
         _uiState.update { it.copy(scaleMode = mode) }
-        
         viewModelScope.launch {
-            // 1. Guardar el nuevo modo de escala inmediatamente
-            val state = _uiState.value
-            val config = WallpaperConfig(
-                id = state.editingPackId,
-                name = state.packName,
-                rules = state.rules.map { (key, uri) -> parseRuleFromKey(key, uri) },
-                dailyRules = state.dailyRules,
-                fixedTimeRules = state.fixedRules,
-                enabledWeathers = state.enabledWeathers,
-                activePackId = state.activePackId,
-                scaleMode = mode
-            )
-            setWallpaperRuleUseCase(config)
-            
-            // 2. Si estamos editando el activo, forzamos el re-ajuste visual en el momento
-            if (state.editingPackId == state.activePackId) {
-                applyDynamicWallpaperUseCase(state.activePackId)
-                Log.d("VM", "Scale mode updated and re-applied reactively: $mode")
+            saveCurrentConfigToRepo()
+            if (_uiState.value.editingPackId == _uiState.value.activePackId) {
+                applyDynamicWallpaperUseCase(_uiState.value.activePackId)
             }
         }
     }
@@ -174,7 +156,6 @@ class DynamicWallpaperViewModel(
         _uiState.update { it.copy(showFirstTimeDialog = false) }
     }
 
-    // Location
     private fun loadSavedCityName() {
         viewModelScope.launch {
             val name = locationRepository.getSavedCityName() ?: ""
@@ -184,21 +165,30 @@ class DynamicWallpaperViewModel(
 
     fun onSearchQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery
-        if (newQuery.length <= 2) _searchResults.value = emptyList()
+        if (newQuery.length <= 2) {
+            _searchResults.value = emptyList()
+            _uiState.update { it.copy(isSearchingCity = false) }
+        }
     }
     private fun setupSearchDebounce() {
         viewModelScope.launch {
             _searchQuery
-                .debounce(500)
+                .debounce(800)
                 .filter { it.length > 2 }
-                .distinctUntilChanged()
                 .collectLatest { query ->
-                    val savedName = locationRepository.getSavedCityName()
-                    if (query != savedName) {
-                        runCatching { locationRepository.searchCity(query) }
-                            .onSuccess { _searchResults.value = it }
-                            .onFailure { _searchResults.value = emptyList() }
-                    }
+                    Log.d("IRIS_VM", "Searching city for: $query")
+                    _uiState.update { it.copy(isSearchingCity = true) }
+                    runCatching { locationRepository.searchCity(query) }
+                        .onSuccess { 
+                            Log.d("IRIS_VM", "Found ${it.size} cities")
+                            _searchResults.value = it 
+                            _uiState.update { it.copy(isSearchingCity = false) }
+                        }
+                        .onFailure { 
+                            Log.e("IRIS_VM", "City search failed", it)
+                            _searchResults.value = emptyList() 
+                            _uiState.update { it.copy(isSearchingCity = false) }
+                        }
                 }
         }
     }
@@ -216,7 +206,6 @@ class DynamicWallpaperViewModel(
         }
     }
 
-    // Wallpapers
     private fun applyWallpaper() {
         val state = _uiState.value
 
@@ -230,17 +219,7 @@ class DynamicWallpaperViewModel(
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             runCatching {
-                val configToSave = WallpaperConfig(
-                    id = currentEditingId,
-                    name = state.packName,
-                    rules = state.rules.map { (key, uri) -> parseRuleFromKey(key, uri) },
-                    dailyRules = state.dailyRules,
-                    fixedTimeRules = state.fixedRules,
-                    enabledWeathers = state.enabledWeathers,
-                    activePackId = currentEditingId,
-                    scaleMode = state.scaleMode,
-                )
-                setWallpaperRuleUseCase(configToSave)
+                saveCurrentConfigToRepo().join()
                 changeActivePackUseCase(currentEditingId)
                 applyDynamicWallpaperUseCase(currentEditingId)
             }
@@ -528,7 +507,7 @@ class DynamicWallpaperViewModel(
         saveCurrentConfigToRepo()
     }
 
-    fun setWallpaperRule(weather: Weather, timeOfDay: TimeOfDay, wallpaperUri: String, target: Int = 3) {
+    fun setWallpaperRule(weather: Weather, timeOfDay: TimeOfDay, wallpaperUri: String, target: Int = 3, scaleMode: ScaleMode? = null) {
         _uiState.update { currentState ->
             val newRules = currentState.rules.toMutableMap()
             if (target == 3) {
@@ -539,11 +518,13 @@ class DynamicWallpaperViewModel(
             }
 
             newRules[formatKey(weather, timeOfDay, target)] = wallpaperUri
-            currentState.copy(rules = newRules)
+            currentState.copy(
+                rules = newRules,
+                scaleMode = scaleMode ?: currentState.scaleMode
+            )
         }
         saveCurrentConfigToRepo()
         
-        // Si estamos editando el pack que está activo, aplicamos los cambios inmediatamente
         val state = _uiState.value
         if (state.editingPackId == state.activePackId) {
             applyWallpaper()
@@ -568,13 +549,4 @@ class DynamicWallpaperViewModel(
             curretState.copy(isWeatherFeatureEnabled = !curretState.isWeatherFeatureEnabled)
         }
     }
-
-//    private fun syncIfActive() {
-//        val state = _uiState.value
-//        if (state.editingPackId == state.activePackId) {
-//            viewModelScope.launch {
-//                applyDynamicWallpaperUseCase(state.activePackId)
-//            }
-//        }
-//    }
 }

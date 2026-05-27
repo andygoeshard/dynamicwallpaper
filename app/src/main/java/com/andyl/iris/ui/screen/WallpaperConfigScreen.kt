@@ -12,16 +12,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -65,6 +70,7 @@ fun WallpaperConfigScreen(
     ) { _ -> /* :) */ }
 
     Scaffold(
+        modifier = Modifier.statusBarsPadding().navigationBarsPadding(),
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.cfg_screen_title)) },
@@ -140,28 +146,26 @@ fun WallpaperConfigScreen(
                     }
                 }
             } else {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                    ) {
-                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.LocationOn, null)
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                text = searchQuery.ifEmpty { stringResource(R.string.cfg_screen_city_settings_not_defined) },
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-
+                Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { viewModel.onSearchQueryChanged(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Search city (e.g. Buenos Aires)") },
-                        leadingIcon = { Icon(Icons.Default.Search, null) },
+                        placeholder = { Text("Search city (e.g. London)") },
+                        leadingIcon = { 
+                            if (uiState.isSearchingCity) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                            } else {
+                                Icon(Icons.Default.Search, null) 
+                            }
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
+                                    Icon(Icons.Default.Close, "Clear")
+                                }
+                            }
+                        },
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -170,12 +174,13 @@ fun WallpaperConfigScreen(
 
                     if (searchResults.isNotEmpty()) {
                         ElevatedCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp)
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                         ) {
                             searchResults.take(5).forEach { city ->
                                 ListItem(
-                                    headlineContent = { Text(city.name) },
+                                    headlineContent = { Text(city.name, style = MaterialTheme.typography.bodyMedium) },
                                     modifier = Modifier.clickable {
                                         viewModel.onEvent(WallpaperEvent.OnSelectCity(city))
                                         focusManager.clearFocus()
@@ -183,6 +188,13 @@ fun WallpaperConfigScreen(
                                 )
                             }
                         }
+                    } else if (searchQuery.length > 2 && !uiState.isSearchingCity) {
+                        Text(
+                            "No cities found", 
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(8.dp),
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }

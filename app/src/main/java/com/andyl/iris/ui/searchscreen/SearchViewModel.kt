@@ -47,7 +47,7 @@ class SearchViewModel(
     private fun setupSearchDebounce() {
         viewModelScope.launch {
             _searchQuery
-                .debounce(800)
+                .debounce(1000)
                 .filter { it.isNotBlank() && it.length > 2 }
                 .distinctUntilChanged()
                 .collect { query ->
@@ -105,12 +105,17 @@ class SearchViewModel(
     }
 
     private fun formatUrl(image: ImageResult, isSmall: Boolean): String {
-        return if (image.provider == "unsplash") {
-            val size = if (isSmall) "w=400" else "w=1080"
-            "${image.urlSmall}&$size&ar=9:16&fit=crop"
-        } else {
-            // Pexels already provides specific sizes, we use their portrait if available
-            image.urlSmall
+        return when (image.provider) {
+            "unsplash" -> {
+                val size = if (isSmall) "w=400" else "w=1080"
+                "${image.urlSmall}&$size&ar=9:16&fit=crop"
+            }
+            "pixabay" -> {
+                if (isSmall) image.urlSmall else image.urlFull
+            }
+            else -> {
+                image.urlSmall
+            }
         }
     }
 
@@ -195,7 +200,7 @@ class SearchViewModel(
             }
     }
 
-    fun confirmAndDownload(context: android.content.Context, image: ImageResult, target: Int) {
+    fun confirmAndDownload(context: android.content.Context, image: ImageResult, target: Int, scaleMode: com.andyl.iris.domain.model.ScaleMode) {
         val slot = _uiState.value.activeSlot ?: return
 
         viewModelScope.launch {
@@ -207,7 +212,7 @@ class SearchViewModel(
             )
 
             if (file != null) {
-                processDownloadedFile(context, file.absolutePath, target, slot)
+                processDownloadedFile(context, file.absolutePath, target, slot, scaleMode)
                 _uiState.update { it.copy(isLoading = false, activeSlot = null, searchResults = emptyList()) }
             } else {
                 _uiState.update { it.copy(isLoading = false, error = "Error al descargar imagen") }
@@ -215,7 +220,7 @@ class SearchViewModel(
         }
     }
 
-    private fun processDownloadedFile(context: android.content.Context, path: String, target: Int, slot: WallpaperSlot) {
+    private fun processDownloadedFile(context: android.content.Context, path: String, target: Int, slot: WallpaperSlot, scaleMode: com.andyl.iris.domain.model.ScaleMode) {
         if (slot.fixedTime != null) {
             wallpaperViewModel.onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, slot.fixedTime, path, target))
         } else if (slot.weather != null && slot.time != null) {
