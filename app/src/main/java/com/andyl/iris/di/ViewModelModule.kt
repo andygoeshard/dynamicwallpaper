@@ -19,6 +19,7 @@ val viewModelModule = module {
             getFirstTimeKeyUseCase = get(),
             changeFirstTimeKeyUseCase = get(),
             locationRepository = get(),
+            get()
         )
     }
     viewModel { params ->

@@ -230,10 +230,10 @@ class SearchViewModel(
 
             if (isTimeBased) {
                 Weather.all().forEach { w ->
-                    wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(w, slot.time, path, target))
+                    wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(w, slot.time, path, target, scaleMode))
                 }
             } else {
-                wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(slot.weather, slot.time, path, target))
+                wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(slot.weather, slot.time, path, target, scaleMode))
             }
         } else if (slot.dayName != null) {
             wallpaperViewModel.onEvent(WallpaperEvent.SetDailyWallpaper(slot.dayName, path, target))
