@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -108,6 +110,35 @@ fun WallpaperConfigScreen(
 
             HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
+            // --- SECCIÓN DE STATUS ACTUAL ---
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Live Status",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    IconButton(onClick = { viewModel.onEvent(WallpaperEvent.OnManualRefresh) }) {
+                        Icon(Icons.Default.Refresh, "Refresh", tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                ) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Current Weather: ${uiState.currentWeather?.javaClass?.simpleName ?: "Unknown"}", style = MaterialTheme.typography.bodyMedium)
+                        Text("Last Update: ${uiState.lastUpdateTime}", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+
             // --- SECCIÓN DE UBICACIÓN ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -139,7 +170,7 @@ fun WallpaperConfigScreen(
                         Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            text = "Using GPS (Battery Optimization)",
+                            text = "Using GPS (Active Tracking)",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -147,6 +178,23 @@ fun WallpaperConfigScreen(
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                    ) {
+                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.LocationOn, null)
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                text = searchQuery.ifEmpty { "No city selected" },
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    
+                    Spacer(Modifier.height(12.dp))
+
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { viewModel.onSearchQueryChanged(it) },
@@ -188,13 +236,6 @@ fun WallpaperConfigScreen(
                                 )
                             }
                         }
-                    } else if (searchQuery.length > 2 && !uiState.isSearchingCity) {
-                        Text(
-                            "No cities found", 
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(8.dp),
-                            color = MaterialTheme.colorScheme.error
-                        )
                     }
                 }
             }

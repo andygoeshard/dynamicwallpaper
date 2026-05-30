@@ -18,6 +18,7 @@ import com.andyl.iris.domain.model.WallpaperId
 import com.andyl.iris.domain.model.WallpaperRule
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.repository.LocationRepository
+import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.domain.usecase.contract.AddPackUseCase
 import com.andyl.iris.domain.usecase.contract.ApplyDynamicWallpaperUseCase
 import com.andyl.iris.domain.usecase.contract.ChangeActivePackUseCase
@@ -35,10 +36,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(FlowPreview::class)
 class DynamicWallpaperViewModel(
@@ -51,7 +54,8 @@ class DynamicWallpaperViewModel(
     private val deletePackUseCase: DeletePackUseCase,
     private val getFirstTimeKeyUseCase: GetFirstTimeKeyUseCase,
     private val changeFirstTimeKeyUseCase: ChangeFirstTimeKeyUseCase,
-    private val locationRepository: LocationRepository
+    private val locationRepository: LocationRepository,
+    private val preferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DynamicWallpaperUiState())
@@ -116,6 +120,16 @@ class DynamicWallpaperViewModel(
             is WallpaperEvent.OnDismissFirstTimeDialog -> onDismissFirstTimeDialog()
 
             is WallpaperEvent.OnToggleGps -> toggleGps(event.enabled)
+
+            WallpaperEvent.OnManualRefresh -> onManualRefresh()
+        }
+    }
+
+    private fun onManualRefresh() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            applyDynamicWallpaperUseCase()
+            loadInitialConfig()
         }
     }
 
@@ -252,6 +266,13 @@ class DynamicWallpaperViewModel(
                 val config = getWallpaperConfigUseCase(activeId)
                 val isFirstTime = getFirstTimeKeyUseCase()
                 val useGps = locationRepository.shouldUseGps()
+                val lastWeather = preferencesRepository.getLastWeather()
+                val lastTimeRaw = preferencesRepository.getLastUpdateTime()
+                
+                val lastTimeFormatted = if (lastTimeRaw > 0) {
+                    val dt = Instant.ofEpochMilli(lastTimeRaw).atZone(ZoneId.systemDefault()).toLocalDateTime()
+                    dt.format(DateTimeFormatter.ofPattern("HH:mm"))
+                } else "Never"
 
                 val rulesMap = config.rules
                     .filter { it.wallpaperId.value.isNotEmpty() }
@@ -263,6 +284,8 @@ class DynamicWallpaperViewModel(
                     val rules = rulesMap
                     val firstTime = isFirstTime
                     val gps = useGps
+                    val weather = lastWeather
+                    val updateTime = lastTimeFormatted
                 }
             }.onSuccess { data ->
                 _uiState.update { it.copy(
@@ -278,7 +301,9 @@ class DynamicWallpaperViewModel(
                     scaleMode = data.conf.scaleMode,
                     isFirstTimeGlobal = data.firstTime,
                     showFirstTimeDialog = false,
-                    useGps = data.gps
+                    useGps = data.gps,
+                    currentWeather = data.weather,
+                    lastUpdateTime = data.updateTime
                 ) }
                 
                 if (!data.gps) {

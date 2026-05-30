@@ -37,4 +37,5 @@ sealed interface WallpaperEvent{
     object OnDismissFirstTimeDialog : WallpaperEvent
     object OnConfirmFirstTime : WallpaperEvent
     data class OnToggleGps(val enabled: Boolean) : WallpaperEvent
+    object OnManualRefresh : WallpaperEvent
 }

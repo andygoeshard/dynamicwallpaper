@@ -3,7 +3,7 @@ package com.andyl.iris.domain.repository
 import com.andyl.iris.domain.model.GeoLocation
 import com.andyl.iris.domain.model.PackInfo
 import com.andyl.iris.domain.model.WallpaperConfig
-
+import com.andyl.iris.domain.model.Weather
 
 interface UserPreferencesRepository {
     suspend fun getWallpaperConfig(packId: String? = null): WallpaperConfig
@@ -23,5 +23,9 @@ interface UserPreferencesRepository {
     suspend fun setGlobalFirstApplyDone()
     suspend fun setUseGps(enabled: Boolean)
     suspend fun shouldUseGps(): Boolean
+    
+    suspend fun saveLastWeather(weather: Weather)
+    suspend fun getLastWeather(): Weather?
+    suspend fun saveLastUpdateTime(time: Long)
+    suspend fun getLastUpdateTime(): Long
 }
-

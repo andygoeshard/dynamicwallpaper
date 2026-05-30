@@ -237,6 +237,22 @@ class UserPreferencesRepositoryImpl(
         prefs.getBoolean(KEY_USE_GPS, true)
     }
 
+    override suspend fun saveLastWeather(weather: Weather) = withContext(ioDispatcher) {
+        prefs.edit { putString(KEY_LAST_WEATHER, weather.toKey()) }
+    }
+
+    override suspend fun getLastWeather(): Weather? = withContext(ioDispatcher) {
+        prefs.getString(KEY_LAST_WEATHER, null)?.let { weatherFromKey(it) }
+    }
+
+    override suspend fun saveLastUpdateTime(time: Long) = withContext(ioDispatcher) {
+        prefs.edit { putLong(KEY_LAST_UPDATE_TIME, time) }
+    }
+
+    override suspend fun getLastUpdateTime(): Long = withContext(ioDispatcher) {
+        prefs.getLong(KEY_LAST_UPDATE_TIME, 0L)
+    }
+
     companion object {
         private const val KEY_PACK_DATA = "wallpaper_pack_data"
         private const val KEY_RULES = "wallpaper_rules"
@@ -246,6 +262,8 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_CITY_NAME = "last_city_name"
         private const val KEY_GLOBAL_FIRST_APPLY = "global_first_apply_done"
         private const val KEY_USE_GPS = "use_gps"
+        private const val KEY_LAST_WEATHER = "last_weather"
+        private const val KEY_LAST_UPDATE_TIME = "last_update_time"
     }
 }
 

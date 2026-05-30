@@ -33,9 +33,7 @@ import org.koin.dsl.module
 val domainModule = module {
 
     factory<DetectTimeOfDayUseCase> {
-        DetectTimeOfDayUseCaseImpl(
-            get()
-        )
+        DetectTimeOfDayUseCaseImpl()
     }
 
     factory<ResolveWallpaperUseCase> {

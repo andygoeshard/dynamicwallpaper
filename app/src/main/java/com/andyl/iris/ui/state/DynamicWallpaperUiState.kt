@@ -22,5 +22,7 @@ data class DynamicWallpaperUiState(
     val showFirstTimeDialog: Boolean = true,
     val scaleMode: ScaleMode = ScaleMode.CROP,
     val useGps: Boolean = true,
-    val isSearchingCity: Boolean = false
+    val isSearchingCity: Boolean = false,
+    val lastUpdateTime: String = "",
+    val currentWeather: Weather? = null
 )
