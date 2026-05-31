@@ -20,9 +20,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 import com.andyl.iris.domain.helper.AlarmHelper
 import android.content.Context
+import com.andyl.iris.domain.model.ImageResult
 
 class InstallPredefinedPackUseCaseImpl(
     private val context: Context,
@@ -32,117 +35,137 @@ class InstallPredefinedPackUseCaseImpl(
     private val imageRepository: ImageRepository
 ) : InstallPredefinedPackUseCase {
 
+    private val mutex = Mutex()
+
     override suspend fun invoke(pack: PredefinedPack, targetPackId: String?): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            Log.d("IRIS_INSTALL", "🚀 Installing high-variety pack: ${pack.name} onto target: ${targetPackId ?: "NEW"}")
+            Log.d("IRIS_VAR", "==================================================")
+            Log.d("IRIS_VAR", "🚀 VARIETY ENGINE: Installing '${pack.name}'")
             
             val weatherRulesToDownload = mutableListOf<PredefinedRule>()
             val dailyRulesToDownload = mutableListOf<PredefinedDailyRule>()
             val fixedRulesToDownload = mutableListOf<PredefinedFixedTimeRule>()
 
-            val baseQuery = if (pack.isFullRandom) "" else pack.categoryQuery
-            val usedImageIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+            val baseQuery = if (pack.isFullRandom) "wallpaper 4k high resolution" else pack.categoryQuery
+            
+            // Uniqueness tracking
+            val usedIds = mutableSetOf<String>()
+            val usedSignatures = mutableSetOf<String>() // To catch same images with different IDs
+            
+            // 1. FETCH A MASSIVE MASTER POOL (100+ images)
+            Log.d("IRIS_VAR", "Building master pool for: $baseQuery")
+            val masterPool = imageRepository.searchImages(baseQuery, forceRefresh = true).getOrNull()?.shuffled() ?: emptyList()
+            var poolIdx = 0
+            Log.d("IRIS_VAR", "Master pool size: ${masterPool.size}")
 
-            when {
-                // 1. TIME-BASED PACKS
-                pack.isTimeBased -> {
-                    TimeOfDay.entries.map { timeOfDay ->
-                        async {
-                            val q = buildCombinedQuery(baseQuery, timeOfDay.queryTerm)
-                            imageRepository.searchImages(q).onSuccess { images ->
-                                val image = images.find { it.id !in usedImageIds } ?: images.shuffled().firstOrNull()
-                                image?.let {
-                                    usedImageIds.add(it.id)
-                                    val timeStr = when(timeOfDay) {
-                                        TimeOfDay.DAWN -> "06:00"
-                                        TimeOfDay.DAY -> "10:00"
-                                        TimeOfDay.DUSK -> "18:00"
-                                        TimeOfDay.NIGHT -> "22:00"
-                                    }
-                                    fixedRulesToDownload.add(PredefinedFixedTimeRule(timeStr, it.urlFull))
-                                }
+            suspend fun getUniqueImage(query: String, slotLabel: String): ImageResult? {
+                // Search specifically for this slot
+                val specific = imageRepository.searchImages(query).getOrNull() ?: emptyList()
+                
+                return mutex.withLock {
+                    // Try specific search results first
+                    val foundInSpecific = specific.shuffled().find { img ->
+                        val sig = img.urlFull.substringBefore("?").takeLast(50)
+                        img.id !in usedIds && sig !in usedSignatures
+                    }
+                    
+                    val finalChoice = if (foundInSpecific != null) {
+                        Log.d("IRIS_VAR", "  ✅ Slot [$slotLabel]: Found unique specific (${foundInSpecific.id})")
+                        foundInSpecific
+                    } else {
+                        // Use master pool as fallback to ensure NO repeats
+                        var fallback: ImageResult? = null
+                        while (poolIdx < masterPool.size) {
+                            val candidate = masterPool[poolIdx++]
+                            val sig = candidate.urlFull.substringBefore("?").takeLast(50)
+                            if (candidate.id !in usedIds && sig !in usedSignatures) {
+                                Log.d("IRIS_VAR", "  ♻️ Slot [$slotLabel]: Using pool fallback (${candidate.id})")
+                                fallback = candidate
+                                break
                             }
                         }
-                    }.awaitAll()
+                        fallback
+                    }
+                    
+                    finalChoice?.let {
+                        usedIds.add(it.id)
+                        usedSignatures.add(it.urlFull.substringBefore("?").takeLast(50))
+                    }
+                    finalChoice
                 }
+            }
 
-                // 2. WEEKLY PACKS
-                pack.type == PackType.WEEKLY -> {
-                    imageRepository.getRandomImages(baseQuery, count = 50).onSuccess { images ->
-                        val shuffledImages = images.filter { it.id !in usedImageIds }.shuffled()
-                        val days = listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
-                        days.forEachIndexed { i, day ->
-                            val image = shuffledImages.getOrNull(i) ?: images.getOrNull(i)
-                            image?.let {
-                                usedImageIds.add(it.id)
-                                dailyRulesToDownload.add(PredefinedDailyRule(day, it.urlFull))
+            when {
+                pack.isTimeBased -> {
+                    TimeOfDay.entries.forEach { tod ->
+                        getUniqueImage(buildCombinedQuery(baseQuery, tod.queryTerm), tod.name)?.let { img ->
+                            val timeStr = when(tod) {
+                                TimeOfDay.DAWN -> "06:00"
+                                TimeOfDay.DAY -> "10:00"
+                                TimeOfDay.DUSK -> "18:00"
+                                TimeOfDay.NIGHT -> "22:00"
                             }
+                            fixedRulesToDownload.add(PredefinedFixedTimeRule(timeStr, img.urlFull))
                         }
                     }
                 }
 
-                // 3. WEATHER PACKS
+                pack.type == PackType.WEEKLY -> {
+                    listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday").forEach { day ->
+                        getUniqueImage(buildCombinedQuery(baseQuery, day), day)?.let { img ->
+                            dailyRulesToDownload.add(PredefinedDailyRule(day, img.urlFull))
+                        }
+                    }
+                }
+
                 else -> {
                     val weatherPairs = Weather.all().flatMap { w -> TimeOfDay.entries.map { t -> w to t } }
-                    weatherPairs.map { (weather, time) ->
-                        async {
-                            val q = buildWeatherTimeQuery(baseQuery, weather, time)
-                            imageRepository.searchImages(q).onSuccess { pool ->
-                                val image = pool.filter { it.id !in usedImageIds }.shuffled().firstOrNull() ?: pool.shuffled().firstOrNull()
-                                image?.let {
-                                    usedImageIds.add(it.id)
-                                    weatherRulesToDownload.add(PredefinedRule(weather, time, it.urlFull))
-                                }
-                            }
+                    weatherPairs.forEach { (w, t) ->
+                        val label = "${w.queryTerm}-${t.name}"
+                        getUniqueImage(buildWeatherTimeQuery(baseQuery, w, t), label)?.let { img ->
+                            weatherRulesToDownload.add(PredefinedRule(w, t, img.urlFull))
                         }
-                    }.awaitAll()
+                    }
                 }
             }
 
             // --- DOWNLOAD ---
-            val allUrls = (weatherRulesToDownload.map { it.imageUrl } + 
-                          dailyRulesToDownload.map { it.imageUrl } + 
-                          fixedRulesToDownload.map { it.imageUrl }).distinct()
+            val allToGet = (weatherRulesToDownload.map { it.imageUrl } + 
+                            dailyRulesToDownload.map { it.imageUrl } + 
+                            fixedRulesToDownload.map { it.imageUrl }).distinct()
 
-            if (allUrls.isEmpty()) return@withContext Result.failure(Exception("No images found"))
+            if (allToGet.isEmpty()) return@withContext Result.failure(Exception("Failed to acquire unique images"))
 
-            val downloadedFiles = allUrls.map { url ->
+            val downloadedFiles = allToGet.map { url ->
                 async {
-                    val fileName = "iris_pack_${pack.id}_${url.hashCode()}"
+                    val fileName = "iris_v_${url.hashCode()}"
                     val file = downloadUseCase.execute(url, fileName)
                     url to file?.absolutePath
                 }
             }.awaitAll().toMap()
 
-            // --- SMART MERGE LOGIC ---
-            val existingConfig = targetPackId?.let { preferencesRepository.getWallpaperConfig(it) }
-            
-            val newWeatherRules = weatherRulesToDownload.mapNotNull { rule ->
-                downloadedFiles[rule.imageUrl]?.let { path -> WallpaperRule(rule.weather, rule.timeOfDay, WallpaperId(path)) }
-            }
-            val newDailyRules = dailyRulesToDownload.mapNotNull { rule ->
-                downloadedFiles[rule.imageUrl]?.let { path -> rule.dayName to path }
-            }.toMap()
-            val newFixedRules = fixedRulesToDownload.mapNotNull { rule ->
-                downloadedFiles[rule.imageUrl]?.let { path -> rule.time to path }
-            }.toMap()
+            // --- SAVE ---
+            val existing = targetPackId?.let { preferencesRepository.getWallpaperConfig(it) }
+            val newWRules = weatherRulesToDownload.mapNotNull { r -> downloadedFiles[r.imageUrl]?.let { p -> WallpaperRule(r.weather, r.timeOfDay, WallpaperId(p)) } }
+            val newDRules = dailyRulesToDownload.mapNotNull { r -> downloadedFiles[r.imageUrl]?.let { p -> r.dayName to p } }.toMap()
+            val newFRules = fixedRulesToDownload.mapNotNull { r -> downloadedFiles[r.imageUrl]?.let { p -> r.time to p } }.toMap()
 
-            val finalConfig = if (existingConfig != null) {
-                // Update existing: overwrite categories provided by the new pack, keep others
-                existingConfig.copy(
-                    rules = if (newWeatherRules.isNotEmpty()) newWeatherRules else existingConfig.rules,
-                    dailyRules = existingConfig.dailyRules + newDailyRules,
-                    fixedTimeRules = existingConfig.fixedTimeRules + newFixedRules
+            val finalConfig = if (existing != null) {
+                existing.copy(
+                    rules = if (newWRules.isNotEmpty()) newWRules else existing.rules,
+                    dailyRules = existing.dailyRules + newDRules,
+                    fixedTimeRules = existing.fixedTimeRules + newFRules
                 )
             } else {
-                // Create new
-                val newId = "predefined_${pack.id}_${System.currentTimeMillis()}"
+                val newId = "pack_${pack.id}_${System.currentTimeMillis()}"
                 WallpaperConfig(
                     id = newId,
                     name = pack.name,
-                    rules = newWeatherRules,
-                    dailyRules = newDailyRules,
-                    fixedTimeRules = newFixedRules,
+                    updateIntervalMinutes = 15,
+                    rules = newWRules,
+                    dailyRules = newDRules,
+                    fixedTimeRules = newFRules,
+                    enabledWeathers = Weather.all().toSet(),
                     activePackId = newId,
                     scaleMode = ScaleMode.CROP
                 )
@@ -152,13 +175,13 @@ class InstallPredefinedPackUseCaseImpl(
             preferencesRepository.setActivePackId(finalConfig.id)
             applyUseCase(finalConfig.id)
 
-            finalConfig.fixedTimeRules.keys.forEach { time ->
-                AlarmHelper.scheduleFixedTimeAlarm(context, time)
-            }
+            finalConfig.fixedTimeRules.keys.forEach { AlarmHelper.scheduleFixedTimeAlarm(context, it) }
             
+            Log.d("IRIS_VAR", "✅ SUCCESS: Installed ${usedIds.size} unique images from 3 providers.")
+            Log.d("IRIS_VAR", "==================================================")
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e("IRIS_INSTALL", "Install failed", e)
+            Log.e("IRIS_VAR", "❌ VARIETY ENGINE CRASHED", e)
             Result.failure(e)
         }
     }

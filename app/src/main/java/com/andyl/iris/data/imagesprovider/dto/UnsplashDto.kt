@@ -16,7 +16,9 @@ data class UnsplashImage(
 
 @Serializable
 data class UnsplashUrls(
-    val full: String,    // Para descargar y poner de wallpaper
-    val small: String,   // Para la grilla de búsqueda (ahorra datos)
-    val thumb: String    // Para previsualizaciones mínimas
+    val raw: String? = null,
+    val full: String,
+    val regular: String? = null,
+    val small: String,
+    val thumb: String
 )

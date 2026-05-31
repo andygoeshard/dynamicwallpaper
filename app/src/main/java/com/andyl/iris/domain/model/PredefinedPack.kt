@@ -103,7 +103,6 @@ object PredefinedPacks {
             previewUrl = "https://images.pexels.com/photos/3642302/pexels-photo-3642302.jpeg?auto=compress&cs=tinysrgb&w=800",
             categoryQuery = "cyberpunk cosplay girl"
         ),
-        // --- 10 NEW WEATHER PACKS ---
         PredefinedPack(
             id = "goddess_weather",
             name = "Goddess of Nature",
@@ -173,6 +172,77 @@ object PredefinedPacks {
             description = "Underwater fantasies that change with the day.",
             previewUrl = "https://images.unsplash.com/photo-1583244532610-2ca22e111d4b?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "underwater girl fantasy"
+        ),
+        // --- 10 EVEN MORE WEATHER PACKS ---
+        PredefinedPack(
+            id = "pixel_waifu_weather",
+            name = "Pixel Waifu",
+            description = "Charming 8-bit heroines in a dynamic world.",
+            previewUrl = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "pixel art anime girl"
+        ),
+        PredefinedPack(
+            id = "tech_priestess_weather",
+            name = "Tech Priestess",
+            description = "Sacred machines and neon faith.",
+            previewUrl = "https://images.pexels.com/photos/2599244/pexels-photo-2599244.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "cyberpunk priestess robot"
+        ),
+        PredefinedPack(
+            id = "samurai_spirit_weather",
+            name = "Samurai Spirit",
+            description = "Honor and steel under the moving clouds.",
+            previewUrl = "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "samurai girl anime katana"
+        ),
+        PredefinedPack(
+            id = "forest_guardian_weather",
+            name = "Guardian of the Wild",
+            description = "Protectors of the woods in every element.",
+            previewUrl = "https://images.pexels.com/photos/1103970/pexels-photo-1103970.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "nature guardian girl fantasy"
+        ),
+        PredefinedPack(
+            id = "vapor_muse_weather",
+            name = "Vapor Muse",
+            description = "Synthwave portraits and retro-future vibes.",
+            previewUrl = "https://images.unsplash.com/photo-1614850523296-e8c041de4398?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "vaporwave aesthetic girl"
+        ),
+        PredefinedPack(
+            id = "ice_monarch_weather",
+            name = "Ice Monarch",
+            description = "Frozen beauty that chills with the snow.",
+            previewUrl = "https://images.pexels.com/photos/6321245/pexels-photo-6321245.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "ice queen fantasy girl"
+        ),
+        PredefinedPack(
+            id = "steampunk_legacy_weather",
+            name = "Steam Legacy",
+            description = "Gears and goggles in the industrial mist.",
+            previewUrl = "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "steampunk girl cosplay"
+        ),
+        PredefinedPack(
+            id = "cosmic_dancer_weather",
+            name = "Cosmic Dancer",
+            description = "Dancing with stars across the daylight.",
+            previewUrl = "https://images.pexels.com/photos/1103970/pexels-photo-1103970.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "galaxy space girl art"
+        ),
+        PredefinedPack(
+            id = "cyber_hacker_weather",
+            name = "Matrix Runner",
+            description = "Hacking the sky code in neon rain.",
+            previewUrl = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "hacker girl cyberpunk"
+        ),
+        PredefinedPack(
+            id = "sky_commander_weather",
+            name = "Sky Commander",
+            description = "Ruling the clouds and the storms.",
+            previewUrl = "https://images.pexels.com/photos/2599244/pexels-photo-2599244.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "military girl anime pilot"
         )
     )
 
@@ -256,7 +326,6 @@ object PredefinedPacks {
             categoryQuery = "dragon mythical fantasy creature",
             type = PackType.WEEKLY
         ),
-        // --- 10 NEW WEEKLY PACKS ---
         PredefinedPack(
             id = "waifu_calendar",
             name = "Waifu Haven",
@@ -335,6 +404,87 @@ object PredefinedPacks {
             description = "Enchanting and mysterious girls in dark aesthetics.",
             previewUrl = "https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "mysterious girl dark aesthetic",
+            type = PackType.WEEKLY
+        ),
+        // --- 10 EVEN MORE WEEKLY PACKS ---
+        PredefinedPack(
+            id = "cyber_city_weekly",
+            name = "City of Tomorrow",
+            description = "Cyberpunk streets for your daily commute.",
+            previewUrl = "https://images.pexels.com/photos/2127333/pexels-photo-2127333.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "cyberpunk city street",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "anime_food_weekly",
+            name = "Ghibli Kitchen",
+            description = "Delicious animated meals for every day.",
+            previewUrl = "https://images.unsplash.com/photo-1582450871972-ab5ca641643d?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "ghibli food anime art",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "gaming_battlestation_weekly",
+            name = "Pro Setup",
+            description = "A new high-end gaming desk every morning.",
+            previewUrl = "https://images.pexels.com/photos/777001/pexels-photo-777001.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "gaming setup desk rgb",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "elf_maiden_weekly",
+            name = "Elf Sanctuary",
+            description = "Magical forest maidens guarding your week.",
+            previewUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "elf girl fantasy forest",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "river_legends_weekly",
+            name = "River Legends",
+            description = "The greatest players of River Plate's history.",
+            previewUrl = "https://images.unsplash.com/photo-1599148564010-09886a048a1c?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "River Plate Argentina football",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "cyber_waifu_weekly",
+            name = "Cyber Maiden",
+            description = "Android waifus for a high-tech week.",
+            previewUrl = "https://images.pexels.com/photos/2599244/pexels-photo-2599244.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "cyberpunk anime girl cyborg",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "fantasy_castle_weekly",
+            name = "Castle Quest",
+            description = "Epic citadels and ruins for your daily adventure.",
+            previewUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "fantasy castle ruin landscape",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "urban_cosplay_weekly",
+            name = "Street Cosplay",
+            description = "Real-world characters in urban environments.",
+            previewUrl = "https://images.pexels.com/photos/1390530/pexels-photo-1390530.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "cosplay girl street",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "minimal_waifu_weekly",
+            name = "Pure Anime",
+            description = "Clean and simple anime girl illustrations.",
+            previewUrl = "https://images.unsplash.com/photo-1613373123746-10b1a4725b7b?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "minimalist anime girl art",
+            type = PackType.WEEKLY
+        ),
+        PredefinedPack(
+            id = "infinite_space_weekly",
+            name = "Void Journey",
+            description = "Planets and stars beyond the galaxy.",
+            previewUrl = "https://images.pexels.com/photos/1103970/pexels-photo-1103970.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "deep space planet galaxy",
             type = PackType.WEEKLY
         )
     )
@@ -420,7 +570,6 @@ object PredefinedPacks {
             categoryQuery = "minimalist gradient background",
             isTimeBased = true
         ),
-        // --- 10 NEW TIME PACKS ---
         PredefinedPack(
             id = "battlestation_cycle",
             name = "Gamer Setup",
@@ -499,6 +648,87 @@ object PredefinedPacks {
             description = "The most beautiful game landscapes ever made.",
             previewUrl = "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
             categoryQuery = "cinematic video game landscape",
+            isTimeBased = true
+        ),
+        // --- 10 EVEN MORE TIME PACKS ---
+        PredefinedPack(
+            id = "rainy_study_time",
+            name = "Study Session",
+            description = "Focused waifus studying while the sun moves.",
+            previewUrl = "https://images.unsplash.com/photo-1516280440614-37939bbdd4f1?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "anime girl study desk",
+            isTimeBased = true
+        ),
+        PredefinedPack(
+            id = "neon_samurai_cycle",
+            name = "Blade Runner",
+            description = "Samurai warriors in a neon day/night cycle.",
+            previewUrl = "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "samurai anime girl neon",
+            isTimeBased = true
+        ),
+        PredefinedPack(
+            id = "zen_garden_time",
+            name = "Zen Garden",
+            description = "Peaceful oriental gardens throughout the day.",
+            previewUrl = "https://images.pexels.com/photos/1242348/pexels-photo-1242348.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "japanese garden zen landscape",
+            isTimeBased = true
+        ),
+        PredefinedPack(
+            id = "cyber_vogue_time",
+            name = "Cyber Vogue",
+            description = "Futuristic fashion editorial in a time loop.",
+            previewUrl = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "cyberpunk girl fashion future",
+            isTimeBased = true
+        ),
+        PredefinedPack(
+            id = "rpg_overworld_time",
+            name = "Overworld",
+            description = "Fantasy game worlds that darken at night.",
+            previewUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "fantasy world game environment",
+            isTimeBased = true
+        ),
+        PredefinedPack(
+            id = "synth_waifu_time",
+            name = "Synth Waifu",
+            description = "Syntwave girls in a purple time cycle.",
+            previewUrl = "https://images.pexels.com/photos/15942493/pexels-photo-15942493.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "synthwave anime girl",
+            isTimeBased = true
+        ),
+        PredefinedPack(
+            id = "monumental_cycle_time",
+            name = "River Cycle",
+            description = "The Monumental stadium from dawn to dusk.",
+            previewUrl = "https://images.unsplash.com/photo-1599148564010-09886a048a1c?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "River Plate stadium Argentina",
+            isTimeBased = true
+        ),
+        PredefinedPack(
+            id = "fantasy_inn_time",
+            name = "The Inn",
+            description = "Cozy tavern vibes that warm up at night.",
+            previewUrl = "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "fantasy tavern interior",
+            isTimeBased = true
+        ),
+        PredefinedPack(
+            id = "mecha_hangar_time",
+            name = "The Hangar",
+            description = "Giant robots being serviced through the day.",
+            previewUrl = "https://images.pexels.com/photos/2599244/pexels-photo-2599244.jpeg?auto=compress&cs=tinysrgb&w=800",
+            categoryQuery = "mecha robot hangar futuristic",
+            isTimeBased = true
+        ),
+        PredefinedPack(
+            id = "starlight_muse_time",
+            name = "Starlight Muse",
+            description = "Elegant girls under a cycle of stars.",
+            previewUrl = "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "girl stars night sky",
             isTimeBased = true
         )
     )

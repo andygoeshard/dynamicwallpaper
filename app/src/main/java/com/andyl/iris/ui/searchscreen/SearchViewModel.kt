@@ -13,8 +13,6 @@ import com.andyl.iris.domain.usecase.contract.InstallPredefinedPackUseCase
 import com.andyl.iris.domain.usecase.impl.DownloadWallpaperUseCase
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -89,7 +87,6 @@ class SearchViewModel(
                 else -> listOf("$baseQuery sunny", "$baseQuery rainy", "$baseQuery cloudy", "$baseQuery snowy", "$baseQuery night")
             }
 
-            // Fetch multiple images per representative query to fill the detail list with variety
             val urls = queries.flatMap { q ->
                 val results = imageRepository.getRandomImages(q, count = 10).getOrNull() ?: emptyList()
                 results.take(3).map { formatUrl(it, isSmall = true) }
@@ -107,13 +104,19 @@ class SearchViewModel(
     private fun formatUrl(image: ImageResult, isSmall: Boolean): String {
         return when (image.provider) {
             "unsplash" -> {
-                val size = if (isSmall) "w=400" else "w=1080"
-                "${image.urlSmall}&$size&ar=9:16&fit=crop"
+                // Ensure preview framing matches raw download framing
+                val size = if (isSmall) "w=600" else "w=1200"
+                if (image.urlSmall.contains("?")) {
+                    image.urlSmall.substringBefore("&") + "&$size&q=80"
+                } else {
+                    "${image.urlSmall}?$size&q=80"
+                }
             }
             "pixabay" -> {
                 if (isSmall) image.urlSmall else image.urlFull
             }
             else -> {
+                // Pexels 'large' framing matches 'original' framing
                 image.urlSmall
             }
         }
