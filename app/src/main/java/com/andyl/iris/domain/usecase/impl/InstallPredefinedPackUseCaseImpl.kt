@@ -37,7 +37,11 @@ class InstallPredefinedPackUseCaseImpl(
 
     private val mutex = Mutex()
 
-    override suspend fun invoke(pack: PredefinedPack, targetPackId: String?): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun invoke(
+        pack: PredefinedPack, 
+        targetPackId: String?,
+        overrideUrls: List<String?>?
+    ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             Log.d("IRIS_VAR", "==================================================")
             Log.d("IRIS_VAR", "🚀 VARIETY ENGINE: Installing '${pack.name}'")
@@ -50,39 +54,34 @@ class InstallPredefinedPackUseCaseImpl(
             
             // Uniqueness tracking
             val usedIds = mutableSetOf<String>()
-            val usedSignatures = mutableSetOf<String>() // To catch same images with different IDs
+            val usedSignatures = mutableSetOf<String>() 
             
-            // 1. FETCH A MASSIVE MASTER POOL (100+ images)
-            Log.d("IRIS_VAR", "Building master pool for: $baseQuery")
-            // We fetch once with forceRefresh to get a fresh variety, but then we rely on this pool
-            val masterPoolResult = imageRepository.searchImages(baseQuery, forceRefresh = true)
-            val masterPool = masterPoolResult.getOrNull()?.shuffled() ?: emptyList()
+            val masterPool = if (overrideUrls == null) {
+                Log.d("IRIS_VAR", "Building master pool for: $baseQuery")
+                val masterPoolResult = imageRepository.searchImages(baseQuery, forceRefresh = true)
+                masterPoolResult.getOrNull()?.shuffled() ?: emptyList()
+            } else emptyList()
+            
             var poolIdx = 0
-            Log.d("IRIS_VAR", "Master pool size: ${masterPool.size}")
 
-            suspend fun getUniqueImage(query: String, slotLabel: String): ImageResult? {
-                // We try a specific search for the slot to ensure MATCHING theme (Night, Rainy, etc)
+            suspend fun getUniqueImage(query: String, slotLabel: String, overrideUrl: String?): String? {
+                if (overrideUrl != null) return overrideUrl
+
+                // Fallback to searching if no override provided
                 val specific = imageRepository.searchImages(query).getOrNull() ?: emptyList()
                 
                 return mutex.withLock {
-                    // 1. Try to find a unique image in the specific search results
                     val foundInSpecific = specific.shuffled().find { img ->
                         val sig = img.urlFull.substringBefore("?").takeLast(50)
                         img.id !in usedIds && sig !in usedSignatures
                     }
                     
-                    val finalChoice = if (foundInSpecific != null) {
-                        Log.d("IRIS_VAR", "  ✅ Slot [$slotLabel]: Found specific matching image (${foundInSpecific.id})")
-                        foundInSpecific
-                    } else {
-                        // 2. Fallback to master pool ONLY if specific search fails or is exhausted
-                        // to ensure we ALWAYS have an image for the slot, even if not a perfect match
+                    val finalChoice = foundInSpecific ?: run {
                         var fallback: ImageResult? = null
                         while (poolIdx < masterPool.size) {
                             val candidate = masterPool[poolIdx++]
                             val sig = candidate.urlFull.substringBefore("?").takeLast(50)
                             if (candidate.id !in usedIds && sig !in usedSignatures) {
-                                Log.d("IRIS_VAR", "  ♻️ Slot [$slotLabel]: Using pool fallback (${candidate.id})")
                                 fallback = candidate
                                 break
                             }
@@ -93,30 +92,33 @@ class InstallPredefinedPackUseCaseImpl(
                     finalChoice?.let {
                         usedIds.add(it.id)
                         usedSignatures.add(it.urlFull.substringBefore("?").takeLast(50))
+                        it.urlFull
                     }
-                    finalChoice
                 }
             }
 
+            var overrideIdx = 0
             when {
                 pack.isTimeBased -> {
                     TimeOfDay.entries.forEach { tod ->
-                        getUniqueImage(buildCombinedQuery(baseQuery, tod.queryTerm), tod.name)?.let { img ->
+                        val override = overrideUrls?.getOrNull(overrideIdx++)
+                        getUniqueImage(buildCombinedQuery(baseQuery, tod.queryTerm), tod.name, override)?.let { url ->
                             val timeStr = when(tod) {
                                 TimeOfDay.DAWN -> "06:00"
                                 TimeOfDay.DAY -> "10:00"
                                 TimeOfDay.DUSK -> "18:00"
                                 TimeOfDay.NIGHT -> "22:00"
                             }
-                            fixedRulesToDownload.add(PredefinedFixedTimeRule(timeStr, img.urlFull))
+                            fixedRulesToDownload.add(PredefinedFixedTimeRule(timeStr, url))
                         }
                     }
                 }
 
                 pack.type == PackType.WEEKLY -> {
                     listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday").forEach { day ->
-                        getUniqueImage(buildCombinedQuery(baseQuery, day), day)?.let { img ->
-                            dailyRulesToDownload.add(PredefinedDailyRule(day, img.urlFull))
+                        val override = overrideUrls?.getOrNull(overrideIdx++)
+                        getUniqueImage(buildCombinedQuery(baseQuery, day), day, override)?.let { url ->
+                            dailyRulesToDownload.add(PredefinedDailyRule(day, url))
                         }
                     }
                 }
@@ -125,8 +127,9 @@ class InstallPredefinedPackUseCaseImpl(
                     val weatherPairs = Weather.all().flatMap { w -> TimeOfDay.entries.map { t -> w to t } }
                     weatherPairs.forEach { (w, t) ->
                         val label = "${w.queryTerm}-${t.name}"
-                        getUniqueImage(buildWeatherTimeQuery(baseQuery, w, t), label)?.let { img ->
-                            weatherRulesToDownload.add(PredefinedRule(w, t, img.urlFull))
+                        val override = overrideUrls?.getOrNull(overrideIdx++)
+                        getUniqueImage(buildWeatherTimeQuery(baseQuery, w, t), label, override)?.let { url ->
+                            weatherRulesToDownload.add(PredefinedRule(w, t, url))
                         }
                     }
                 }

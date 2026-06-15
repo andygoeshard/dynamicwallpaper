@@ -138,12 +138,17 @@ fun PackDetailList(
             
             when {
                 predefined?.isTimeBased == true -> {
-                    val times = listOf("06:00", "10:00", "18:00", "22:00")
-                    times.mapIndexed { i, time ->
+                    TimeOfDay.entries.mapIndexed { i, tod ->
+                        val time = when(tod) {
+                            TimeOfDay.DAWN -> "06:00"
+                            TimeOfDay.DAY -> "10:00"
+                            TimeOfDay.DUSK -> "18:00"
+                            TimeOfDay.NIGHT -> "22:00"
+                        }
                         SlotData(
                             label = "Alarm: $time",
                             fixedTime = time,
-                            remoteUrl = previewImages.getOrNull(i % previewImages.size.coerceAtLeast(1))
+                            remoteUrl = previewImages.getOrNull(i)
                         )
                     }
                 }
@@ -159,11 +164,14 @@ fun PackDetailList(
                 }
                 else -> {
                     val weatherList = Weather.all().toList()
+                    val times = TimeOfDay.entries
                     weatherList.flatMap { weather ->
                         val weatherIndex = weatherList.indexOf(weather)
-                        val url = previewImages.getOrNull(weatherIndex % previewImages.size.coerceAtLeast(1))
-                        
-                        TimeOfDay.entries.map { time ->
+                        times.map { time ->
+                            val timeIndex = times.indexOf(time)
+                            val totalIndex = weatherIndex * times.size + timeIndex
+                            val url = previewImages.getOrNull(totalIndex)
+
                             SlotData(
                                 label = "",
                                 labelRes = weather.stringRes,

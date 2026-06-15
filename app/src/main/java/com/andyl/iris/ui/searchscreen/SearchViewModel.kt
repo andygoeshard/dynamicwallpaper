@@ -39,7 +39,7 @@ class SearchViewModel(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
-    private val packPreviewCache = mutableMapOf<String, List<String?>>()
+    private val packPreviewCache = mutableMapOf<String, Pair<List<String?>, List<String?>>>()
 
     init {
         setupSearchDebounce()
@@ -63,7 +63,8 @@ class SearchViewModel(
                 currentPack = pack, 
                 activeSlot = null, 
                 searchResults = emptyList(),
-                previewImages = emptyList()
+                previewImages = emptyList(),
+                previewFullUrls = emptyList()
             ) 
         }
         _searchQuery.value = ""
@@ -71,7 +72,7 @@ class SearchViewModel(
         if (pack is SuggestedPack.Predefined) {
             val cached = packPreviewCache[pack.id]
             if (cached != null) {
-                _uiState.update { it.copy(previewImages = cached) }
+                _uiState.update { it.copy(previewImages = cached.first, previewFullUrls = cached.second) }
             } else {
                 fetchPreviewImages(pack.id)
             }
@@ -90,24 +91,46 @@ class SearchViewModel(
                         .map { "$baseQuery $it" }
                 }
                 predefined.isTimeBased -> {
-                    listOf("dawn", "day", "dusk", "night")
-                        .map { "$baseQuery $it" }
+                    TimeOfDay.entries.map { "$baseQuery ${it.queryTerm}" }
                 }
                 else -> {
-                    Weather.all().map { "$baseQuery ${it.queryTerm}" }
+                    Weather.all().flatMap { w ->
+                        TimeOfDay.entries.map { t ->
+                            "$baseQuery ${w.queryTerm} ${t.queryTerm}"
+                        }
+                    }
                 }
             }
 
-            val urls = queries.map { q ->
+            // Fetch images in parallel
+            val results = queries.map { q ->
                 async {
-                    val results = imageRepository.getRandomImages(q, count = 1).getOrNull() ?: emptyList()
-                    results.firstOrNull()?.let { formatUrl(it, isSmall = true) }
+                    imageRepository.getRandomImages(q, count = 20).getOrNull() ?: emptyList()
                 }
             }.awaitAll()
 
-            if (urls.any { it != null }) {
-                packPreviewCache[packId] = urls
-                _uiState.update { it.copy(previewImages = urls, isLoading = false) }
+            // Unique selection logic similar to installer
+            val usedIds = mutableSetOf<String>()
+            val smallUrls = mutableListOf<String?>()
+            val fullUrls = mutableListOf<String?>()
+            
+            results.forEach { slotResults ->
+                val choice = slotResults.shuffled().find { it.id !in usedIds }
+                    ?: slotResults.firstOrNull()
+                
+                if (choice != null) {
+                    usedIds.add(choice.id)
+                    smallUrls.add(formatUrl(choice, isSmall = true))
+                    fullUrls.add(choice.urlFull)
+                } else {
+                    smallUrls.add(null)
+                    fullUrls.add(null)
+                }
+            }
+
+            if (smallUrls.any { it != null }) {
+                packPreviewCache[packId] = smallUrls to fullUrls
+                _uiState.update { it.copy(previewImages = smallUrls, previewFullUrls = fullUrls, isLoading = false) }
             } else {
                 _uiState.update { it.copy(isLoading = false) }
             }
@@ -179,10 +202,11 @@ class SearchViewModel(
 
     fun installPack(suggestedPack: SuggestedPack, targetId: String? = null, onSuccess: () -> Unit) {
         val predefinedPack = PredefinedPacks.packs.find { it.id == suggestedPack.id } ?: return
+        val currentPreviews = _uiState.value.previewFullUrls
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, showPackSelectionDialog = false) }
-            installPredefinedPackUseCase(predefinedPack, targetId)
+            installPredefinedPackUseCase(predefinedPack, targetId, currentPreviews)
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false, currentPack = null) }
                     wallpaperViewModel.onEvent(WallpaperEvent.OnLoadInitialConfig)

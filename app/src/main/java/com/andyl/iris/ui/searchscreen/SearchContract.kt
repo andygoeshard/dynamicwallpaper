@@ -8,6 +8,7 @@ data class SearchUiState(
     val isLoading: Boolean = false,
     val searchResults: List<ImageResult> = emptyList(),
     val previewImages: List<String?> = emptyList(), // Store dynamic previews for the selected pack
+    val previewFullUrls: List<String?> = emptyList(), // Store full URLs for installation
     val error: String? = null,
 
     val currentPack: SuggestedPack? = null,
