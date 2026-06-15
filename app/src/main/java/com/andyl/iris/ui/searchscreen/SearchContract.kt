@@ -7,7 +7,7 @@ import com.andyl.iris.domain.model.Weather
 data class SearchUiState(
     val isLoading: Boolean = false,
     val searchResults: List<ImageResult> = emptyList(),
-    val previewImages: List<String> = emptyList(), // Store dynamic previews for the selected pack
+    val previewImages: List<String?> = emptyList(), // Store dynamic previews for the selected pack
     val error: String? = null,
 
     val currentPack: SuggestedPack? = null,

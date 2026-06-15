@@ -2,6 +2,7 @@ package com.andyl.iris.ui.searchscreen.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.andyl.iris.domain.model.PackType
 import com.andyl.iris.domain.model.PredefinedPack
 import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.ui.searchscreen.SuggestedPack
@@ -128,14 +130,15 @@ private fun PredefinedPackCard(
     Column(
         modifier = Modifier
             .width(160.dp)
-            .clickable { onClick() }
+            .clip(RoundedCornerShape(28.dp))
+            .clickable(onClick = onClick)
     ) {
         Card(
             modifier = Modifier
                 .width(160.dp)
-                .height(220.dp),
-            shape = RoundedCornerShape(24.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                .height(240.dp), // Slightly taller for more impact
+            shape = RoundedCornerShape(28.dp), // More rounded
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 AsyncImage(
@@ -145,25 +148,51 @@ private fun PredefinedPackCard(
                     contentScale = ContentScale.Crop
                 )
                 
-                // Shadow overlay for readability if needed, though title is below
+                // Elegant gradient overlay
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             brush = Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.2f))
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.5f)
+                                ),
+                                startY = 300f
                             )
                         )
                 )
+
+                // Type Badge
+                Surface(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .align(Alignment.TopEnd),
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.9f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = when {
+                            pack.isTimeBased -> "Time"
+                            pack.type == PackType.WEEKLY -> "Weekly"
+                            pack.isFullRandom -> "Mix"
+                            else -> "Weather"
+                        },
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
             }
         }
         
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         
         Text(
             text = pack.name,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.ExtraBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             color = MaterialTheme.colorScheme.onBackground,
@@ -172,10 +201,10 @@ private fun PredefinedPackCard(
         Text(
             text = pack.description,
             style = MaterialTheme.typography.bodySmall,
-            fontSize = 11.sp,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+            lineHeight = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             modifier = Modifier.padding(horizontal = 4.dp)
         )
     }

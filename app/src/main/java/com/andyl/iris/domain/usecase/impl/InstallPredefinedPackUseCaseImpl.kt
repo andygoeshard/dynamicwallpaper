@@ -54,26 +54,29 @@ class InstallPredefinedPackUseCaseImpl(
             
             // 1. FETCH A MASSIVE MASTER POOL (100+ images)
             Log.d("IRIS_VAR", "Building master pool for: $baseQuery")
-            val masterPool = imageRepository.searchImages(baseQuery, forceRefresh = true).getOrNull()?.shuffled() ?: emptyList()
+            // We fetch once with forceRefresh to get a fresh variety, but then we rely on this pool
+            val masterPoolResult = imageRepository.searchImages(baseQuery, forceRefresh = true)
+            val masterPool = masterPoolResult.getOrNull()?.shuffled() ?: emptyList()
             var poolIdx = 0
             Log.d("IRIS_VAR", "Master pool size: ${masterPool.size}")
 
             suspend fun getUniqueImage(query: String, slotLabel: String): ImageResult? {
-                // Search specifically for this slot
+                // We try a specific search for the slot to ensure MATCHING theme (Night, Rainy, etc)
                 val specific = imageRepository.searchImages(query).getOrNull() ?: emptyList()
                 
                 return mutex.withLock {
-                    // Try specific search results first
+                    // 1. Try to find a unique image in the specific search results
                     val foundInSpecific = specific.shuffled().find { img ->
                         val sig = img.urlFull.substringBefore("?").takeLast(50)
                         img.id !in usedIds && sig !in usedSignatures
                     }
                     
                     val finalChoice = if (foundInSpecific != null) {
-                        Log.d("IRIS_VAR", "  ✅ Slot [$slotLabel]: Found unique specific (${foundInSpecific.id})")
+                        Log.d("IRIS_VAR", "  ✅ Slot [$slotLabel]: Found specific matching image (${foundInSpecific.id})")
                         foundInSpecific
                     } else {
-                        // Use master pool as fallback to ensure NO repeats
+                        // 2. Fallback to master pool ONLY if specific search fails or is exhausted
+                        // to ensure we ALWAYS have an image for the slot, even if not a perfect match
                         var fallback: ImageResult? = null
                         while (poolIdx < masterPool.size) {
                             val candidate = masterPool[poolIdx++]

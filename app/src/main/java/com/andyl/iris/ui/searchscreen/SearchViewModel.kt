@@ -16,10 +16,13 @@ import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.FlowPreview
 
 @OptIn(FlowPreview::class)
@@ -36,7 +39,7 @@ class SearchViewModel(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
-    private val packPreviewCache = mutableMapOf<String, List<String>>()
+    private val packPreviewCache = mutableMapOf<String, List<String?>>()
 
     init {
         setupSearchDebounce()
@@ -45,10 +48,10 @@ class SearchViewModel(
     private fun setupSearchDebounce() {
         viewModelScope.launch {
             _searchQuery
-                .debounce(1000)
+                .debounce(500)
                 .filter { it.isNotBlank() && it.length > 2 }
                 .distinctUntilChanged()
-                .collect { query ->
+                .collectLatest { query ->
                     performSearch(query)
                 }
         }
@@ -79,20 +82,30 @@ class SearchViewModel(
         val predefined = PredefinedPacks.packs.find { it.id == packId } ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val baseQuery = if (predefined.isFullRandom) "wallpaper" else predefined.categoryQuery
+            val baseQuery = if (predefined.isFullRandom) "wallpaper 4k high resolution" else predefined.categoryQuery
             
             val queries = when {
-                predefined.type == PackType.WEEKLY -> listOf("$baseQuery monday", "$baseQuery wednesday", "$baseQuery friday", "$baseQuery sunday")
-                predefined.isTimeBased -> listOf("$baseQuery dawn", "$baseQuery day", "$baseQuery dusk", "$baseQuery night")
-                else -> listOf("$baseQuery sunny", "$baseQuery rainy", "$baseQuery cloudy", "$baseQuery snowy", "$baseQuery night")
+                predefined.type == PackType.WEEKLY -> {
+                    listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+                        .map { "$baseQuery $it" }
+                }
+                predefined.isTimeBased -> {
+                    listOf("dawn", "day", "dusk", "night")
+                        .map { "$baseQuery $it" }
+                }
+                else -> {
+                    Weather.all().map { "$baseQuery ${it.queryTerm}" }
+                }
             }
 
-            val urls = queries.flatMap { q ->
-                val results = imageRepository.getRandomImages(q, count = 10).getOrNull() ?: emptyList()
-                results.take(3).map { formatUrl(it, isSmall = true) }
-            }.distinct()
+            val urls = queries.map { q ->
+                async {
+                    val results = imageRepository.getRandomImages(q, count = 1).getOrNull() ?: emptyList()
+                    results.firstOrNull()?.let { formatUrl(it, isSmall = true) }
+                }
+            }.awaitAll()
 
-            if (urls.isNotEmpty()) {
+            if (urls.any { it != null }) {
                 packPreviewCache[packId] = urls
                 _uiState.update { it.copy(previewImages = urls, isLoading = false) }
             } else {
@@ -216,7 +229,9 @@ class SearchViewModel(
 
             if (file != null) {
                 processDownloadedFile(context, file.absolutePath, target, slot, scaleMode)
+                // We clear both active slot and search results to trigger the transition back to the slot list
                 _uiState.update { it.copy(isLoading = false, activeSlot = null, searchResults = emptyList()) }
+                _searchQuery.value = "" // Also clear the query to reset the search bar
             } else {
                 _uiState.update { it.copy(isLoading = false, error = "Error al descargar imagen") }
             }

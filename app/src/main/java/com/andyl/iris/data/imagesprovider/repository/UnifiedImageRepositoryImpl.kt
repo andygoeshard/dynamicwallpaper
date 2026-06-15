@@ -22,7 +22,7 @@ class UnifiedImageRepositoryImpl(
         val cleanQuery = query.lowercase().trim()
         if (cleanQuery.isEmpty()) return Result.success(emptyList())
 
-        val localResults = cacheDao.predictImages(cleanQuery).map { it.toDomain() }
+        val localResults = cacheDao.getImagesByQuery(cleanQuery).map { it.toDomain() }
         
         if (!forceRefresh && localResults.size >= 80) {
             return Result.success(localResults.shuffled())
