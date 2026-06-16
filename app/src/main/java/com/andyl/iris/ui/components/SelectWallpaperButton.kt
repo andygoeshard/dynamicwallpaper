@@ -60,6 +60,7 @@ fun SelectWallpaperButton(
     label: String,
     state: DynamicWallpaperUiState,
     onEvent: (WallpaperEvent) -> Unit,
+    onNavigateToSearch: (Weather?, TimeOfDay?, String?, String?, String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -72,9 +73,9 @@ fun SelectWallpaperButton(
     val keyLock = "${weather.toKey()} - $timeOfDay - 2"
     val keyBoth = "${weather.toKey()} - $timeOfDay - 3"
 
-    val uriHome = state.rules[keyHome]
-    val uriLock = state.rules[keyLock]
-    val uriBoth = state.rules[keyBoth]
+    val uriHome = state.rules[keyHome]?.wallpaperId?.value
+    val uriLock = state.rules[keyLock]?.wallpaperId?.value
+    val uriBoth = state.rules[keyBoth]?.wallpaperId?.value
 
     val hasAnyImage = !uriHome.isNullOrEmpty() || !uriLock.isNullOrEmpty() || !uriBoth.isNullOrEmpty()
 
@@ -111,8 +112,7 @@ fun SelectWallpaperButton(
             when {
                 !uriBoth.isNullOrEmpty() -> {
                     Box(Modifier.fillMaxSize().clickable {
-                        targetPredefined = null
-                        launcher.launch(arrayOf("image/*"))
+                        onNavigateToSearch(weather, timeOfDay, null, null, label)
                     }) {
                         WallpaperPreviewImage(uri = uriBoth)
                     }
@@ -120,8 +120,7 @@ fun SelectWallpaperButton(
                 hasAnyImage -> {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Box(modifier = Modifier.weight(1f).fillMaxWidth().clickable {
-                            targetPredefined = 1
-                            launcher.launch(arrayOf("image/*"))
+                            onNavigateToSearch(weather, timeOfDay, null, null, "$label (Home)")
                         }) {
                             WallpaperPreviewImage(
                                 uri = uriHome,
@@ -132,8 +131,7 @@ fun SelectWallpaperButton(
                         Spacer(modifier = Modifier.height(2.dp).background(Color.Black.copy(0.2f)))
 
                         Box(modifier = Modifier.weight(1f).fillMaxWidth().clickable {
-                            targetPredefined = 2
-                            launcher.launch(arrayOf("image/*"))
+                            onNavigateToSearch(weather, timeOfDay, null, null, "$label (Lock)")
                         }) {
                             WallpaperPreviewImage(
                                 uri = uriLock,
@@ -144,8 +142,7 @@ fun SelectWallpaperButton(
                 }
                 else -> {
                     Box(modifier = Modifier.fillMaxSize().clickable {
-                        targetPredefined = null
-                        launcher.launch(arrayOf("image/*"))
+                        onNavigateToSearch(weather, timeOfDay, null, null, label)
                     }, contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     }

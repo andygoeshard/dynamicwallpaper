@@ -25,11 +25,24 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.FlowPreview
 
+import com.andyl.iris.data.database.entity.FavoriteImage
+import com.andyl.iris.domain.model.DownloadStatus
+import com.andyl.iris.domain.model.DownloadTask
+import com.andyl.iris.domain.repository.DownloadRepository
+import com.andyl.iris.domain.repository.FavoriteRepository
+import com.andyl.iris.domain.repository.LocalImageRepository
+import com.andyl.iris.domain.repository.WallpaperRepository
+import com.andyl.iris.domain.model.WallpaperId
+
 @OptIn(FlowPreview::class)
 class SearchViewModel(
     private val imageRepository: ImageRepository,
     private val downloadUseCase: DownloadWallpaperUseCase,
     private val installPredefinedPackUseCase: InstallPredefinedPackUseCase,
+    private val downloadRepository: DownloadRepository,
+    private val favoriteRepository: FavoriteRepository,
+    private val localImageRepository: LocalImageRepository,
+    private val wallpaperRepository: WallpaperRepository,
     val wallpaperViewModel: DynamicWallpaperViewModel
 ) : ViewModel() {
 
@@ -43,6 +56,72 @@ class SearchViewModel(
 
     init {
         setupSearchDebounce()
+        observeDownloads()
+        observeFavorites()
+        loadLocalImages()
+    }
+
+    fun refreshLocalImages() {
+        loadLocalImages()
+    }
+
+    private fun loadLocalImages() {
+        viewModelScope.launch {
+            try {
+                val images = localImageRepository.getLocalImages()
+                _uiState.update { it.copy(localImages = images) }
+            } catch (e: Exception) {
+                android.util.Log.e("SearchVM", "Error loading local images", e)
+            }
+        }
+    }
+
+    private fun observeFavorites() {
+        viewModelScope.launch {
+            favoriteRepository.getAllFavorites().collect { favs ->
+                _uiState.update { it.copy(favorites = favs) }
+            }
+        }
+    }
+
+    fun toggleFavorite(image: ImageResult) {
+        viewModelScope.launch {
+            val isFav = _uiState.value.favorites.any { it.uri == image.urlFull }
+            if (isFav) {
+                favoriteRepository.removeFavorite(image.urlFull)
+            } else {
+                favoriteRepository.addFavorite(
+                    FavoriteImage(
+                        uri = image.urlFull,
+                        source = image.provider,
+                        thumbnailUrl = image.urlSmall
+                    )
+                )
+            }
+        }
+    }
+
+    fun setTab(index: Int) {
+        _uiState.update { it.copy(currentTab = index) }
+        if (index != 2) {
+            _uiState.update { it.copy(currentPack = null) }
+        }
+    }
+
+    private fun observeDownloads() {
+        viewModelScope.launch {
+            downloadRepository.activeTasks.collect { tasks ->
+                _uiState.update { it.copy(downloadTasks = tasks) }
+            }
+        }
+    }
+
+    fun toggleDownloads(show: Boolean) {
+        _uiState.update { it.copy(showDownloads = show) }
+    }
+
+    fun removeDownloadTask(taskId: String) {
+        downloadRepository.removeTask(taskId)
     }
 
     private fun setupSearchDebounce() {
@@ -161,34 +240,12 @@ class SearchViewModel(
     fun selectSlot(slot: WallpaperSlot?) {
         _uiState.update { it.copy(activeSlot = slot) }
         if (slot != null) {
-            val currentPack = _uiState.value.currentPack
-            val baseQuery = if (currentPack is SuggestedPack.Predefined) {
-                val predefined = PredefinedPacks.packs.find { it.id == currentPack.packId }
-                if (predefined?.isFullRandom == true) "" else predefined?.categoryQuery ?: ""
-            } else ""
-
-            val weatherTerm = slot.weather?.queryTerm ?: ""
-            val timeTerm = slot.time?.queryTerm ?: ""
-            val dayTerm = slot.dayName ?: ""
-            
-            val fixedTimeTerm = when (slot.fixedTime) {
-                "06:00" -> TimeOfDay.DAWN.queryTerm
-                "10:00" -> TimeOfDay.DAY.queryTerm
-                "18:00" -> TimeOfDay.DUSK.queryTerm
-                "22:00" -> TimeOfDay.NIGHT.queryTerm
-                else -> ""
-            }
-
-            val finalQuery = listOf(baseQuery, weatherTerm, timeTerm, dayTerm, fixedTimeTerm)
-                .filter { it.isNotEmpty() }
-                .joinToString(" ")
-                .trim()
-
-            _searchQuery.value = finalQuery.ifEmpty {
-                slot.label.replace("Override: ", "").replace("Time: ", "")
-            }
+            _searchQuery.value = ""
+            // When selecting a slot, we default to LOCAL gallery (Index 0)
+            _uiState.update { it.copy(searchResults = emptyList(), currentTab = 0) }
         } else {
             _searchQuery.value = ""
+            // Return to Packs (Index 2) or wherever makes sense
             _uiState.update { it.copy(searchResults = emptyList()) }
         }
     }
@@ -202,6 +259,12 @@ class SearchViewModel(
 
     fun installPack(suggestedPack: SuggestedPack, targetId: String? = null, onSuccess: () -> Unit) {
         val predefinedPack = PredefinedPacks.packs.find { it.id == suggestedPack.id } ?: return
+        
+        // Prevent double installation of the same pack
+        if (_uiState.value.downloadTasks.any { it.id.contains(predefinedPack.id) && it.status is DownloadStatus.Downloading }) {
+            return
+        }
+
         val currentPreviews = _uiState.value.previewFullUrls
 
         viewModelScope.launch {
@@ -229,6 +292,10 @@ class SearchViewModel(
         _uiState.update { it.copy(showPackSelectionDialog = false) }
     }
 
+    fun selectImage(image: ImageResult?) {
+        _uiState.update { it.copy(selectedImage = image) }
+    }
+
     private suspend fun performSearch(query: String) {
         _uiState.update { it.copy(isLoading = true) }
         imageRepository.searchImages(query)
@@ -240,29 +307,76 @@ class SearchViewModel(
             }
     }
 
-    fun confirmAndDownload(context: android.content.Context, image: ImageResult, target: Int, scaleMode: com.andyl.iris.domain.model.ScaleMode) {
+    fun confirmAndDownload(
+        context: android.content.Context, 
+        image: ImageResult, 
+        target: Int, 
+        scaleMode: com.andyl.iris.domain.model.ScaleMode,
+        cropX: Float? = null,
+        cropY: Float? = null,
+        cropScale: Float? = null
+    ) {
         val slot = _uiState.value.activeSlot ?: return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val file = downloadUseCase.execute(
-                url = image.urlFull,
-                fileName = "iris_${System.currentTimeMillis()}"
-            )
-
-            if (file != null) {
-                processDownloadedFile(context, file.absolutePath, target, slot, scaleMode)
-                // We clear both active slot and search results to trigger the transition back to the slot list
-                _uiState.update { it.copy(isLoading = false, activeSlot = null, searchResults = emptyList()) }
-                _searchQuery.value = "" // Also clear the query to reset the search bar
+            // 1. Get the source path (download if remote)
+            val sourcePath = if (image.provider == "local") {
+                image.urlFull
             } else {
-                _uiState.update { it.copy(isLoading = false, error = "Error al descargar imagen") }
+                val downloadResult = downloadUseCase.execute(
+                    url = image.urlFull,
+                    fileName = "iris_temp_${System.currentTimeMillis()}"
+                )
+                downloadResult.getOrNull()?.absolutePath
             }
+
+            if (sourcePath == null) {
+                _uiState.update { it.copy(isLoading = false, error = "Failed to obtain image source") }
+                return@launch
+            }
+
+            // 2. Apply Crop and save to a NEW file if parameters are present
+            val finalPath = if (cropX != null && cropY != null && cropScale != null) {
+                val cropResult = wallpaperRepository.cropAndSaveWallpaper(
+                    WallpaperId(sourcePath), cropX, cropY, cropScale
+                )
+                cropResult.getOrNull() ?: sourcePath
+            } else {
+                sourcePath
+            }
+
+            // 3. Process the final file
+            processDownloadedFile(context, finalPath, target, slot, scaleMode, cropX, cropY, cropScale)
+            
+            _uiState.update { it.copy(
+                isLoading = false, 
+                activeSlot = null, 
+                searchResults = emptyList(),
+                currentTab = if (it.currentPack != null) 2 else it.currentTab
+            ) }
+            _searchQuery.value = ""
         }
     }
 
-    private fun processDownloadedFile(context: android.content.Context, path: String, target: Int, slot: WallpaperSlot, scaleMode: com.andyl.iris.domain.model.ScaleMode) {
+    private fun processDownloadedFile(
+        context: android.content.Context, 
+        path: String, 
+        target: Int, 
+        slot: WallpaperSlot, 
+        scaleMode: com.andyl.iris.domain.model.ScaleMode,
+        cropX: Float? = null,
+        cropY: Float? = null,
+        cropScale: Float? = null
+    ) {
+        // If we have a custom crop, we don't pass the coordinates to the rule 
+        // because 'path' ALREADY points to the pre-cropped bitmap file.
+        val finalScaleMode = if (cropScale != null) com.andyl.iris.domain.model.ScaleMode.FIT else scaleMode
+        val finalCropX = if (cropScale != null) null else cropX
+        val finalCropY = if (cropScale != null) null else cropY
+        val finalCropScale = if (cropScale != null) null else cropScale
+
         if (slot.fixedTime != null) {
             wallpaperViewModel.onEvent(WallpaperEvent.SetFixedTimeWallpaper(context, slot.fixedTime, path, target))
         } else if (slot.weather != null && slot.time != null) {
@@ -272,10 +386,10 @@ class SearchViewModel(
 
             if (isTimeBased) {
                 Weather.all().forEach { w ->
-                    wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(w, slot.time, path, target, scaleMode))
+                    wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(w, slot.time, path, target, finalScaleMode, finalCropX, finalCropY, finalCropScale))
                 }
             } else {
-                wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(slot.weather, slot.time, path, target, scaleMode))
+                wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(slot.weather, slot.time, path, target, finalScaleMode, finalCropX, finalCropY, finalCropScale))
             }
         } else if (slot.dayName != null) {
             wallpaperViewModel.onEvent(WallpaperEvent.SetDailyWallpaper(slot.dayName, path, target))

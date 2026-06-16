@@ -27,12 +27,17 @@ import com.andyl.iris.domain.helper.AlarmHelper
 import android.content.Context
 import com.andyl.iris.domain.model.ImageResult
 
+import com.andyl.iris.domain.model.DownloadStatus
+import com.andyl.iris.domain.model.DownloadTask
+import com.andyl.iris.domain.repository.DownloadRepository
+
 class InstallPredefinedPackUseCaseImpl(
     private val context: Context,
     private val downloadUseCase: DownloadWallpaperUseCase,
     private val preferencesRepository: UserPreferencesRepository,
     private val applyUseCase: ApplyDynamicWallpaperUseCase,
-    private val imageRepository: ImageRepository
+    private val imageRepository: ImageRepository,
+    private val downloadRepository: DownloadRepository
 ) : InstallPredefinedPackUseCase {
 
     private val mutex = Mutex()
@@ -64,7 +69,7 @@ class InstallPredefinedPackUseCaseImpl(
             
             var poolIdx = 0
 
-            suspend fun getUniqueImage(query: String, slotLabel: String, overrideUrl: String?): String? {
+            suspend fun getUniqueImage(query: String, overrideUrl: String?): String? {
                 if (overrideUrl != null) return overrideUrl
 
                 // Fallback to searching if no override provided
@@ -73,7 +78,7 @@ class InstallPredefinedPackUseCaseImpl(
                 return mutex.withLock {
                     val foundInSpecific = specific.shuffled().find { img ->
                         val sig = img.urlFull.substringBefore("?").takeLast(50)
-                        img.id !in usedIds && sig !in usedSignatures
+                        (img.id !in usedIds) && (sig !in usedSignatures)
                     }
                     
                     val finalChoice = foundInSpecific ?: run {
@@ -102,7 +107,7 @@ class InstallPredefinedPackUseCaseImpl(
                 pack.isTimeBased -> {
                     TimeOfDay.entries.forEach { tod ->
                         val override = overrideUrls?.getOrNull(overrideIdx++)
-                        getUniqueImage(buildCombinedQuery(baseQuery, tod.queryTerm), tod.name, override)?.let { url ->
+                        getUniqueImage(buildCombinedQuery(baseQuery, tod.queryTerm), override)?.let { url ->
                             val timeStr = when(tod) {
                                 TimeOfDay.DAWN -> "06:00"
                                 TimeOfDay.DAY -> "10:00"
@@ -117,7 +122,7 @@ class InstallPredefinedPackUseCaseImpl(
                 pack.type == PackType.WEEKLY -> {
                     listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday").forEach { day ->
                         val override = overrideUrls?.getOrNull(overrideIdx++)
-                        getUniqueImage(buildCombinedQuery(baseQuery, day), day, override)?.let { url ->
+                        getUniqueImage(buildCombinedQuery(baseQuery, day), override)?.let { url ->
                             dailyRulesToDownload.add(PredefinedDailyRule(day, url))
                         }
                     }
@@ -126,9 +131,8 @@ class InstallPredefinedPackUseCaseImpl(
                 else -> {
                     val weatherPairs = Weather.all().flatMap { w -> TimeOfDay.entries.map { t -> w to t } }
                     weatherPairs.forEach { (w, t) ->
-                        val label = "${w.queryTerm}-${t.name}"
                         val override = overrideUrls?.getOrNull(overrideIdx++)
-                        getUniqueImage(buildWeatherTimeQuery(baseQuery, w, t), label, override)?.let { url ->
+                        getUniqueImage(buildWeatherTimeQuery(baseQuery, w, t), override)?.let { url ->
                             weatherRulesToDownload.add(PredefinedRule(w, t, url))
                         }
                     }
@@ -142,13 +146,52 @@ class InstallPredefinedPackUseCaseImpl(
 
             if (allToGet.isEmpty()) return@withContext Result.failure(Exception("Failed to acquire unique images"))
 
+            val taskId = "install_${pack.id}_${System.currentTimeMillis()}"
+            var downloadedCount = 0
+            val failedUrls = mutableListOf<String>()
+
             val downloadedFiles = allToGet.map { url ->
                 async {
                     val fileName = "iris_v_${url.hashCode()}"
-                    val file = downloadUseCase.execute(url, fileName)
+                    val result = downloadUseCase.execute(url, fileName)
+                    val file = result.getOrNull()
+                    
+                    synchronized(this) {
+                        downloadedCount++
+                        if (file == null) {
+                            failedUrls.add(url)
+                        }
+                        
+                        downloadRepository.updateTask(DownloadTask(
+                            id = taskId,
+                            packName = pack.name,
+                            status = DownloadStatus.Downloading(
+                                progress = downloadedCount.toFloat() / allToGet.size,
+                                current = downloadedCount,
+                                total = allToGet.size
+                            )
+                        ))
+                    }
                     url to file?.absolutePath
                 }
             }.awaitAll().toMap()
+
+            if (failedUrls.isNotEmpty()) {
+                downloadRepository.updateTask(DownloadTask(
+                    id = taskId,
+                    packName = pack.name,
+                    status = DownloadStatus.Error(
+                        message = "Failed to download ${failedUrls.size} images.",
+                        failedUrls = failedUrls
+                    )
+                ))
+            } else {
+                downloadRepository.updateTask(DownloadTask(
+                    id = taskId,
+                    packName = pack.name,
+                    status = DownloadStatus.Success
+                ))
+            }
 
             // --- SAVE ---
             val existing = targetPackId?.let { preferencesRepository.getWallpaperConfig(it) }
@@ -158,7 +201,7 @@ class InstallPredefinedPackUseCaseImpl(
 
             val finalConfig = if (existing != null) {
                 existing.copy(
-                    rules = if (newWRules.isNotEmpty()) newWRules else existing.rules,
+                    rules = newWRules.ifEmpty { existing.rules },
                     dailyRules = existing.dailyRules + newDRules,
                     fixedTimeRules = existing.fixedTimeRules + newFRules
                 )

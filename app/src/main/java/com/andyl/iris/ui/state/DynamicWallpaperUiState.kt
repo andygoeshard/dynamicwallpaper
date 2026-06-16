@@ -2,6 +2,7 @@ package com.andyl.iris.ui.state
 
 import com.andyl.iris.domain.model.PackInfo
 import com.andyl.iris.domain.model.ScaleMode
+import com.andyl.iris.domain.model.WallpaperRule
 import com.andyl.iris.domain.model.Weather
 
 data class DynamicWallpaperUiState(
@@ -11,7 +12,7 @@ data class DynamicWallpaperUiState(
     val isApplied: Boolean = false,
     val error: String? = null,
     val packName: String = "",
-    val rules: Map<String, String> = emptyMap(),
+    val rules: Map<String, WallpaperRule> = emptyMap(),
     val dailyRules: Map<String, String> = emptyMap(),
     val fixedRules: Map<String, String> = emptyMap(),
     val enabledWeathers: Set<Weather> = emptySet(),

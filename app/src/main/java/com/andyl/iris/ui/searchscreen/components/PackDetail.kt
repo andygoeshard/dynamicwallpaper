@@ -29,6 +29,7 @@ import com.andyl.iris.domain.model.PackType
 import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
+import com.andyl.iris.domain.model.WallpaperRule
 import com.andyl.iris.ui.searchscreen.SuggestedPack
 
 private data class SlotStatus(
@@ -42,7 +43,7 @@ private data class SlotStatus(
 
 private fun getSlotStatus(
     slot: SlotData,
-    rules: Map<String, String>,
+    rules: Map<String, WallpaperRule>,
     dailyRules: Map<String, String>,
     fixedRules: Map<String, String>
 ): SlotStatus {
@@ -61,9 +62,9 @@ private fun getSlotStatus(
     } else if (slot.weather != null && slot.time != null) {
         val baseKey = "${slot.weather.toKey()} - ${slot.time}"
         SlotStatus(
-            uriBoth = rules["$baseKey - 3"],
-            uriHome = rules["$baseKey - 1"],
-            uriLock = rules["$baseKey - 2"]
+            uriBoth = rules["$baseKey - 3"]?.wallpaperId?.value,
+            uriHome = rules["$baseKey - 1"]?.wallpaperId?.value,
+            uriLock = rules["$baseKey - 2"]?.wallpaperId?.value
         )
     } else SlotStatus()
 }
@@ -72,10 +73,11 @@ private fun getSlotStatus(
 @Composable
 fun PackDetailList(
     pack: SuggestedPack,
-    rules: Map<String, String>,
+    rules: Map<String, WallpaperRule>,
     dailyRules: Map<String, String>,
     fixedRules: Map<String, String> = emptyMap(),
     previewImages: List<String?> = emptyList(),
+    isLoading: Boolean = false,
     onSlotClick: (Weather?, TimeOfDay?, String?, String?, String) -> Unit,
     onDownloadFullPack: (SuggestedPack) -> Unit,
     onLongPressInstall: () -> Unit = {},
@@ -209,9 +211,9 @@ fun PackDetailList(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shadowElevation = 8.dp
+                    color = if (isLoading) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
+                    contentColor = if (isLoading) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary,
+                    shadowElevation = if (isLoading) 0.dp else 8.dp
                 ) {
                     val interactionSource = remember { MutableInteractionSource() }
                     Row(
@@ -219,17 +221,28 @@ fun PackDetailList(
                             .fillMaxWidth()
                             .combinedClickable(
                                 interactionSource = interactionSource,
-                                indication = ripple(),
-                                onClick = { onDownloadFullPack(pack) },
-                                onLongClick = { onLongPressInstall() }
+                                indication = if (isLoading) null else ripple(),
+                                onClick = { if (!isLoading) onDownloadFullPack(pack) },
+                                onLongClick = { if (!isLoading) onLongPressInstall() },
+                                enabled = !isLoading
                             )
                             .padding(vertical = 18.dp),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(24.dp))
-                        Spacer(Modifier.width(12.dp))
-                        Text("Install This Pack", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(stringResource(com.andyl.iris.R.string.processing), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        } else {
+                            Icon(Icons.Default.Add, null, modifier = Modifier.size(24.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text(stringResource(com.andyl.iris.R.string.install_pack), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
 

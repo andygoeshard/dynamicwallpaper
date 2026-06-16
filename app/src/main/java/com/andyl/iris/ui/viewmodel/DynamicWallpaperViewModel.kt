@@ -99,7 +99,16 @@ class DynamicWallpaperViewModel(
 
             is WallpaperEvent.SetFixedTimeWallpaper -> setFixedTimeWallpaper(event.context, event.time, event.uri, event.target)
 
-            is WallpaperEvent.SetWallpaperRule -> setWallpaperRule(event.weather, event.timeOfDay, event.wallpaperUri, event.target, event.scaleMode)
+            is WallpaperEvent.SetWallpaperRule -> setWallpaperRule(
+                event.weather, 
+                event.timeOfDay, 
+                event.wallpaperUri, 
+                event.target, 
+                event.scaleMode,
+                event.cropX,
+                event.cropY,
+                event.cropScale
+            )
 
             WallpaperEvent.OnAddNewPack -> addNewPack()
 
@@ -276,7 +285,7 @@ class DynamicWallpaperViewModel(
 
                 val rulesMap = config.rules
                     .filter { it.wallpaperId.value.isNotEmpty() }
-                    .associate { formatKey(it.weather, it.timeOfDay, it.target) to it.wallpaperId.value }
+                    .associateBy { formatKey(it.weather, it.timeOfDay, it.target) }
 
                 object {
                     val packs = allPacks
@@ -323,7 +332,7 @@ class DynamicWallpaperViewModel(
                 .onSuccess { config ->
                     val rulesMap = config.rules
                         .filter { it.wallpaperId.value.isNotEmpty() }
-                        .associate { formatKey(it.weather, it.timeOfDay, it.target) to it.wallpaperId.value }
+                        .associateBy { formatKey(it.weather, it.timeOfDay, it.target) }
 
                     _uiState.update { it.copy(
                         rules = rulesMap,
@@ -412,7 +421,7 @@ class DynamicWallpaperViewModel(
             }.onSuccess { config ->
                 val rulesMap = config.rules
                     .filter { it.wallpaperId.value.isNotEmpty() }
-                    .associate { formatKey(it.weather, it.timeOfDay, it.target) to it.wallpaperId.value }
+                    .associateBy { formatKey(it.weather, it.timeOfDay, it.target) }
 
                 _uiState.update { it.copy(
                     rules = rulesMap,
@@ -435,7 +444,7 @@ class DynamicWallpaperViewModel(
         val config = WallpaperConfig(
             id = state.editingPackId,
             name = state.packName,
-            rules = state.rules.map { (key, uri) -> parseRuleFromKey(key, uri) },
+            rules = state.rules.values.toList(),
             dailyRules = state.dailyRules,
             fixedTimeRules = state.fixedRules,
             enabledWeathers = state.enabledWeathers,
@@ -446,20 +455,6 @@ class DynamicWallpaperViewModel(
     }
     private fun formatKey(weather: Weather, time: TimeOfDay, target: Int) =
         "${weather.toKey()} - $time - $target"
-
-    private fun parseRuleFromKey(key: String, uri: String): WallpaperRule {
-        val parts = key.split(" - ")
-        val weather = weatherFromKey(parts[0])
-        val timeOfDay = TimeOfDay.valueOf(parts[1])
-        val target = parts.getOrNull(2)?.toIntOrNull() ?: 3
-
-        return WallpaperRule(
-            weather = weather,
-            timeOfDay = timeOfDay,
-            wallpaperId = WallpaperId(uri),
-            target = target
-        )
-    }
 
     private fun setDailyWallpaper(dayName: String, uri: String, target: Int) {
         _uiState.update { currentState ->
@@ -532,7 +527,16 @@ class DynamicWallpaperViewModel(
         saveCurrentConfigToRepo()
     }
 
-    fun setWallpaperRule(weather: Weather, timeOfDay: TimeOfDay, wallpaperUri: String, target: Int = 3, scaleMode: ScaleMode? = null) {
+    fun setWallpaperRule(
+        weather: Weather, 
+        timeOfDay: TimeOfDay, 
+        wallpaperUri: String, 
+        target: Int = 3, 
+        scaleMode: ScaleMode? = null,
+        cropX: Float? = null,
+        cropY: Float? = null,
+        cropScale: Float? = null
+    ) {
         _uiState.update { currentState ->
             val newRules = currentState.rules.toMutableMap()
             if (target == 3) {
@@ -542,7 +546,18 @@ class DynamicWallpaperViewModel(
                 newRules.remove(formatKey(weather, timeOfDay, 3))
             }
 
-            newRules[formatKey(weather, timeOfDay, target)] = wallpaperUri
+            val newRule = WallpaperRule(
+                weather = weather,
+                timeOfDay = timeOfDay,
+                wallpaperId = WallpaperId(wallpaperUri),
+                target = target,
+                scaleMode = scaleMode ?: currentState.scaleMode,
+                cropX = cropX,
+                cropY = cropY,
+                cropScale = cropScale
+            )
+
+            newRules[formatKey(weather, timeOfDay, target)] = newRule
             currentState.copy(
                 rules = newRules,
                 scaleMode = scaleMode ?: currentState.scaleMode

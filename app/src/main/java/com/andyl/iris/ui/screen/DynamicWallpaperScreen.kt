@@ -39,6 +39,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -73,11 +75,18 @@ import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
 fun DynamicWallpaperScreen(
     viewModel: DynamicWallpaperViewModel,
     onNavigateToSettings: () -> Unit,
-    onNavigateToSearch: () -> Unit
+    onNavigateToSearch: (com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, String?, String?, String?) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var showPermissionDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.error) {
+        state.error?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
 
 
     LaunchedEffect(Unit) {
@@ -143,6 +152,7 @@ fun DynamicWallpaperScreen(
 
     Scaffold(
         modifier = Modifier.statusBarsPadding(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
@@ -155,7 +165,7 @@ fun DynamicWallpaperScreen(
                 title = {
                     Text(stringResource(R.string.top_bar_name), fontWeight = FontWeight.Black) },
                 actions = {
-                    IconButton(onClick = onNavigateToSearch) {
+                    IconButton(onClick = { onNavigateToSearch(null, null, null, null, null) }) {
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Explorar fondos"
@@ -248,9 +258,9 @@ fun DynamicWallpaperScreen(
                             ),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            item { BoxContainer { DaySelectionSection(state = state, onEvent = { viewModel.onEvent(it) }) } }
-                            item { BoxContainer { WeatherSection(state = state, onEvent = { viewModel.onEvent(it) }) } }
-                            item { BoxContainer { FixedTimeSection(state = state, onEvent = { viewModel.onEvent(it) }) } }
+                            item { BoxContainer { DaySelectionSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch) } }
+                            item { BoxContainer { WeatherSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch) } }
+                            item { BoxContainer { FixedTimeSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch) } }
                         }
                     }
                 }

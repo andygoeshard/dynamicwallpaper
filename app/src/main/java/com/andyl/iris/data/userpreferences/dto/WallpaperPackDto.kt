@@ -30,7 +30,12 @@ fun WallpaperPackDto.toDomain(activeId: String): WallpaperConfig {
             WallpaperRule(
                 weather = weatherFromKey(it.weather),
                 timeOfDay = TimeOfDay.valueOf(it.timeOfDay),
-                wallpaperId = WallpaperId(it.uri)
+                wallpaperId = WallpaperId(it.uri),
+                target = it.target,
+                scaleMode = try { it.scaleMode?.let { mode -> ScaleMode.valueOf(mode) } ?: ScaleMode.CROP } catch (_: Exception) { ScaleMode.CROP },
+                cropX = it.cropX,
+                cropY = it.cropY,
+                cropScale = it.cropScale
             )
         },
         dailyRules = this.dailyRules,

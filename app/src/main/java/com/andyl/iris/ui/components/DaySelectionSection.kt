@@ -26,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.andyl.iris.R
+import com.andyl.iris.domain.model.TimeOfDay
+import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.state.DynamicWallpaperUiState
 
@@ -33,7 +35,8 @@ import com.andyl.iris.ui.state.DynamicWallpaperUiState
 @Composable
 fun DaySelectionSection(
     state: DynamicWallpaperUiState,
-    onEvent: (WallpaperEvent) -> Unit
+    onEvent: (WallpaperEvent) -> Unit,
+    onNavigateToSearch: (Weather?, TimeOfDay?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> }
 ) {
     val context = LocalContext.current
     val days = remember { listOf("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday") }
@@ -108,19 +111,13 @@ fun DaySelectionSection(
                     bothUri = bothUri,
                     isToday = dayIndex == todayIndex,
                     onAddClick = {
-                        selectedDayForPicker = dayName
-                        targetPredefined = null // No sabemos, que el Dialog decida
-                        photoPickerLauncher.launch(arrayOf("image/*"))
+                        onNavigateToSearch(null, null, dayName, null, dayName.replaceFirstChar { it.uppercase() })
                     },
                     onHomeClick = {
-                        selectedDayForPicker = dayName
-                        targetPredefined = 1 // Es para Home
-                        photoPickerLauncher.launch(arrayOf("image/*"))
+                        onNavigateToSearch(null, null, dayName, null, "${dayName.replaceFirstChar { it.uppercase() }} (Home)")
                     },
                     onLockClick = {
-                        selectedDayForPicker = dayName
-                        targetPredefined = 2 // Es para Lock
-                        photoPickerLauncher.launch(arrayOf("image/*"))
+                        onNavigateToSearch(null, null, dayName, null, "${dayName.replaceFirstChar { it.uppercase() }} (Lock)")
                     },
                     onDeleteHome = { onEvent(WallpaperEvent.OnDeleteDayRule("$dayName-1")) },
                     onDeleteLock = { onEvent(WallpaperEvent.OnDeleteDayRule("$dayName-2")) },

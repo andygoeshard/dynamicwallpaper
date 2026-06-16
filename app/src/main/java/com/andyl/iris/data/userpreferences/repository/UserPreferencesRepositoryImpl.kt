@@ -63,7 +63,12 @@ class UserPreferencesRepositoryImpl(
                 WallpaperRuleDto(
                     weather = it.weather.toKey(),
                     timeOfDay = it.timeOfDay.name,
-                    uri = it.wallpaperId.value
+                    uri = it.wallpaperId.value,
+                    target = it.target,
+                    scaleMode = it.scaleMode.name,
+                    cropX = it.cropX,
+                    cropY = it.cropY,
+                    cropScale = it.cropScale
                 )
             },
             dailyRules = config.dailyRules,

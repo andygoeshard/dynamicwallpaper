@@ -78,4 +78,14 @@
     <string name="first_apply_text">Iris will automatically change your wallpaper based on your rules. Do you want to continue?</string>
     <string name="first_apply_confirm">Yes, apply</string>
     <string name="first_apply_cancel">Not now</string>
+
+    <string name="processing">Processing...</string>
+    <string name="install_pack">Install This Pack</string>
+    <string name="active_downloads">Active Downloads</string>
+    <string name="downloads">Downloads</string>
+    <string name="preparing">Preparing...</string>
+    <string name="installation_complete">Installation complete!</string>
+    <string name="downloading_images">Downloading %1$d/%2$d images...</string>
+    <string name="target_slot">Target: %1$s</string>
+    <string name="search_hint">Search magic wallpapers...</string>
 </resources>

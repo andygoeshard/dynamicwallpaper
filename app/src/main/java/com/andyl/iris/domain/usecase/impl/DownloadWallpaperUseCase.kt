@@ -17,14 +17,14 @@ import java.util.UUID
 
 class DownloadWallpaperUseCase(private val client: HttpClient, private val context: Context) {
 
-    suspend fun execute(url: String, fileName: String? = null): File? = withContext(Dispatchers.IO) {
+    suspend fun execute(url: String, fileName: String? = null): Result<File> = withContext(Dispatchers.IO) {
         try {
             Log.d("DownloadWallpaper", "Downloading from: $url")
             val response: HttpResponse = client.get(url)
             
             if (response.status.value !in 200..299) {
                 Log.e("DownloadWallpaper", "Failed to download: ${response.status}")
-                return@withContext null
+                return@withContext Result.failure(Exception("Failed to download: ${response.status}"))
             }
             
             val bytes = response.readBytes()
@@ -44,10 +44,10 @@ class DownloadWallpaperUseCase(private val client: HttpClient, private val conte
             saveToGallery(bytes, "$actualFileName.jpg")
             
             Log.d("DownloadWallpaper", "File saved at: ${file.absolutePath}")
-            file
+            Result.success(file)
         } catch (e: Exception) {
             Log.e("DownloadWallpaper", "Error downloading wallpaper", e)
-            null
+            Result.failure(e)
         }
     }
 

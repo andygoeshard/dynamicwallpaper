@@ -1,5 +1,6 @@
 package com.andyl.iris.ui.searchscreen.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,12 +21,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.andyl.iris.domain.model.ImageResult
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import com.andyl.iris.domain.model.ScaleMode
 import com.andyl.iris.ui.components.ScaleModeSelector
 
 @Composable
 fun WallpaperSearchResultItem(
     image: ImageResult,
+    isFavorite: Boolean = false,
+    onToggleFavorite: () -> Unit = {},
     onConfirm: (uri: String, target: Int, scaleMode: ScaleMode) -> Unit
 ) {
     var selectedTarget by remember { mutableStateOf(3) }
@@ -54,6 +59,23 @@ fun WallpaperSearchResultItem(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
+
+                // Favorite Button
+                IconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .align(Alignment.TopStart)
+                        .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                        .size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (isFavorite) Color.Red else Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
                 
                 // Provider Badge
                 Surface(
@@ -128,7 +150,8 @@ fun WallpaperSearchResultItem(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                enabled = image.urlFull.isNotEmpty()
             ) {
                 Icon(Icons.Default.Check, null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(12.dp))

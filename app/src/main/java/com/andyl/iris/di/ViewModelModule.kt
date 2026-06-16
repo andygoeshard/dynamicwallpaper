@@ -27,6 +27,10 @@ val viewModelModule = module {
             imageRepository = get(),
             downloadUseCase = get(),
             installPredefinedPackUseCase = get(),
+            downloadRepository = get(),
+            favoriteRepository = get(),
+            localImageRepository = get(),
+            wallpaperRepository = get(),
             wallpaperViewModel = params.get()
         )
     }

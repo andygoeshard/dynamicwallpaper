@@ -37,7 +37,8 @@ import java.util.Calendar
 @Composable
 fun FixedTimeSection(
     state: DynamicWallpaperUiState,
-    onEvent: (WallpaperEvent) -> Unit
+    onEvent: (WallpaperEvent) -> Unit,
+    onNavigateToSearch: (com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> }
 ) {
     val context = LocalContext.current
     var selectedTimeForPicker by remember { mutableStateOf<String?>(null) }
@@ -85,9 +86,9 @@ fun FixedTimeSection(
                     onDeleteHome = { onEvent(WallpaperEvent.OnDeleteFixedTimeRule(context, "$displayTime-1")) },
                     onDeleteLock = { onEvent(WallpaperEvent.OnDeleteFixedTimeRule(context, "$displayTime-2")) },
                     onDeleteBoth = { onEvent(WallpaperEvent.OnDeleteFixedTimeRule(context, displayTime)) },
-                    onHomeClick = { selectedTimeForPicker = displayTime; targetPredefined = 1; photoPickerLauncher.launch(arrayOf("image/*")) },
-                    onLockClick = { selectedTimeForPicker = displayTime; targetPredefined = 2; photoPickerLauncher.launch(arrayOf("image/*")) },
-                    onBothClick = { selectedTimeForPicker = displayTime; targetPredefined = 3; photoPickerLauncher.launch(arrayOf("image/*")) },
+                    onHomeClick = { onNavigateToSearch(null, null, null, displayTime, "Time: $displayTime (Home)") },
+                    onLockClick = { onNavigateToSearch(null, null, null, displayTime, "Time: $displayTime (Lock)") },
+                    onBothClick = { onNavigateToSearch(null, null, null, displayTime, "Time: $displayTime") },
                     onTimeClick = {
                         val tParts = displayTime.split(":")
                         TimePickerDialog(context, { _, hour, minute ->
@@ -120,9 +121,8 @@ fun FixedTimeSection(
             onClick = {
                 val calendar = Calendar.getInstance()
                 TimePickerDialog(context, { _, hour, minute ->
-                    selectedTimeForPicker = String.format("%02d:%02d", hour, minute)
-                    targetPredefined = null
-                    photoPickerLauncher.launch(arrayOf("image/*"))
+                    val time = String.format("%02d:%02d", hour, minute)
+                    onNavigateToSearch(null, null, null, time, "Time: $time")
                 }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
             },
             modifier = Modifier.fillMaxWidth().height(52.dp),

@@ -16,10 +16,21 @@ import com.andyl.iris.domain.repository.LocationRepository
 import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.domain.repository.WallpaperRepository
 import com.andyl.iris.domain.repository.WeatherRepository
+import com.andyl.iris.data.database.repository.FavoriteRepositoryImpl
+import com.andyl.iris.data.imagesprovider.repository.LocalImageRepositoryImpl
+import com.andyl.iris.domain.repository.FavoriteRepository
+import com.andyl.iris.domain.repository.LocalImageRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
+import com.andyl.iris.data.download.repository.DownloadRepositoryImpl
+import com.andyl.iris.domain.repository.DownloadRepository
+
 val dataModule = module {
+
+    single<DownloadRepository> {
+        DownloadRepositoryImpl()
+    }
 
     single {
         Room.databaseBuilder(
@@ -30,6 +41,15 @@ val dataModule = module {
     }
 
     single { get<IrisDatabase>().imageCacheDao() }
+    single { get<IrisDatabase>().favoriteDao() }
+
+    single<FavoriteRepository> {
+        FavoriteRepositoryImpl(get())
+    }
+
+    single<LocalImageRepository> {
+        LocalImageRepositoryImpl(androidContext())
+    }
 
     single<ImageRepository> {
         UnifiedImageRepositoryImpl(

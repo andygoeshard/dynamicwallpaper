@@ -25,7 +25,10 @@ sealed interface WallpaperEvent{
         val timeOfDay: TimeOfDay, 
         val wallpaperUri: String, 
         val target: Int,
-        val scaleMode: ScaleMode? = null
+        val scaleMode: ScaleMode? = null,
+        val cropX: Float? = null,
+        val cropY: Float? = null,
+        val cropScale: Float? = null
     ): WallpaperEvent
     data class RequestExactAlarmPermission(val context: Context): WallpaperEvent
     object OnAddNewPack: WallpaperEvent

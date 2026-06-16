@@ -25,11 +25,14 @@ class WallpaperRepositoryImpl(
     override suspend fun applyWallpaper(
         wallpaperId: WallpaperId,
         scaleMode: ScaleMode,
-        target: Int
+        target: Int,
+        cropX: Float?,
+        cropY: Float?,
+        cropScale: Float?
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val path = wallpaperId.value
-            Log.d("IRIS_WALLPAPER", ">>> START APPLYING: $path")
+            Log.d("IRIS_WALLPAPER", ">>> START APPLYING: $path | Mode: $scaleMode | Crop: $cropX, $cropY, $cropScale")
             
             val wallpaperManager = WallpaperManager.getInstance(context)
 
@@ -65,7 +68,8 @@ class WallpaperRepositoryImpl(
                 BitmapFactory.decodeStream(it, null, options)
             }
 
-            options.inSampleSize = calculateInSampleSize(options, screenWidth.toInt(), screenHeight.toInt())
+            // Important: Manual crop needs full resolution if possible
+            options.inSampleSize = if (cropScale != null) 1 else calculateInSampleSize(options, screenWidth.toInt(), screenHeight.toInt())
             options.inJustDecodeBounds = false
 
             // 3. FULL DECODE AND SCALE
@@ -73,10 +77,14 @@ class WallpaperRepositoryImpl(
                 val originalBitmap = BitmapFactory.decodeStream(input, null, options)
                     ?: throw Exception("Bitmap decode failed")
 
-                val finalBitmap = when (scaleMode) {
-                    ScaleMode.CROP -> centerCrop(originalBitmap, screenWidth, screenHeight)
-                    ScaleMode.STRETCH -> stretchFill(originalBitmap, screenWidth, screenHeight)
-                    ScaleMode.FIT -> centerFit(originalBitmap, screenWidth, screenHeight)
+                val finalBitmap = if (cropX != null && cropY != null && cropScale != null) {
+                    applyManualCrop(originalBitmap, screenWidth, screenHeight, cropX, cropY, cropScale)
+                } else {
+                    when (scaleMode) {
+                        ScaleMode.CROP -> centerCrop(originalBitmap, screenWidth, screenHeight)
+                        ScaleMode.STRETCH -> stretchFill(originalBitmap, screenWidth, screenHeight)
+                        ScaleMode.FIT -> centerFit(originalBitmap, screenWidth, screenHeight)
+                    }
                 }
 
                 // 4. APPLY TO SYSTEM
@@ -91,6 +99,67 @@ class WallpaperRepositoryImpl(
         }.onFailure { e ->
             Log.e("IRIS_WALLPAPER", ">>> FATAL ERROR: ${e.message}", e)
         }
+    }
+
+    override suspend fun cropAndSaveWallpaper(
+        wallpaperId: WallpaperId,
+        cropX: Float,
+        cropY: Float,
+        cropScale: Float
+    ): Result<String> = withContext(Dispatchers.IO) {
+        runCatching {
+            val path = wallpaperId.value
+            val metrics = context.resources.displayMetrics
+            val screenWidth = metrics.widthPixels.toFloat()
+            val screenHeight = metrics.heightPixels.toFloat()
+
+            fun getInputStream(): InputStream {
+                return if (path.startsWith("/") || path.startsWith("file://")) {
+                    File(path.removePrefix("file://")).inputStream()
+                } else {
+                    context.contentResolver.openInputStream(path.toUri()) ?: throw Exception("Stream null")
+                }
+            }
+
+            val options = BitmapFactory.Options().apply { inSampleSize = 1 }
+            getInputStream().use { input ->
+                val original = BitmapFactory.decodeStream(input, null, options) ?: throw Exception("Decode fail")
+                val cropped = applyManualCrop(original, screenWidth, screenHeight, cropX, cropY, cropScale)
+                
+                val outputFile = File(context.filesDir, "iris_cropped_${System.currentTimeMillis()}.jpg")
+                outputFile.outputStream().use { out ->
+                    cropped.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                
+                if (cropped != original) cropped.recycle()
+                original.recycle()
+                
+                outputFile.absolutePath
+            }
+        }
+    }
+
+    private fun applyManualCrop(source: Bitmap, targetW: Float, targetH: Float, cropX: Float, cropY: Float, cropScale: Float): Bitmap {
+        val sourceW = source.width.toFloat()
+        val sourceH = source.height.toFloat()
+        
+        val fitScale = (targetW / sourceW).coerceAtMost(targetH / sourceH)
+        val initialDx = (targetW - sourceW * fitScale) / 2f
+        val initialDy = (targetH - sourceH * fitScale) / 2f
+        
+        val matrix = Matrix().apply { 
+            postScale(fitScale, fitScale)
+            postTranslate(initialDx, initialDy)
+            
+            postScale(cropScale, cropScale, targetW / 2f, targetH / 2f)
+            postTranslate(cropX, cropY)
+        }
+
+        val result = createBitmap(targetW.toInt(), targetH.toInt())
+        val canvas = Canvas(result)
+        canvas.drawColor(android.graphics.Color.BLACK)
+        canvas.drawBitmap(source, matrix, null)
+        return result
     }
 
     private fun centerCrop(source: Bitmap, targetW: Float, targetH: Float): Bitmap {

@@ -67,11 +67,14 @@ class ApplyDynamicWallpaperUseCaseImpl(
         if (rulesToApply.isNotEmpty()) {
             rulesToApply.forEach { rule ->
                 if (rule.wallpaperId.value.isNotEmpty()) {
-                    Log.d("IRIS_WORKER", "Applying wallpaper: ${rule.wallpaperId.value}")
+                    Log.d("IRIS_WORKER", "Applying wallpaper: ${rule.wallpaperId.value} with mode ${rule.scaleMode}")
                     val result = wallpaperRepository.applyWallpaper(
                         wallpaperId = rule.wallpaperId,
-                        scaleMode = config.scaleMode,
-                        target = rule.target
+                        scaleMode = rule.scaleMode,
+                        target = rule.target,
+                        cropX = rule.cropX,
+                        cropY = rule.cropY,
+                        cropScale = rule.cropScale
                     )
                     if (result.isSuccess) {
                         Log.d("IRIS_WORKER", "✅ SUCCESS!")

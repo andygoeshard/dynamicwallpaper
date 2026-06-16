@@ -20,15 +20,15 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
         // 1. Reglas por Hora Exacta
         val timeKey = "%02d:%02d".format(now.hour, now.minute)
         config.fixedTimeRules[timeKey]?.let { uri ->
-            if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 3))
+            if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 3, scaleMode = config.scaleMode))
         }
 
         if (rulesToApply.isEmpty()) {
             config.fixedTimeRules["$timeKey-1"]?.let { uri ->
-                if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 1))
+                if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 1, scaleMode = config.scaleMode))
             }
             config.fixedTimeRules["$timeKey-2"]?.let { uri ->
-                if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 2))
+                if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 2, scaleMode = config.scaleMode))
             }
         }
         if (rulesToApply.isNotEmpty()) return rulesToApply
@@ -36,15 +36,15 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
         // 2. Reglas Diarias
         val dayName = now.dayOfWeek.name.lowercase()
         config.dailyRules[dayName]?.let { uri ->
-            if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 3))
+            if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 3, scaleMode = config.scaleMode))
         }
 
         if (rulesToApply.isEmpty()) {
             config.dailyRules["$dayName-1"]?.let { uri ->
-                if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 1))
+                if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 1, scaleMode = config.scaleMode))
             }
             config.dailyRules["$dayName-2"]?.let { uri ->
-                if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 2))
+                if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 2, scaleMode = config.scaleMode))
             }
         }
         if (rulesToApply.isNotEmpty()) return rulesToApply

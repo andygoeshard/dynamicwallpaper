@@ -34,7 +34,8 @@ import com.andyl.iris.ui.state.DynamicWallpaperUiState
 @Composable
 fun WeatherSection(
     state: DynamicWallpaperUiState,
-    onEvent: (WallpaperEvent) -> Unit
+    onEvent: (WallpaperEvent) -> Unit,
+    onNavigateToSearch: (com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, String?, String?, String?) -> Unit
 ) {
     Column {
         Surface(
@@ -91,7 +92,8 @@ fun WeatherSection(
                         isEnabled = state.enabledWeathers.contains(weather),
                         onToggle = { onEvent(WallpaperEvent.OnToggleWeather(weather)) },
                         state = state,
-                        onEvent = onEvent
+                        onEvent = onEvent,
+                        onNavigateToSearch = onNavigateToSearch
                     )
                 }
 

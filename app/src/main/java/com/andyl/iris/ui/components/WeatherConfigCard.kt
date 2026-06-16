@@ -44,6 +44,7 @@ fun WeatherConfigCard(
     isEnabled: Boolean,
     onEvent: (WallpaperEvent) -> Unit,
     onToggle: (Boolean) -> Unit,
+    onNavigateToSearch: (Weather?, TimeOfDay?, String?, String?, String?) -> Unit
 ) {
     val alpha by animateFloatAsState(if (isEnabled) 1f else 0.6f, label = "alpha")
 
@@ -114,7 +115,8 @@ fun WeatherConfigCard(
                                 label = label,
                                 modifier = Modifier.weight(1f), // Se reparten el ancho
                                 state = state,
-                                onEvent = onEvent
+                                onEvent = onEvent,
+                                onNavigateToSearch = onNavigateToSearch
                             )
                         }
                     }
