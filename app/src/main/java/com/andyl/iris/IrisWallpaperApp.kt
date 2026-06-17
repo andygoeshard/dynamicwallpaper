@@ -23,6 +23,7 @@ class IrisWallpaperApp : Application(), Configuration.Provider {
         }
 
         IrisWallpaperScheduler.schedule(this)
+        com.andyl.iris.domain.helper.AlarmHelper.scheduleMidnightRefresh(this)
     }
 
     override val workManagerConfiguration: Configuration

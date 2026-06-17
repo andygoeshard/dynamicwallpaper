@@ -48,6 +48,34 @@ object AlarmHelper {
         }
     }
 
+    fun scheduleMidnightRefresh(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, BootReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            "midnight_refresh".hashCode(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 5) // 5 seconds after midnight to be safe
+            if (before(Calendar.getInstance())) add(Calendar.DATE, 1)
+        }
+
+        try {
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                calendar.timeInMillis,
+                pendingIntent
+            )
+        } catch (e: Exception) {
+            Log.e("ALARM_HELPER", "Error scheduling midnight refresh: ${e.message}")
+        }
+    }
+
     fun cancelFixedTimeAlarm(context: Context, time: String) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, BootReceiver::class.java)

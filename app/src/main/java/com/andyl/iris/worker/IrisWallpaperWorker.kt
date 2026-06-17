@@ -47,8 +47,8 @@ class IrisWallpaperWorker(
     private fun createForegroundInfo(): ForegroundInfo {
         createNotificationChannel()
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("Iris is active")
-            .setContentText("Keeping your wallpaper in sync with weather and time.")
+            .setContentTitle(context.getString(R.string.notif_title))
+            .setContentText(context.getString(R.string.notif_desc))
             .setSmallIcon(R.mipmap.ic_iris)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
@@ -63,8 +63,8 @@ class IrisWallpaperWorker(
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Iris Wallpaper Service"
-            val descriptionText = "Ensures background wallpaper updates"
+            val name = context.getString(R.string.notif_channel_name)
+            val descriptionText = context.getString(R.string.notif_channel_desc)
             val importance = NotificationManager.IMPORTANCE_LOW
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText

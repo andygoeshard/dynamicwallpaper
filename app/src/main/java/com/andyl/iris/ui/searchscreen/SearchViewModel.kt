@@ -65,6 +65,10 @@ class SearchViewModel(
         loadLocalImages()
     }
 
+    fun clearMessages() {
+        _uiState.update { it.copy(error = null, successMessage = null) }
+    }
+
     private fun loadLocalImages() {
         viewModelScope.launch {
             try {
@@ -268,15 +272,15 @@ class SearchViewModel(
         val currentPreviews = _uiState.value.previewFullUrls
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, showPackSelectionDialog = false) }
+            _uiState.update { it.copy(isLoading = true, showPackSelectionDialog = false, error = null) }
             installPredefinedPackUseCase(predefinedPack, targetId, currentPreviews)
                 .onSuccess {
-                    _uiState.update { it.copy(isLoading = false, currentPack = null) }
+                    _uiState.update { it.copy(isLoading = false, currentPack = null, successMessage = "Pack installed successfully!") }
                     wallpaperViewModel.onEvent(WallpaperEvent.OnLoadInitialConfig)
                     onSuccess()
                 }
                 .onFailure { e ->
-                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+                    _uiState.update { it.copy(isLoading = false, error = e.message ?: "Unknown error") }
                 }
         }
     }
@@ -338,17 +342,27 @@ class SearchViewModel(
             }
 
             // 2. Apply Crop and save to a NEW file if parameters are present
-            val finalPath = if (cropX != null && cropY != null && cropScale != null) {
-                val cropResult = wallpaperRepository.cropAndSaveWallpaper(
-                    WallpaperId(sourcePath), cropX, cropY, cropScale
-                )
-                cropResult.getOrNull() ?: sourcePath
-            } else {
+            val finalPath = try {
+                if (cropX != null && cropY != null && cropScale != null) {
+                    val cropResult = wallpaperRepository.cropAndSaveWallpaper(
+                        WallpaperId(sourcePath), cropX, cropY, cropScale
+                    )
+                    cropResult.getOrNull() ?: sourcePath
+                } else {
+                    sourcePath
+                }
+            } catch (e: Exception) {
+                Log.e("SearchVM", "Error cropping wallpaper", e)
                 sourcePath
             }
 
             // 3. Process the final file
-            processDownloadedFile(context, finalPath, target, slot, scaleMode, cropX, cropY, cropScale)
+            try {
+                processDownloadedFile(context, finalPath, target, slot, scaleMode, cropX, cropY, cropScale)
+                _uiState.update { it.copy(successMessage = "Wallpaper set successfully!") }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = "Failed to apply wallpaper: ${e.message}") }
+            }
             
             _uiState.update { it.copy(
                 isLoading = false, 
@@ -370,8 +384,6 @@ class SearchViewModel(
         cropY: Float? = null,
         cropScale: Float? = null
     ) {
-        // If we have a custom crop, we don't pass the coordinates to the rule 
-        // because 'path' ALREADY points to the pre-cropped bitmap file.
         val finalScaleMode = if (cropScale != null) com.andyl.iris.domain.model.ScaleMode.FIT else scaleMode
         val finalCropX = if (cropScale != null) null else cropX
         val finalCropY = if (cropScale != null) null else cropY
@@ -392,7 +404,7 @@ class SearchViewModel(
                 wallpaperViewModel.onEvent(WallpaperEvent.SetWallpaperRule(slot.weather, slot.time, path, target, finalScaleMode, finalCropX, finalCropY, finalCropScale))
             }
         } else if (slot.dayName != null) {
-            wallpaperViewModel.onEvent(WallpaperEvent.SetDailyWallpaper(slot.dayName, path, target))
+            wallpaperViewModel.onEvent(WallpaperEvent.SetDailyWallpaper(context, slot.dayName, path, target))
         }
     }
 }

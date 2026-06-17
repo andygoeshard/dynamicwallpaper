@@ -22,7 +22,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.andyl.iris.R
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,25 +50,25 @@ fun SuggestedPacksList(onPackClick: (SuggestedPack) -> Unit) {
     ) {
         // --- WEATHER BASED SECTION ---
         item {
-            PackSectionHeader("Weather & Atmosphere", "Packs that evolve with your sky.")
+            PackSectionHeader(stringResource(R.string.weather_atmosphere), stringResource(R.string.weather_atmosphere_desc))
             PackHorizontalRow(PredefinedPacks.weatherPacks, onPackClick)
         }
 
         // --- WEEKLY SECTION ---
         item {
-            PackSectionHeader("Weekly Calendars", "A fresh look for every day of the week.")
+            PackSectionHeader(stringResource(R.string.weekly_calendars), stringResource(R.string.weekly_calendars_desc))
             PackHorizontalRow(PredefinedPacks.weeklyPacks, onPackClick)
         }
 
         // --- TIME BASED SECTION ---
         item {
-            PackSectionHeader("Time-Based Overrides", "Precise changes matching your routine.")
+            PackSectionHeader(stringResource(R.string.time_overrides), stringResource(R.string.time_overrides_desc))
             PackHorizontalRow(PredefinedPacks.timePacks, onPackClick)
         }
 
         // --- RANDOM SECTION ---
         item {
-            PackSectionHeader("Surprise & Random", "Unexpected beauty for every moment.")
+            PackSectionHeader(stringResource(R.string.surprise_random), stringResource(R.string.surprise_random_desc))
             PackHorizontalRow(PredefinedPacks.randomPacks, onPackClick)
         }
 
@@ -74,7 +76,7 @@ fun SuggestedPacksList(onPackClick: (SuggestedPack) -> Unit) {
         item {
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "Manual Configuration",
+                text = stringResource(R.string.manual_configuration),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.primary,
@@ -173,10 +175,10 @@ private fun PredefinedPackCard(
                 ) {
                     Text(
                         text = when {
-                            pack.isTimeBased -> "Time"
-                            pack.type == PackType.WEEKLY -> "Weekly"
-                            pack.isFullRandom -> "Mix"
-                            else -> "Weather"
+                            pack.isTimeBased -> stringResource(R.string.badge_time)
+                            pack.type == PackType.WEEKLY -> stringResource(R.string.badge_weekly)
+                            pack.isFullRandom -> stringResource(R.string.badge_mix)
+                            else -> stringResource(R.string.badge_weather)
                         },
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
@@ -228,7 +230,8 @@ private fun CategoryItem(
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     ) {
         Row(

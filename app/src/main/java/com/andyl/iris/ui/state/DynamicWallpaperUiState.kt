@@ -11,6 +11,7 @@ data class DynamicWallpaperUiState(
     val isLoading: Boolean = true,
     val isApplied: Boolean = false,
     val error: String? = null,
+    val successMessage: String? = null,
     val packName: String = "",
     val rules: Map<String, WallpaperRule> = emptyMap(),
     val dailyRules: Map<String, String> = emptyMap(),

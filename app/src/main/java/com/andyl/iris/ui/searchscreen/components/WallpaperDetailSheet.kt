@@ -19,25 +19,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.andyl.iris.R
 import com.andyl.iris.domain.model.ImageResult
 import com.andyl.iris.domain.model.ScaleMode
-import com.andyl.iris.ui.components.ScaleModeSelector
 
 @Composable
 fun WallpaperDetailSheet(
     image: ImageResult,
     isFavorite: Boolean,
+    isLoading: Boolean = false,
     onToggleFavorite: () -> Unit,
     onDismiss: () -> Unit,
     onConfirm: (uri: String, target: Int, scaleMode: ScaleMode, cropX: Float?, cropY: Float?, cropScale: Float?) -> Unit
 ) {
     var selectedTarget by remember { mutableIntStateOf(3) }
-    var selectedScaleMode by remember { mutableStateOf(ScaleMode.CROP) }
+    val selectedScaleMode by remember { mutableStateOf(ScaleMode.CROP) }
     
     // Zoom/Pan State
     var scale by remember { mutableFloatStateOf(1f) }
@@ -54,7 +54,7 @@ fun WallpaperDetailSheet(
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTransformGestures { _, pan, zoom, _ ->
-                        scale = (scale * zoom).coerceIn(0.5f, 10f)
+                        scale = (scale * zoom).coerceIn(1f, 10f)
                         offset += pan
                     }
                 }
@@ -88,19 +88,21 @@ fun WallpaperDetailSheet(
                 IconButton(
                     onClick = onDismiss,
                     modifier = Modifier
+                        .size(48.dp)
                         .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.btn_close), tint = Color.White)
                 }
 
                 IconButton(
                     onClick = onToggleFavorite,
                     modifier = Modifier
+                        .size(48.dp)
                         .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorite",
+                        contentDescription = stringResource(R.string.favorite),
                         tint = if (isFavorite) Color.Red else Color.White
                     )
                 }
@@ -109,30 +111,36 @@ fun WallpaperDetailSheet(
             Spacer(modifier = Modifier.weight(1f))
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
                 shape = RoundedCornerShape(32.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-                )
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = "Wallpaper Preview",
+                        text = stringResource(R.string.wallpaper_preview),
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Drag and zoom to see how it looks. Note: Final application will use the selected scaling mode.",
+                        text = stringResource(R.string.wallpaper_preview_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
-                        text = "Apply to",
+                        text = stringResource(R.string.choose_destination),
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Row(
                         modifier = Modifier
@@ -140,28 +148,37 @@ fun WallpaperDetailSheet(
                             .padding(vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        DetailTargetOption("Both", isSelected = selectedTarget == 3, modifier = Modifier.weight(1f)) { selectedTarget = 3 }
-                        DetailTargetOption("Home", isSelected = selectedTarget == 1, modifier = Modifier.weight(1f)) { selectedTarget = 1 }
-                        DetailTargetOption("Lock", isSelected = selectedTarget == 2, modifier = Modifier.weight(1f)) { selectedTarget = 2 }
+                        DetailTargetOption(stringResource(R.string.target_both), isSelected = selectedTarget == 3, modifier = Modifier.weight(1f)) { selectedTarget = 3 }
+                        DetailTargetOption(stringResource(R.string.target_home), isSelected = selectedTarget == 1, modifier = Modifier.weight(1f)) { selectedTarget = 1 }
+                        DetailTargetOption(stringResource(R.string.target_lock), isSelected = selectedTarget == 2, modifier = Modifier.weight(1f)) { selectedTarget = 2 }
                     }
 
-                    ScaleModeSelector(
-                        selectedMode = selectedScaleMode,
-                        onModeSelected = { selectedScaleMode = it }
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
                         onClick = { onConfirm(image.urlFull, selectedTarget, selectedScaleMode, offset.x, offset.y, scale) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(16.dp)
+                            .height(64.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        enabled = !isLoading,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
                     ) {
-                        Icon(Icons.Default.Check, null)
-                        Spacer(Modifier.width(12.dp))
-                        Text("Confirm & Set", fontWeight = FontWeight.Bold)
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(Icons.Default.Check, null)
+                            Spacer(Modifier.width(12.dp))
+                            Text(stringResource(R.string.confirm_set), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -176,15 +193,15 @@ private fun DetailTargetOption(label: String, isSelected: Boolean, modifier: Mod
         onClick = onClick,
         label = { 
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(label, style = MaterialTheme.typography.labelSmall) 
+                Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) 
             }
         },
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
+        modifier = modifier.height(44.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primary,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
             labelColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         border = null

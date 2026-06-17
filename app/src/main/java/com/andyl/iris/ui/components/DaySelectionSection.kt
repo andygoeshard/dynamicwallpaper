@@ -58,7 +58,7 @@ fun DaySelectionSection(
                 val day = selectedDayForPicker
                 if (day != null) {
                     if (targetPredefined != null) {
-                        onEvent(WallpaperEvent.SetDailyWallpaper(day, it.toString(), targetPredefined!!))
+                        onEvent(WallpaperEvent.SetDailyWallpaper(context, day, it.toString(), targetPredefined!!))
                     } else {
                         pendingUri = it.toString()
                         showTargetDialog = true
@@ -134,7 +134,7 @@ fun DaySelectionSection(
                 val day = selectedDayForPicker
                 val uri = pendingUri
                 if (day != null && uri != null) {
-                    onEvent(WallpaperEvent.SetDailyWallpaper(day, uri, target))
+                    onEvent(WallpaperEvent.SetDailyWallpaper(context, day, uri, target))
                 }
                 showTargetDialog = false
             }

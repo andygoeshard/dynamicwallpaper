@@ -8,6 +8,8 @@ import com.andyl.iris.domain.repository.WeatherRepository
 import com.andyl.iris.domain.usecase.contract.ApplyDynamicWallpaperUseCase
 import com.andyl.iris.domain.usecase.contract.DetectTimeOfDayUseCase
 import com.andyl.iris.domain.usecase.contract.ResolveWallpaperUseCase
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ApplyDynamicWallpaperUseCaseImpl(
     private val locationRepository: LocationRepository,
@@ -18,68 +20,77 @@ class ApplyDynamicWallpaperUseCaseImpl(
     private val wallpaperRepository: WallpaperRepository,
 ) : ApplyDynamicWallpaperUseCase {
 
+    private val mutex = Mutex()
+
     override suspend operator fun invoke(packId: String?) {
-        Log.d("IRIS_WORKER", "🚀 Starting ApplyDynamicWallpaper process...")
-        val config = preferencesRepository.getWallpaperConfig(packId)
-        
-        var currentSunrise: String? = null
-        var currentSunset: String? = null
-        var detectedWeather: com.andyl.iris.domain.model.Weather? = null
+        if (mutex.isLocked) {
+            Log.d("IRIS_WORKER", "⏩ Skipping ApplyDynamicWallpaper: another process is running.")
+            return
+        }
 
-        if (config.enabledWeathers.isNotEmpty()) {
-            try {
-                Log.d("IRIS_WORKER", "1. Fetching location...")
-                val location = locationRepository.getCurrentLocation()
-                
-                Log.d("IRIS_WORKER", "2. Fetching weather for ${location.latitude}, ${location.longitude}")
-                val weatherInfo = weatherRepository.getCurrentWeather(location)
-                
-                currentSunrise = weatherInfo.sunrise
-                currentSunset = weatherInfo.sunset
-                detectedWeather = weatherInfo.weather
+        mutex.withLock {
+            Log.d("IRIS_WORKER", "🚀 Starting ApplyDynamicWallpaper process...")
+            val config = preferencesRepository.getWallpaperConfig(packId)
+            
+            // OPTIMIZATION: Check for weather-independent rules FIRST
+            val now = java.time.LocalDateTime.now()
+            val timeKey = "%02d:%02d".format(now.hour, now.minute)
+            val dayName = now.dayOfWeek.name.lowercase()
+            
+            val hasFixedTime = config.fixedTimeRules.containsKey(timeKey) || 
+                              config.fixedTimeRules.containsKey("$timeKey-1") || 
+                              config.fixedTimeRules.containsKey("$timeKey-2")
+            
+            val hasDailyMatch = config.dailyRules.containsKey(dayName) || 
+                               config.dailyRules.containsKey("$dayName-1") || 
+                               config.dailyRules.containsKey("$dayName-2")
 
-                Log.d("IRIS_WORKER", "✅ Weather detected: $detectedWeather")
-                
-                // Save last known weather for UI
-                preferencesRepository.saveLastWeather(detectedWeather)
-                
-            } catch (e: Exception) {
-                Log.e("IRIS_WORKER", "❌ Error fetching location/weather: ${e.message}", e)
+            var detectedWeather: com.andyl.iris.domain.model.Weather? = null
+            var currentSunrise: String? = null
+            var currentSunset: String? = null
+
+            // Only fetch weather if we DON'T have an overriding fixed/daily rule 
+            // OR if weather is actually enabled in this pack.
+            if (!hasFixedTime && !hasDailyMatch && config.enabledWeathers.isNotEmpty()) {
+                try {
+                    Log.d("IRIS_WORKER", "1. Fetching location for weather-based update...")
+                    val location = locationRepository.getCurrentLocation()
+                    val weatherInfo = weatherRepository.getCurrentWeather(location)
+                    
+                    currentSunrise = weatherInfo.sunrise
+                    currentSunset = weatherInfo.sunset
+                    detectedWeather = weatherInfo.weather
+                    
+                    Log.d("IRIS_WORKER", "✅ Weather detected: $detectedWeather")
+                    preferencesRepository.saveLastWeather(detectedWeather)
+                } catch (e: Exception) {
+                    Log.e("IRIS_WORKER", "❌ Weather fetch failed: ${e.message}")
+                }
+            } else {
+                Log.d("IRIS_WORKER", "⏩ Skipping weather fetch (Fixed: $hasFixedTime, Daily: $hasDailyMatch, Enabled: ${config.enabledWeathers.size})")
             }
-        }
 
-        val timeOfDay = detectTimeOfDayUseCase(currentSunrise, currentSunset)
-        Log.d("IRIS_WORKER", "3. Time of day: $timeOfDay (Sunrise: $currentSunrise, Sunset: $currentSunset)")
+            val timeOfDay = detectTimeOfDayUseCase(currentSunrise, currentSunset)
+            val finalWeather = if (detectedWeather != null && config.enabledWeathers.contains(detectedWeather)) {
+                detectedWeather
+            } else null
 
-        // Check if detected weather is enabled in the current pack
-        val finalWeather = if (detectedWeather != null && config.enabledWeathers.contains(detectedWeather)) {
-            detectedWeather
-        } else {
-            Log.d("IRIS_WORKER", "⚠️ Weather $detectedWeather not enabled or null, using time-only logic.")
-            null
-        }
+            preferencesRepository.saveLastUpdateTime(System.currentTimeMillis())
 
-        preferencesRepository.saveLastUpdateTime(System.currentTimeMillis())
+            val rulesToApply = resolveWallpaperUseCase(finalWeather, timeOfDay, config)
+            Log.d("IRIS_WORKER", "4. Rules to apply: ${rulesToApply.size}")
 
-        val rulesToApply = resolveWallpaperUseCase(finalWeather, timeOfDay, config)
-        Log.d("IRIS_WORKER", "4. Rules to apply: ${rulesToApply.size}")
-
-        if (rulesToApply.isNotEmpty()) {
-            rulesToApply.forEach { rule ->
-                if (rule.wallpaperId.value.isNotEmpty()) {
-                    Log.d("IRIS_WORKER", "Applying wallpaper: ${rule.wallpaperId.value} with mode ${rule.scaleMode}")
-                    val result = wallpaperRepository.applyWallpaper(
-                        wallpaperId = rule.wallpaperId,
-                        scaleMode = rule.scaleMode,
-                        target = rule.target,
-                        cropX = rule.cropX,
-                        cropY = rule.cropY,
-                        cropScale = rule.cropScale
-                    )
-                    if (result.isSuccess) {
-                        Log.d("IRIS_WORKER", "✅ SUCCESS!")
-                    } else {
-                        Log.e("IRIS_WORKER", "❌ FAILED: ${result.exceptionOrNull()?.message}")
+            if (rulesToApply.isNotEmpty()) {
+                rulesToApply.forEach { rule ->
+                    if (rule.wallpaperId.value.isNotEmpty()) {
+                        wallpaperRepository.applyWallpaper(
+                            wallpaperId = rule.wallpaperId,
+                            scaleMode = rule.scaleMode,
+                            target = rule.target,
+                            cropX = rule.cropX,
+                            cropY = rule.cropY,
+                            cropScale = rule.cropScale
+                        )
                     }
                 }
             }

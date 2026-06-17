@@ -36,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.andyl.iris.R
 import com.andyl.iris.domain.model.ImageResult
 import com.andyl.iris.ui.searchscreen.components.DownloadStatusSection
 import com.andyl.iris.ui.searchscreen.components.LocalImageThumbnail
@@ -80,9 +81,14 @@ fun SearchScreen(
         launcher.launch(permission)
     }
 
-    LaunchedEffect(state.error) {
+    LaunchedEffect(state.error, state.successMessage) {
         state.error?.let {
             snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
+        }
+        state.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearMessages()
         }
     }
 
@@ -181,7 +187,7 @@ fun SearchScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 placeholder = { 
                                     Text(
-                                        stringResource(com.andyl.iris.R.string.search_hint),
+                                        stringResource(R.string.search_hint),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                     ) 
@@ -262,7 +268,7 @@ fun SearchScreen(
                                 viewModel.setTab(0) 
                                 viewModel.onSearchQueryChanged("")
                             },
-                            text = { Text("Local", fontWeight = FontWeight.Bold) }
+                            text = { Text(stringResource(R.string.tab_local), fontWeight = FontWeight.Bold) }
                         )
                         Tab(
                             selected = state.currentTab == 1,
@@ -270,7 +276,7 @@ fun SearchScreen(
                                 viewModel.setTab(1) 
                                 viewModel.onSearchQueryChanged("")
                             },
-                            text = { Text("Favorites", fontWeight = FontWeight.Bold) }
+                            text = { Text(stringResource(R.string.tab_favorites), fontWeight = FontWeight.Bold) }
                         )
                         Tab(
                             selected = state.currentTab == 2 || state.currentPack != null,
@@ -279,7 +285,7 @@ fun SearchScreen(
                                 viewModel.onSearchQueryChanged("")
                                 viewModel.selectPack(null)
                             },
-                            text = { Text("Packs", fontWeight = FontWeight.Bold) }
+                            text = { Text(stringResource(R.string.tab_packs), fontWeight = FontWeight.Bold) }
                         )
                     }
                 }
@@ -318,7 +324,7 @@ fun SearchScreen(
                             0 -> { // LOCAL GALLERY
                                 if (state.localImages.isEmpty()) {
                                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                        Text("No images found on device", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(stringResource(R.string.no_images_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 } else {
                                     LazyVerticalGrid(
@@ -351,7 +357,7 @@ fun SearchScreen(
                             1 -> { // FAVORITES
                                 if (state.favorites.isEmpty()) {
                                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                        Text("No favorites yet", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(stringResource(R.string.no_favorites_yet), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 } else {
                                     LazyVerticalGrid(
@@ -478,7 +484,7 @@ fun SearchScreen(
             if (state.showPackSelectionDialog) {
                 AlertDialog(
                     onDismissRequest = { viewModel.dismissPackSelection() },
-                    title = { Text("Select Target Pack", fontWeight = FontWeight.Black) },
+                    title = { Text(stringResource(R.string.select_target_pack), fontWeight = FontWeight.Black) },
                     text = {
                         LazyColumn(modifier = Modifier.padding(top = 8.dp)) {
                             items(state.availablePacks) { pack ->
@@ -516,7 +522,7 @@ fun SearchScreen(
                     confirmButton = {},
                     dismissButton = {
                         TextButton(onClick = { viewModel.dismissPackSelection() }) {
-                            Text("Cancel", color = MaterialTheme.colorScheme.error)
+                            Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.error)
                         }
                     },
                     shape = RoundedCornerShape(32.dp),
@@ -541,6 +547,7 @@ fun SearchScreen(
                     WallpaperDetailSheet(
                         image = image,
                         isFavorite = state.favorites.any { it.uri == image.urlFull },
+                        isLoading = state.isLoading,
                         onToggleFavorite = { viewModel.toggleFavorite(image) },
                         onDismiss = { viewModel.selectImage(null) },
                         onConfirm = { _, target, scaleMode, cropX, cropY, cropScale ->

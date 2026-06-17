@@ -198,7 +198,7 @@ private fun WallpaperPreviewImage(
             .crossfade(300)
             .size(200, 300)
             .precision(Precision.EXACT)
-            .bitmapConfig(android.graphics.Bitmap.Config.RGB_565)
+            .bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
             .build(),
         contentDescription = null,
         modifier = modifier,

@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.andyl.iris.R
 import com.andyl.iris.domain.mapper.toKey
 import com.andyl.iris.domain.model.PackType
 import com.andyl.iris.domain.model.PredefinedPacks
@@ -247,7 +248,7 @@ fun PackDetailList(
                 }
 
                 Text(
-                    "Pro tip: Long press to merge into an existing configuration.",
+                    text = stringResource(R.string.pro_tip_merge),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier.padding(top = 12.dp).align(Alignment.CenterHorizontally)
@@ -319,11 +320,11 @@ fun PackDetailList(
                         )
                         
                         val statusText = when {
-                            status.uriBoth != null -> "Configured (Home & Lock)"
-                            status.uriHome != null && status.uriLock != null -> "Configured (Home & Lock)"
-                            status.uriHome != null -> "Home Screen Only"
-                            status.uriLock != null -> "Lock Screen Only"
-                            else -> "Tap to customize"
+                            status.uriBoth != null -> stringResource(R.string.configured_both)
+                            status.uriHome != null && status.uriLock != null -> stringResource(R.string.configured_both)
+                            status.uriHome != null -> stringResource(R.string.home_only_label)
+                            status.uriLock != null -> stringResource(R.string.lock_only_label)
+                            else -> stringResource(R.string.tap_to_customize)
                         }
                         
                         Text(
@@ -382,7 +383,7 @@ fun PackDetailList(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "Add custom time override",
+                            text = stringResource(R.string.add_custom_time_override),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.secondary

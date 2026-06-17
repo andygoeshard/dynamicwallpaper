@@ -13,6 +13,7 @@ data class SearchUiState(
     val previewImages: List<String?> = emptyList(), 
     val previewFullUrls: List<String?> = emptyList(), 
     val error: String? = null,
+    val successMessage: String? = null,
 
     val currentPack: SuggestedPack? = null,
     val activeSlot: WallpaperSlot? = null,

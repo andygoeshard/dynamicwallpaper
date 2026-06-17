@@ -17,9 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.andyl.iris.R
 import com.andyl.iris.domain.model.ImageResult
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -71,7 +73,7 @@ fun WallpaperSearchResultItem(
                 ) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorite",
+                        contentDescription = stringResource(R.string.favorite),
                         tint = if (isFavorite) Color.Red else Color.White,
                         modifier = Modifier.size(20.dp)
                     )
@@ -99,12 +101,12 @@ fun WallpaperSearchResultItem(
 
             Column {
                 Text(
-                    text = "Apply to",
+                    text = stringResource(R.string.apply_to).trim(),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.ExtraBold
                 )
                 Text(
-                    text = "Choose destination screens",
+                    text = stringResource(R.string.choose_destination),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
@@ -116,9 +118,9 @@ fun WallpaperSearchResultItem(
                     .padding(vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                TargetOption("Both", isSelected = selectedTarget == 3, modifier = Modifier.weight(1f)) { selectedTarget = 3 }
-                TargetOption("Home", isSelected = selectedTarget == 1, modifier = Modifier.weight(1f)) { selectedTarget = 1 }
-                TargetOption("Lock", isSelected = selectedTarget == 2, modifier = Modifier.weight(1f)) { selectedTarget = 2 }
+                TargetOption(stringResource(R.string.target_both), isSelected = selectedTarget == 3, modifier = Modifier.weight(1f)) { selectedTarget = 3 }
+                TargetOption(stringResource(R.string.target_home), isSelected = selectedTarget == 1, modifier = Modifier.weight(1f)) { selectedTarget = 1 }
+                TargetOption(stringResource(R.string.target_lock), isSelected = selectedTarget == 2, modifier = Modifier.weight(1f)) { selectedTarget = 2 }
             }
 
             HorizontalDivider(
@@ -127,7 +129,7 @@ fun WallpaperSearchResultItem(
             )
 
             Text(
-                text = "Scaling",
+                text = stringResource(R.string.scaling),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -156,7 +158,7 @@ fun WallpaperSearchResultItem(
                 Icon(Icons.Default.Check, null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(12.dp))
                 Text(
-                    "Set as Wallpaper", 
+                    stringResource(R.string.set_as_wallpaper),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )

@@ -31,8 +31,11 @@ class LocationRepositoryImpl(
         }
 
         val freshLocation = try {
-            dataSource.getLastKnownLocation()
+            kotlinx.coroutines.withTimeout(5000) {
+                dataSource.getLastKnownLocation()
+            }
         } catch (e: Exception) {
+            Log.e("LocationRepo", "Location fetch timeout or error, using last known", e)
             preferencesRepository.getLastLocation() ?: GeoLocation(-34.6037, -58.3816)
         }
 

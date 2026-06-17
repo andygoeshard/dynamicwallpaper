@@ -95,7 +95,7 @@ class DynamicWallpaperViewModel(
 
             is WallpaperEvent.RequestExactAlarmPermission -> requestExactAlarmPermission(event.context)
 
-            is WallpaperEvent.SetDailyWallpaper -> setDailyWallpaper(event.dayName, event.uri, event.target)
+            is WallpaperEvent.SetDailyWallpaper -> setDailyWallpaper(event.context, event.dayName, event.uri, event.target)
 
             is WallpaperEvent.SetFixedTimeWallpaper -> setFixedTimeWallpaper(event.context, event.time, event.uri, event.target)
 
@@ -131,7 +131,13 @@ class DynamicWallpaperViewModel(
             is WallpaperEvent.OnToggleGps -> toggleGps(event.enabled)
 
             WallpaperEvent.OnManualRefresh -> onManualRefresh()
+
+            WallpaperEvent.ClearMessages -> clearMessages()
         }
+    }
+
+    private fun clearMessages() {
+        _uiState.update { it.copy(error = null, successMessage = null) }
     }
 
     private fun onManualRefresh() {
@@ -210,7 +216,7 @@ class DynamicWallpaperViewModel(
                         .onFailure { 
                             Log.e("IRIS_VM", "City search failed", it)
                             _searchResults.value = emptyList() 
-                            _uiState.update { it.copy(isSearchingCity = false) }
+                            _uiState.update { it.copy(isSearchingCity = false, error = "City search failed. Check your connection.") }
                         }
                 }
         }
@@ -229,6 +235,8 @@ class DynamicWallpaperViewModel(
         }
     }
 
+    private var applyJob: kotlinx.coroutines.Job? = null
+
     private fun applyWallpaper() {
         val state = _uiState.value
 
@@ -237,12 +245,25 @@ class DynamicWallpaperViewModel(
             return
         }
 
-        viewModelScope.launch {
+        applyJob?.cancel()
+        applyJob = viewModelScope.launch {
             val currentEditingId = state.editingPackId
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isLoading = true, error = null, successMessage = null) }
 
             runCatching {
-                saveCurrentConfigToRepo().join()
+                // Save directly instead of launch/join to avoid coroutine overhead
+                val config = WallpaperConfig(
+                    id = state.editingPackId,
+                    name = state.packName,
+                    rules = state.rules.values.toList(),
+                    dailyRules = state.dailyRules,
+                    fixedTimeRules = state.fixedRules,
+                    enabledWeathers = state.enabledWeathers,
+                    activePackId = state.activePackId,
+                    scaleMode = state.scaleMode
+                )
+                setWallpaperRuleUseCase(config)
+                
                 changeActivePackUseCase(currentEditingId)
                 applyDynamicWallpaperUseCase(currentEditingId)
             }
@@ -255,12 +276,15 @@ class DynamicWallpaperViewModel(
                             isLoading = false,
                             isApplied = true,
                             activePackId = currentEditingId,
-                            availablePacks = updatedPacks
+                            availablePacks = updatedPacks,
+                            successMessage = "Changes applied successfully!"
                         )
                     }
                 }
                 .onFailure { t ->
-                    _uiState.update { it.copy(isLoading = false, error = t.message) }
+                    if (t !is kotlinx.coroutines.CancellationException) {
+                        _uiState.update { it.copy(isLoading = false, error = t.message ?: "Failed to apply changes") }
+                    }
                 }
         }
     }
@@ -456,7 +480,7 @@ class DynamicWallpaperViewModel(
     private fun formatKey(weather: Weather, time: TimeOfDay, target: Int) =
         "${weather.toKey()} - $time - $target"
 
-    private fun setDailyWallpaper(dayName: String, uri: String, target: Int) {
+    private fun setDailyWallpaper(context: Context, dayName: String, uri: String, target: Int) {
         _uiState.update { currentState ->
             val newDailyRules = currentState.dailyRules.toMutableMap()
 
@@ -472,6 +496,9 @@ class DynamicWallpaperViewModel(
             currentState.copy(dailyRules = newDailyRules)
         }
         saveCurrentConfigToRepo()
+        
+        // Ensure midnight refresh is scheduled if we have daily rules
+        AlarmHelper.scheduleMidnightRefresh(context)
         
         val state = _uiState.value
         if (state.editingPackId == state.activePackId) {

@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
+import android.graphics.Paint
 import android.util.Log
 import com.andyl.iris.domain.model.WallpaperId
 import com.andyl.iris.domain.repository.WallpaperRepository
@@ -13,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.core.net.toUri
 import com.andyl.iris.domain.model.ScaleMode
-import androidx.core.graphics.scale
 import androidx.core.graphics.createBitmap
 import java.io.File
 import java.io.InputStream
@@ -63,7 +63,9 @@ class WallpaperRepositoryImpl(
             }
 
             // 2. PRE-DECODE FOR SIZE
-            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            val options = BitmapFactory.Options().apply { 
+                inJustDecodeBounds = true 
+            }
             getInputStream().use {
                 BitmapFactory.decodeStream(it, null, options)
             }
@@ -71,6 +73,7 @@ class WallpaperRepositoryImpl(
             // Important: Manual crop needs full resolution if possible
             options.inSampleSize = if (cropScale != null) 1 else calculateInSampleSize(options, screenWidth.toInt(), screenHeight.toInt())
             options.inJustDecodeBounds = false
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888
 
             // 3. FULL DECODE AND SCALE
             getInputStream().use { input ->
@@ -95,6 +98,7 @@ class WallpaperRepositoryImpl(
                 if (finalBitmap != originalBitmap) {
                     originalBitmap.recycle()
                 }
+                finalBitmap.recycle() // Recycle the final one too after sending to manager
             }
         }.onFailure { e ->
             Log.e("IRIS_WALLPAPER", ">>> FATAL ERROR: ${e.message}", e)
@@ -121,14 +125,17 @@ class WallpaperRepositoryImpl(
                 }
             }
 
-            val options = BitmapFactory.Options().apply { inSampleSize = 1 }
+            val options = BitmapFactory.Options().apply { 
+                inSampleSize = 1 
+                inPreferredConfig = Bitmap.Config.ARGB_8888
+            }
             getInputStream().use { input ->
                 val original = BitmapFactory.decodeStream(input, null, options) ?: throw Exception("Decode fail")
                 val cropped = applyManualCrop(original, screenWidth, screenHeight, cropX, cropY, cropScale)
                 
                 val outputFile = File(context.filesDir, "iris_cropped_${System.currentTimeMillis()}.jpg")
                 outputFile.outputStream().use { out ->
-                    cropped.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                    cropped.compress(Bitmap.CompressFormat.JPEG, 100, out)
                 }
                 
                 if (cropped != original) cropped.recycle()
@@ -137,6 +144,12 @@ class WallpaperRepositoryImpl(
                 outputFile.absolutePath
             }
         }
+    }
+
+    private val highQualityPaint = Paint().apply {
+        isAntiAlias = true
+        isFilterBitmap = true
+        isDither = true
     }
 
     private fun applyManualCrop(source: Bitmap, targetW: Float, targetH: Float, cropX: Float, cropY: Float, cropScale: Float): Bitmap {
@@ -155,10 +168,10 @@ class WallpaperRepositoryImpl(
             postTranslate(cropX, cropY)
         }
 
-        val result = createBitmap(targetW.toInt(), targetH.toInt())
+        val result = createBitmap(targetW.toInt(), targetH.toInt(), Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
         canvas.drawColor(android.graphics.Color.BLACK)
-        canvas.drawBitmap(source, matrix, null)
+        canvas.drawBitmap(source, matrix, highQualityPaint)
         return result
     }
 
@@ -170,13 +183,18 @@ class WallpaperRepositoryImpl(
         val dx = (targetW - sourceW * scale) / 2f
         val dy = (targetH - sourceH * scale) / 2f
         matrix.postTranslate(dx, dy)
-        val result = createBitmap(targetW.toInt(), targetH.toInt())
-        Canvas(result).drawBitmap(source, matrix, null)
+        val result = createBitmap(targetW.toInt(), targetH.toInt(), Bitmap.Config.ARGB_8888)
+        Canvas(result).drawBitmap(source, matrix, highQualityPaint)
         return result
     }
 
     private fun stretchFill(source: Bitmap, targetW: Float, targetH: Float): Bitmap {
-        return source.scale(targetW.toInt(), targetH.toInt())
+        val result = createBitmap(targetW.toInt(), targetH.toInt(), Bitmap.Config.ARGB_8888)
+        val matrix = Matrix().apply { 
+            setScale(targetW / source.width, targetH / source.height)
+        }
+        Canvas(result).drawBitmap(source, matrix, highQualityPaint)
+        return result
     }
 
     private fun centerFit(source: Bitmap, targetW: Float, targetH: Float): Bitmap {
@@ -187,8 +205,8 @@ class WallpaperRepositoryImpl(
         val dx = (targetW - sourceW * scale) / 2f
         val dy = (targetH - sourceH * scale) / 2f
         matrix.postTranslate(dx, dy)
-        val result = createBitmap(targetW.toInt(), targetH.toInt())
-        Canvas(result).drawBitmap(source, matrix, null)
+        val result = createBitmap(targetW.toInt(), targetH.toInt(), Bitmap.Config.ARGB_8888)
+        Canvas(result).drawBitmap(source, matrix, highQualityPaint)
         return result
     }
 

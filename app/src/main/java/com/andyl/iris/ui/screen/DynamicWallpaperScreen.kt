@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -82,9 +83,14 @@ fun DynamicWallpaperScreen(
     var showPermissionDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(state.error) {
+    LaunchedEffect(state.error, state.successMessage) {
         state.error?.let {
             snackbarHostState.showSnackbar(it)
+            viewModel.onEvent(WallpaperEvent.ClearMessages)
+        }
+        state.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onEvent(WallpaperEvent.ClearMessages)
         }
     }
 
@@ -206,7 +212,15 @@ fun DynamicWallpaperScreen(
                                 enabled = !state.isLoading
                             ) {
                                 if (state.isLoading) {
-                                    IrisLoadingLogo()
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(24.dp),
+                                            color = MaterialTheme.colorScheme.onPrimary,
+                                            strokeWidth = 2.dp
+                                        )
+                                        Spacer(Modifier.width(12.dp))
+                                        Text(stringResource(R.string.applying_changes), fontWeight = FontWeight.ExtraBold)
+                                    }
                                 } else {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.CheckCircle, contentDescription = null)

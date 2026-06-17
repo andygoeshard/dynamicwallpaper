@@ -41,9 +41,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -66,6 +70,18 @@ fun WallpaperConfigScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
     val focusManager = LocalFocusManager.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.error, uiState.successMessage) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onEvent(WallpaperEvent.ClearMessages)
+        }
+        uiState.successMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onEvent(WallpaperEvent.ClearMessages)
+        }
+    }
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -73,6 +89,7 @@ fun WallpaperConfigScreen(
 
     Scaffold(
         modifier = Modifier.statusBarsPadding().navigationBarsPadding(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.cfg_screen_title)) },
@@ -118,23 +135,46 @@ fun WallpaperConfigScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Live Status",
+                        stringResource(R.string.live_status),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     
-                    IconButton(onClick = { viewModel.onEvent(WallpaperEvent.OnManualRefresh) }) {
-                        Icon(Icons.Default.Refresh, "Refresh", tint = MaterialTheme.colorScheme.primary)
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                    } else {
+                        IconButton(onClick = { viewModel.onEvent(WallpaperEvent.OnManualRefresh) }) {
+                            Icon(Icons.Default.Refresh, stringResource(R.string.refresh), tint = MaterialTheme.colorScheme.primary)
+                        }
                     }
                 }
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 ) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Current Weather: ${uiState.currentWeather?.javaClass?.simpleName ?: "Unknown"}", style = MaterialTheme.typography.bodyMedium)
-                        Text("Last Update: ${uiState.lastUpdateTime}", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            text = "Current Weather: ${uiState.currentWeather?.javaClass?.simpleName ?: "Unknown"}", 
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Last Update: ${uiState.lastUpdateTime}", 
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (uiState.isLoading) {
+                            Text(
+                                stringResource(R.string.applying_changes), 
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -152,11 +192,12 @@ fun WallpaperConfigScreen(
                 )
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Auto GPS", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.auto_gps), style = MaterialTheme.typography.labelMedium)
                     Spacer(Modifier.width(8.dp))
                     Switch(
                         checked = uiState.useGps,
-                        onCheckedChange = { viewModel.onEvent(WallpaperEvent.OnToggleGps(it)) }
+                        onCheckedChange = { viewModel.onEvent(WallpaperEvent.OnToggleGps(it)) },
+                        enabled = !uiState.isLoading
                     )
                 }
             }
@@ -170,7 +211,7 @@ fun WallpaperConfigScreen(
                         Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            text = "Using GPS (Active Tracking)",
+                            text = stringResource(R.string.gps_active),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -180,7 +221,10 @@ fun WallpaperConfigScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     ) {
                         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.LocationOn, null)
@@ -199,7 +243,8 @@ fun WallpaperConfigScreen(
                         value = searchQuery,
                         onValueChange = { viewModel.onSearchQueryChanged(it) },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Search city (e.g. London)") },
+                        placeholder = { Text(stringResource(R.string.search_city_placeholder)) },
+                        enabled = !uiState.isLoading,
                         leadingIcon = { 
                             if (uiState.isSearchingCity) {
                                 CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
@@ -210,7 +255,7 @@ fun WallpaperConfigScreen(
                         trailingIcon = {
                             if (searchQuery.isNotEmpty()) {
                                 IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
-                                    Icon(Icons.Default.Close, "Clear")
+                                    Icon(Icons.Default.Close, stringResource(R.string.clear))
                                 }
                             }
                         },
@@ -248,9 +293,10 @@ fun WallpaperConfigScreen(
                         locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !uiState.isLoading
                 ) {
-                    Text("Refresh GPS Permissions")
+                    Text(stringResource(R.string.refresh_gps))
                 }
             }
         }

@@ -18,7 +18,7 @@ sealed interface WallpaperEvent{
     data class OnChangePack(val packId: String, val direction: Int) : WallpaperEvent
     data class OnRenamePack(val newName: String): WallpaperEvent
     data class OnToggleWeather(val weather: Weather): WallpaperEvent
-    data class SetDailyWallpaper(val dayName: String, val uri: String, val target: Int): WallpaperEvent
+    data class SetDailyWallpaper(val context: Context, val dayName: String, val uri: String, val target: Int): WallpaperEvent
     data class SetFixedTimeWallpaper(val context: Context, val time: String, val uri: String, val target: Int): WallpaperEvent
     data class SetWallpaperRule(
         val weather: Weather, 
@@ -41,4 +41,5 @@ sealed interface WallpaperEvent{
     object OnConfirmFirstTime : WallpaperEvent
     data class OnToggleGps(val enabled: Boolean) : WallpaperEvent
     object OnManualRefresh : WallpaperEvent
+    object ClearMessages : WallpaperEvent
 }
