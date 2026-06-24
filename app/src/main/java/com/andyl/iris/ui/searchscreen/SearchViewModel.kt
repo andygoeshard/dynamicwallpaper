@@ -53,12 +53,30 @@ class SearchViewModel(
     val searchQuery: StateFlow<String> = _searchQuery
 
     private val packPreviewCache = mutableMapOf<String, Pair<List<String?>, List<String?>>>()
+    private val packHeroCache = MutableStateFlow<Map<String, String>>(emptyMap())
+    val packHeroes: StateFlow<Map<String, String>> = packHeroCache
 
     init {
         setupSearchDebounce()
         observeDownloads()
         observeFavorites()
         loadLocalImages()
+        preloadPackHeroes()
+    }
+
+    private fun preloadPackHeroes() {
+        viewModelScope.launch {
+            PredefinedPacks.packs.forEach { pack ->
+                if (packHeroCache.value[pack.id] == null) {
+                    launch {
+                        val res = imageRepository.getRandomImages(pack.categoryQuery, count = 1).getOrNull()
+                        res?.firstOrNull()?.let { img ->
+                            packHeroCache.update { it + (pack.id to img.urlSmall) }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun refreshLocalImages() {

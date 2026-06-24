@@ -31,6 +31,7 @@ import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.model.WallpaperRule
+import com.andyl.iris.ui.components.CyberpunkLoadingBar
 import com.andyl.iris.ui.searchscreen.SuggestedPack
 
 private data class SlotStatus(
@@ -232,13 +233,14 @@ fun PackDetailList(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                strokeWidth = 2.dp
+                            CyberpunkLoadingBar(
+                                progress = null,
+                                modifier = Modifier.width(100.dp),
+                                label = null,
+                                barHeight = 4.dp
                             )
                             Spacer(Modifier.width(12.dp))
-                            Text(stringResource(com.andyl.iris.R.string.processing), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Text(stringResource(com.andyl.iris.R.string.processing).uppercase(), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
                         } else {
                             Icon(Icons.Default.Add, null, modifier = Modifier.size(24.dp))
                             Spacer(Modifier.width(12.dp))

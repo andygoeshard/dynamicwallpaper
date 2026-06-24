@@ -139,4 +139,20 @@
     <string name="badge_weekly">Weekly</string>
     <string name="badge_mix">Mix</string>
     <string name="badge_weather">Weather</string>
+
+    <string name="rating_title">Do you like Iris?</string>
+    <string name="rating_description">If you enjoy using the app, please consider giving us a rating! It helps us a lot.</string>
+    <string name="rating_confirm">Rate now</string>
+    <string name="rating_cancel">Maybe later</string>
+
+    <string name="cfg_status_last_update">Last update: %1$s</string>
+    <string name="cfg_status_next_update">Next update: ~%1$s</string>
+    <string name="cfg_status_weather_unknown">Waiting for weather data...</string>
+    <string name="cfg_battery_title">Battery &amp; Performance</string>
+    <string name="cfg_battery_desc">Android may stop background updates to save battery. For better results, allow Iris to run in the background.</string>
+    <string name="cfg_battery_button">Optimize Battery</string>
+    <string name="cfg_about_title">About Iris</string>
+    <string name="cfg_about_version">Version 1.7</string>
+    <string name="cfg_about_feedback">Send Feedback</string>
+    <string name="cfg_about_privacy">Privacy Policy</string>
 </resources>

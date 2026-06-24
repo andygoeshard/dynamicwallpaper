@@ -26,7 +26,7 @@ data class SearchUiState(
 
     val favorites: List<FavoriteImage> = emptyList(),
     val localImages: List<ImageResult> = emptyList(),
-    val currentTab: Int = 0, // 0: Local, 1: Favorites, 2: Packs, 3: Search Results
+    val currentTab: Int = 2, // 0: Local, 1: Favorites, 2: Packs, 3: Search Results
     val selectedImage: ImageResult? = null
 )
 

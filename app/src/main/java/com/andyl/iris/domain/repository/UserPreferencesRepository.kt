@@ -28,4 +28,9 @@ interface UserPreferencesRepository {
     suspend fun getLastWeather(): Weather?
     suspend fun saveLastUpdateTime(time: Long)
     suspend fun getLastUpdateTime(): Long
+
+    suspend fun incrementAppSuccessCount()
+    suspend fun getAppSuccessCount(): Int
+    suspend fun setRated(rated: Boolean)
+    suspend fun hasRated(): Boolean
 }

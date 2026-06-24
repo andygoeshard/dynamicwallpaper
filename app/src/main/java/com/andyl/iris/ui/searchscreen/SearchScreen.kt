@@ -44,6 +44,8 @@ import com.andyl.iris.ui.searchscreen.components.PackDetailList
 import com.andyl.iris.ui.searchscreen.components.SuggestedPacksList
 import com.andyl.iris.ui.searchscreen.components.WallpaperSearchResultItem
 import com.andyl.iris.ui.searchscreen.components.WallpaperDetailSheet
+import com.andyl.iris.ui.components.CyberpunkBox
+import com.andyl.iris.ui.components.CyberpunkLoadingBar
 import org.koin.androidx.compose.koinViewModel
 
 import com.andyl.iris.domain.model.DownloadStatus
@@ -174,22 +176,21 @@ fun SearchScreen(
                         Surface(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(28.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                         ) {
                             OutlinedTextField(
                                 value = searchQuery,
                                 onValueChange = {
                                     viewModel.onSearchQueryChanged(it)
-                                    if (it.isEmpty() && state.activeSlot == null) {
-                                        // No action needed here usually
-                                    }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                                 placeholder = { 
                                     Text(
-                                        stringResource(R.string.search_hint),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                        stringResource(R.string.search_hint).uppercase(),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                        letterSpacing = 1.sp
                                     ) 
                                 },
                                 leadingIcon = { 
@@ -291,17 +292,6 @@ fun SearchScreen(
                 }
 
                 Box(modifier = Modifier.weight(1f)) {
-                    if (state.isLoading) {
-                        LinearProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 32.dp)
-                                .align(Alignment.TopCenter),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                        )
-                    }
-
                     AnimatedContent(
                         targetState = when {
                             state.searchResults.isNotEmpty() -> 3 // Search results always take over
@@ -395,9 +385,13 @@ fun SearchScreen(
                             }
 
                             2 -> { // PACKS LIST
-                                SuggestedPacksList { pack ->
-                                    viewModel.selectPack(pack)
-                                }
+                                val heroes by viewModel.packHeroes.collectAsState()
+                                SuggestedPacksList(
+                                    heroes = heroes,
+                                    onPackClick = { pack ->
+                                        viewModel.selectPack(pack)
+                                    }
+                                )
                             }
 
                             3 -> { // SEARCH RESULTS
@@ -478,6 +472,29 @@ fun SearchScreen(
                             }
                         }
                     }
+                }
+            }
+
+            // Floating Loading Bar at the bottom
+            AnimatedVisibility(
+                visible = state.isLoading,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 32.dp, start = 16.dp, end = 16.dp),
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
+            ) {
+                CyberpunkBox(
+                    borderColor = MaterialTheme.colorScheme.primary,
+                    useRounded = true,
+                    modifier = Modifier.fillMaxWidth(0.9f)
+                ) {
+                    CyberpunkLoadingBar(
+                        progress = null,
+                        label = "SYNCING WITH CORE...",
+                        barHeight = 6.dp,
+                        useRounded = true
+                    )
                 }
             }
 

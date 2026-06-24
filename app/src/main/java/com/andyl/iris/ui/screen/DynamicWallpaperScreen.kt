@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
@@ -56,7 +57,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -64,9 +67,11 @@ import com.andyl.iris.R
 import com.andyl.iris.ui.components.DaySelectionSection
 import com.andyl.iris.ui.components.FixedTimeSection
 import com.andyl.iris.ui.components.BoxContainer
-import com.andyl.iris.ui.components.IrisLoadingLogo
+import com.andyl.iris.ui.components.CyberpunkBox
+import com.andyl.iris.ui.components.CyberpunkLoadingBar
 import com.andyl.iris.ui.components.IrisLogo
 import com.andyl.iris.ui.components.PackSelectorSection
+import com.andyl.iris.ui.components.RatingDialog
 import com.andyl.iris.ui.components.WeatherSection
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
@@ -156,6 +161,13 @@ fun DynamicWallpaperScreen(
         )
     }
 
+    if (state.showRatingDialog) {
+        RatingDialog(
+            onDismiss = { viewModel.onEvent(WallpaperEvent.OnDismissRatingDialog) },
+            onRate = { stars -> viewModel.onEvent(WallpaperEvent.OnRateApp(stars)) }
+        )
+    }
+
     Scaffold(
         modifier = Modifier.statusBarsPadding(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -194,39 +206,39 @@ fun DynamicWallpaperScreen(
                     enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
                     exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
                 ) {
-                    Surface(
-                        tonalElevation = 0.dp,
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                    CyberpunkBox(
                         modifier = Modifier
                             .padding(16.dp)
                             .navigationBarsPadding()
-                            .clip(RoundedCornerShape(24.dp))
+                            .fillMaxWidth(),
+                        borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        useRounded = true
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Button(
-                                onClick = { viewModel.onEvent(WallpaperEvent.OnApplyWallpaper) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                enabled = !state.isLoading
-                            ) {
-                                if (state.isLoading) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp),
-                                            color = MaterialTheme.colorScheme.onPrimary,
-                                            strokeWidth = 2.dp
-                                        )
-                                        Spacer(Modifier.width(12.dp))
-                                        Text(stringResource(R.string.applying_changes), fontWeight = FontWeight.ExtraBold)
-                                    }
-                                } else {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.CheckCircle, contentDescription = null)
-                                        Spacer(Modifier.width(8.dp))
-                                        Text(if(state.editingPackId != state.activePackId)stringResource(R.string.activate_package) else stringResource(R.string.apply_wallpaper), fontWeight = FontWeight.ExtraBold)
-                                    }
+                        val btnShape = RoundedCornerShape(16.dp)
+
+                        Button(
+                            onClick = { viewModel.onEvent(WallpaperEvent.OnApplyWallpaper) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = btnShape,
+                            enabled = !state.isLoading
+                        ) {
+                            if (state.isLoading) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        strokeWidth = 2.dp
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(stringResource(R.string.applying_changes), fontWeight = FontWeight.ExtraBold)
+                                }
+                            } else {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(if(state.editingPackId != state.activePackId)stringResource(R.string.activate_package) else stringResource(R.string.apply_wallpaper), fontWeight = FontWeight.ExtraBold)
                                 }
                             }
                         }
@@ -236,8 +248,16 @@ fun DynamicWallpaperScreen(
         }
     ) { padding ->
         if (state.isLoading && state.rules.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                IrisLoadingLogo(modifier = Modifier.size(100.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CyberpunkLoadingBar(
+                    progress = null,
+                    label = "INITIALIZING CORE..."
+                )
             }
         } else {
             Column(

@@ -35,7 +35,10 @@ import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.ui.searchscreen.SuggestedPack
 
 @Composable
-fun SuggestedPacksList(onPackClick: (SuggestedPack) -> Unit) {
+fun SuggestedPacksList(
+    heroes: Map<String, String> = emptyMap(),
+    onPackClick: (SuggestedPack) -> Unit
+) {
     val categories = remember {
         listOf(
             SuggestedPack.Days,
@@ -51,25 +54,25 @@ fun SuggestedPacksList(onPackClick: (SuggestedPack) -> Unit) {
         // --- WEATHER BASED SECTION ---
         item {
             PackSectionHeader(stringResource(R.string.weather_atmosphere), stringResource(R.string.weather_atmosphere_desc))
-            PackHorizontalRow(PredefinedPacks.weatherPacks, onPackClick)
+            PackHorizontalRow(PredefinedPacks.weatherPacks, heroes, onPackClick)
         }
 
         // --- WEEKLY SECTION ---
         item {
             PackSectionHeader(stringResource(R.string.weekly_calendars), stringResource(R.string.weekly_calendars_desc))
-            PackHorizontalRow(PredefinedPacks.weeklyPacks, onPackClick)
+            PackHorizontalRow(PredefinedPacks.weeklyPacks, heroes, onPackClick)
         }
 
         // --- TIME BASED SECTION ---
         item {
             PackSectionHeader(stringResource(R.string.time_overrides), stringResource(R.string.time_overrides_desc))
-            PackHorizontalRow(PredefinedPacks.timePacks, onPackClick)
+            PackHorizontalRow(PredefinedPacks.timePacks, heroes, onPackClick)
         }
 
         // --- RANDOM SECTION ---
         item {
             PackSectionHeader(stringResource(R.string.surprise_random), stringResource(R.string.surprise_random_desc))
-            PackHorizontalRow(PredefinedPacks.randomPacks, onPackClick)
+            PackHorizontalRow(PredefinedPacks.randomPacks, heroes, onPackClick)
         }
 
         // --- MANUAL CONFIGURATION ---
@@ -111,13 +114,17 @@ private fun PackSectionHeader(title: String, subtitle: String) {
 }
 
 @Composable
-private fun PackHorizontalRow(packs: List<PredefinedPack>, onPackClick: (SuggestedPack) -> Unit) {
+private fun PackHorizontalRow(
+    packs: List<PredefinedPack>, 
+    heroes: Map<String, String>,
+    onPackClick: (SuggestedPack) -> Unit
+) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(packs) { pack ->
-            PredefinedPackCard(pack) {
+            PredefinedPackCard(pack, heroes[pack.id]) {
                 onPackClick(SuggestedPack.Predefined(pack.id, pack.name, pack.description))
             }
         }
@@ -127,6 +134,7 @@ private fun PackHorizontalRow(packs: List<PredefinedPack>, onPackClick: (Suggest
 @Composable
 private fun PredefinedPackCard(
     pack: PredefinedPack,
+    heroUrl: String?,
     onClick: () -> Unit
 ) {
     Column(
@@ -144,7 +152,7 @@ private fun PredefinedPackCard(
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 AsyncImage(
-                    model = pack.previewUrl,
+                    model = heroUrl ?: pack.previewUrl,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop

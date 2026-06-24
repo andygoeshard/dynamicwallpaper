@@ -258,6 +258,23 @@ class UserPreferencesRepositoryImpl(
         prefs.getLong(KEY_LAST_UPDATE_TIME, 0L)
     }
 
+    override suspend fun incrementAppSuccessCount() = withContext(ioDispatcher) {
+        val current = prefs.getInt(KEY_SUCCESS_COUNT, 0)
+        prefs.edit { putInt(KEY_SUCCESS_COUNT, current + 1) }
+    }
+
+    override suspend fun getAppSuccessCount(): Int = withContext(ioDispatcher) {
+        prefs.getInt(KEY_SUCCESS_COUNT, 0)
+    }
+
+    override suspend fun setRated(rated: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_HAS_RATED, rated) }
+    }
+
+    override suspend fun hasRated(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_HAS_RATED, false)
+    }
+
     companion object {
         private const val KEY_PACK_DATA = "wallpaper_pack_data"
         private const val KEY_RULES = "wallpaper_rules"
@@ -269,6 +286,8 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_USE_GPS = "use_gps"
         private const val KEY_LAST_WEATHER = "last_weather"
         private const val KEY_LAST_UPDATE_TIME = "last_update_time"
+        private const val KEY_SUCCESS_COUNT = "app_success_count"
+        private const val KEY_HAS_RATED = "has_rated"
     }
 }
 

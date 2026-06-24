@@ -42,4 +42,7 @@ sealed interface WallpaperEvent{
     data class OnToggleGps(val enabled: Boolean) : WallpaperEvent
     object OnManualRefresh : WallpaperEvent
     object ClearMessages : WallpaperEvent
+    object OnDismissRatingDialog : WallpaperEvent
+    data class OnRateApp(val stars: Int) : WallpaperEvent
+    object OnFeedbackClicked : WallpaperEvent
 }

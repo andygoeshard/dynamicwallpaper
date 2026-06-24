@@ -133,6 +133,12 @@ class DynamicWallpaperViewModel(
             WallpaperEvent.OnManualRefresh -> onManualRefresh()
 
             WallpaperEvent.ClearMessages -> clearMessages()
+
+            WallpaperEvent.OnDismissRatingDialog -> onDismissRatingDialog()
+
+            is WallpaperEvent.OnRateApp -> onRateApp(event.stars)
+
+            WallpaperEvent.OnFeedbackClicked -> onFeedbackClicked()
         }
     }
 
@@ -266,6 +272,10 @@ class DynamicWallpaperViewModel(
                 
                 changeActivePackUseCase(currentEditingId)
                 applyDynamicWallpaperUseCase(currentEditingId)
+                
+                // Track success for rating strategy
+                preferencesRepository.incrementAppSuccessCount()
+                checkRatingCondition()
             }
                 .onSuccess {
                     _uiState.update { s ->
@@ -302,10 +312,17 @@ class DynamicWallpaperViewModel(
                 val lastWeather = preferencesRepository.getLastWeather()
                 val lastTimeRaw = preferencesRepository.getLastUpdateTime()
                 
+                val formatter = DateTimeFormatter.ofPattern("HH:mm")
                 val lastTimeFormatted = if (lastTimeRaw > 0) {
                     val dt = Instant.ofEpochMilli(lastTimeRaw).atZone(ZoneId.systemDefault()).toLocalDateTime()
-                    dt.format(DateTimeFormatter.ofPattern("HH:mm"))
+                    dt.format(formatter)
                 } else "Never"
+
+                val nextTimeFormatted = if (lastTimeRaw > 0) {
+                    val nextInstant = Instant.ofEpochMilli(lastTimeRaw).plusSeconds(config.updateIntervalMinutes * 60L)
+                    val dt = nextInstant.atZone(ZoneId.systemDefault()).toLocalDateTime()
+                    dt.format(formatter)
+                } else "Pending"
 
                 val rulesMap = config.rules
                     .filter { it.wallpaperId.value.isNotEmpty() }
@@ -319,6 +336,7 @@ class DynamicWallpaperViewModel(
                     val gps = useGps
                     val weather = lastWeather
                     val updateTime = lastTimeFormatted
+                    val nextTimeFormatted = nextTimeFormatted
                 }
             }.onSuccess { data ->
                 _uiState.update { it.copy(
@@ -336,7 +354,8 @@ class DynamicWallpaperViewModel(
                     showFirstTimeDialog = false,
                     useGps = data.gps,
                     currentWeather = data.weather,
-                    lastUpdateTime = data.updateTime
+                    lastUpdateTime = data.updateTime,
+                    nextUpdateTime = data.nextTimeFormatted
                 ) }
                 
                 if (!data.gps) {
@@ -614,6 +633,48 @@ class DynamicWallpaperViewModel(
     private fun toggleWeatherEnabled(){
         _uiState.update { curretState ->
             curretState.copy(isWeatherFeatureEnabled = !curretState.isWeatherFeatureEnabled)
+        }
+    }
+
+    private fun onDismissRatingDialog() {
+        _uiState.update { it.copy(showRatingDialog = false) }
+        viewModelScope.launch {
+            // If they dismiss, we can either never show again or wait more.
+            // Let's mark as rated so we don't annoy them, or we could just reset the counter.
+            preferencesRepository.setRated(true)
+        }
+    }
+
+    private fun onRateApp(stars: Int) {
+        _uiState.update { it.copy(showRatingDialog = false) }
+        viewModelScope.launch {
+            preferencesRepository.setRated(true)
+        }
+    }
+
+    private fun onFeedbackClicked() {
+        viewModelScope.launch {
+            val hasRated = preferencesRepository.hasRated()
+            if (hasRated) {
+                // If already rated, we could trigger a success message or just let the UI handle the email.
+                // But the user wants it to open email if already rated.
+                // Since ViewModel shouldn't open intents directly, we can use a side effect or a state.
+                _uiState.update { it.copy(successMessage = "Opening feedback email...") }
+            } else {
+                _uiState.update { it.copy(showRatingDialog = true) }
+            }
+        }
+    }
+
+    private fun checkRatingCondition() {
+        viewModelScope.launch {
+            val hasRated = preferencesRepository.hasRated()
+            val successCount = preferencesRepository.getAppSuccessCount()
+            
+            // Show dialog after 3 successful applications
+            if (!hasRated && successCount >= 3) {
+                _uiState.update { it.copy(showRatingDialog = true) }
+            }
         }
     }
 }
