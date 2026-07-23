@@ -20,7 +20,7 @@ uiText = "1.10.0"
 ui = "1.10.0"
 uiVersion = "1.10.5"
 room = "2.6.1"
-billing = "7.1.1"
+billing = "8.0.0"
 
 
 [libraries]

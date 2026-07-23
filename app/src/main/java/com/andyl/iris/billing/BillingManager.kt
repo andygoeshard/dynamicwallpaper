@@ -11,6 +11,7 @@ import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import kotlinx.coroutines.CoroutineScope
@@ -27,10 +28,13 @@ class BillingManager(context: Context) : PurchasesUpdatedListener {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.Main + job)
 
-    @Suppress("DEPRECATION")
     private val billingClient = BillingClient.newBuilder(context)
         .setListener(this)
-        .enablePendingPurchases()
+        .enablePendingPurchases(
+            PendingPurchasesParams.newBuilder()
+                .enableOneTimeProducts()
+                .build()
+        )
         .build()
 
     private val _isConnected = MutableStateFlow(false)
@@ -131,8 +135,9 @@ class BillingManager(context: Context) : PurchasesUpdatedListener {
             }
         }
 
-        billingClient.queryProductDetailsAsync(params) { result, details ->
+        billingClient.queryProductDetailsAsync(params) { result, queryResult ->
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                val details = queryResult.productDetailsList.orEmpty()
                 _productDetails.value = details
                 _productsLoadFailed.value = false
                 Log.d(TAG, "Products found: ${details.size}")
