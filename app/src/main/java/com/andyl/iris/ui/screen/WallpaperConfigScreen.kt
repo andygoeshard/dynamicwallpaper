@@ -29,11 +29,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.andyl.iris.R
+import com.andyl.iris.billing.BillingManager
 import com.andyl.iris.domain.model.Weather
+import com.andyl.iris.domain.repository.PremiumRepository
+import com.andyl.iris.ui.components.PremiumUpsellSheet
 import com.andyl.iris.ui.components.RatingDialog
 import com.andyl.iris.ui.components.ScaleModeSelector
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -152,6 +156,70 @@ fun WallpaperConfigScreen(
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.cfg_battery_button))
                     }
+                }
+            }
+
+            // --- SECTION: IRIS PRO ---
+            item {
+                val premiumRepository = koinInject<PremiumRepository>()
+                val isPremium = premiumRepository.isPremium()
+                var showUpsellSheet by remember { mutableStateOf(false) }
+
+                ConfigSection(
+                    title = stringResource(R.string.premium_title),
+                    description = stringResource(R.string.premium_subtitle)
+                ) {
+                    if (isPremium) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "Iris Pro Active",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "All features unlocked",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Button(
+                            onClick = { showUpsellSheet = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.premium_unlock),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                if (showUpsellSheet) {
+                    val billingManager = koinInject<BillingManager>()
+                    PremiumUpsellSheet(
+                        billingManager = billingManager,
+                        onDismiss = { showUpsellSheet = false }
+                    )
                 }
             }
 

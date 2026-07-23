@@ -9,7 +9,8 @@ interface ResolveWallpaperUseCase {
     suspend operator fun invoke(
         weather: Weather?,
         timeOfDay: TimeOfDay,
-        config: WallpaperConfig
+        config: WallpaperConfig,
+        temperature: Double? = null
     ): List<WallpaperRule>
 }
 

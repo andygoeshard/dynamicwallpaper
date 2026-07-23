@@ -1,5 +1,6 @@
 package com.andyl.iris.domain.usecase.impl
 
+import com.andyl.iris.domain.model.TemperatureRange
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.WallpaperConfig
 import com.andyl.iris.domain.model.WallpaperId
@@ -12,7 +13,8 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
     override suspend operator fun invoke(
         weather: Weather?,
         timeOfDay: TimeOfDay,
-        config: WallpaperConfig
+        config: WallpaperConfig,
+        temperature: Double?
     ): List<WallpaperRule> {
         val now = java.time.LocalDateTime.now()
         val rulesToApply = mutableListOf<WallpaperRule>()
@@ -49,10 +51,28 @@ class ResolveWallpaperUseCaseImpl : ResolveWallpaperUseCase {
         }
         if (rulesToApply.isNotEmpty()) return rulesToApply
 
-        // 3. Reglas por Clima/Momento
+        // 3. Reglas por Temperatura (premium)
+        if (temperature != null && config.temperatureRules.isNotEmpty()) {
+            val tempRange = TemperatureRange.fromTemperature(temperature)
+            val tempKey = "${tempRange.name}-${timeOfDay.name}"
+            config.temperatureRules[tempKey]?.let { uri ->
+                if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 3, scaleMode = config.scaleMode))
+            }
+
+            if (rulesToApply.isEmpty()) {
+                config.temperatureRules["$tempKey-1"]?.let { uri ->
+                    if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 1, scaleMode = config.scaleMode))
+                }
+                config.temperatureRules["$tempKey-2"]?.let { uri ->
+                    if (uri.isNotEmpty()) rulesToApply.add(WallpaperRule(Weather.Clear, timeOfDay, WallpaperId(uri), target = 2, scaleMode = config.scaleMode))
+                }
+            }
+        }
+        if (rulesToApply.isNotEmpty()) return rulesToApply
+
+        // 4. Reglas por Clima/Momento
         val weatherToMatch = weather ?: Weather.Clear
         val weatherMatches = config.rules.filter { rule ->
-            // If weather is null (disabled), we don't filter by weather, we just match time later
             val matchesWeather = rule.weather == weatherToMatch && config.enabledWeathers.contains(weatherToMatch)
             val matchesTime = rule.timeOfDay == timeOfDay
             matchesWeather && matchesTime

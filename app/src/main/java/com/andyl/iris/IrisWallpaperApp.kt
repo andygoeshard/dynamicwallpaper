@@ -3,6 +3,7 @@ package com.andyl.iris
 import android.app.Application
 import android.util.Log
 import androidx.work.Configuration
+import com.andyl.iris.billing.BillingManager
 import com.andyl.iris.di.appModules
 import com.andyl.iris.worker.IrisWallpaperScheduler
 import org.koin.android.ext.koin.androidContext
@@ -13,6 +14,8 @@ import org.koin.android.ext.android.get
 
 class IrisWallpaperApp : Application(), Configuration.Provider {
 
+    private lateinit var billingManager: BillingManager
+
     override fun onCreate() {
         super.onCreate()
 
@@ -22,8 +25,18 @@ class IrisWallpaperApp : Application(), Configuration.Provider {
             modules(appModules)
         }
 
+        billingManager = get()
+        billingManager.startConnection()
+
         IrisWallpaperScheduler.schedule(this)
         com.andyl.iris.domain.helper.AlarmHelper.scheduleMidnightRefresh(this)
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        if (::billingManager.isInitialized) {
+            billingManager.endConnection()
+        }
     }
 
     override val workManagerConfiguration: Configuration

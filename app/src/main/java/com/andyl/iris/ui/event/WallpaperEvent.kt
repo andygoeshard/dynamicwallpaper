@@ -36,6 +36,7 @@ sealed interface WallpaperEvent{
     data class OnSelectFromPackManager(val packId: String): WallpaperEvent
     data class OnDeleteDayRule(val dayName: String): WallpaperEvent
     data class OnDeleteFixedTimeRule(val context: Context, val time: String): WallpaperEvent
+    data class SetTemperatureRule(val tempRange: String, val timeOfDay: String, val uri: String, val target: Int): WallpaperEvent
     data class UpdateScaleMode(val mode: ScaleMode) : WallpaperEvent
     object OnDismissFirstTimeDialog : WallpaperEvent
     object OnConfirmFirstTime : WallpaperEvent

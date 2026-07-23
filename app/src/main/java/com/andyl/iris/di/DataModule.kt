@@ -20,6 +20,9 @@ import com.andyl.iris.data.database.repository.FavoriteRepositoryImpl
 import com.andyl.iris.data.imagesprovider.repository.LocalImageRepositoryImpl
 import com.andyl.iris.domain.repository.FavoriteRepository
 import com.andyl.iris.domain.repository.LocalImageRepository
+import com.andyl.iris.data.premium.PremiumRepositoryImpl
+import com.andyl.iris.domain.repository.PremiumRepository
+import com.andyl.iris.billing.BillingManager
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -93,7 +96,8 @@ val dataModule = module {
 
     single<UserPreferencesRepository> {
         UserPreferencesRepositoryImpl(
-            context = androidContext()
+            context = androidContext(),
+            premiumRepository = get()
         )
     }
 
@@ -104,5 +108,16 @@ val dataModule = module {
     }
 
     single { GeocodingRemoteDataSource(get()) }
+
+    single {
+        BillingManager(androidContext())
+    }
+
+    single<PremiumRepository> {
+        PremiumRepositoryImpl(
+            context = androidContext(),
+            billingManager = get()
+        )
+    }
 
 }

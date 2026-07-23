@@ -71,10 +71,15 @@ import com.andyl.iris.ui.components.CyberpunkBox
 import com.andyl.iris.ui.components.CyberpunkLoadingBar
 import com.andyl.iris.ui.components.IrisLogo
 import com.andyl.iris.ui.components.PackSelectorSection
+import com.andyl.iris.ui.components.PremiumUpsellSheet
+import com.andyl.iris.ui.components.TemperatureRuleSection
 import com.andyl.iris.ui.components.RatingDialog
 import com.andyl.iris.ui.components.WeatherSection
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
+import com.andyl.iris.domain.repository.PremiumRepository
+import com.andyl.iris.billing.BillingManager
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,7 +90,10 @@ fun DynamicWallpaperScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val premiumRepository = koinInject<PremiumRepository>()
     var showPermissionDialog by remember { mutableStateOf(false) }
+    var showUpsellSheet by remember { mutableStateOf(false) }
+    var isTemperatureExpanded by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(state.error, state.successMessage) {
@@ -265,7 +273,12 @@ fun DynamicWallpaperScreen(
                     .fillMaxSize()
                     .padding(top = padding.calculateTopPadding())
             ) {
-                PackSelectorSection(state = state, onEvent = { viewModel.onEvent(it) })
+                PackSelectorSection(
+                    state = state,
+                    premiumRepository = premiumRepository,
+                    onEvent = { viewModel.onEvent(it) },
+                    onUpsellClick = { showUpsellSheet = true }
+                )
 
                 AnimatedContent(
                     targetState = state.editingPackId,
@@ -295,10 +308,31 @@ fun DynamicWallpaperScreen(
                             item { BoxContainer { DaySelectionSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch) } }
                             item { BoxContainer { WeatherSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch) } }
                             item { BoxContainer { FixedTimeSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch) } }
+                            item {
+                                BoxContainer {
+                                    TemperatureRuleSection(
+                                        state = state,
+                                        isPremium = premiumRepository.isPremium(),
+                                        isExpanded = isTemperatureExpanded,
+                                        onToggleExpand = { isTemperatureExpanded = !isTemperatureExpanded },
+                                        onEvent = { viewModel.onEvent(it) },
+                                        onNavigateToSearch = onNavigateToSearch,
+                                        onUpsellClick = { showUpsellSheet = true }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    if (showUpsellSheet) {
+        val billingManager = koinInject<BillingManager>()
+        PremiumUpsellSheet(
+            billingManager = billingManager,
+            onDismiss = { showUpsellSheet = false }
+        )
     }
 }

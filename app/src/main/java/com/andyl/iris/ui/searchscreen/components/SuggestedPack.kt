@@ -12,10 +12,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,13 +34,17 @@ import coil.compose.AsyncImage
 import com.andyl.iris.domain.model.PackType
 import com.andyl.iris.domain.model.PredefinedPack
 import com.andyl.iris.domain.model.PredefinedPacks
+import com.andyl.iris.domain.repository.PremiumRepository
 import com.andyl.iris.ui.searchscreen.SuggestedPack
 
 @Composable
 fun SuggestedPacksList(
     heroes: Map<String, String> = emptyMap(),
-    onPackClick: (SuggestedPack) -> Unit
+    premiumRepository: PremiumRepository,
+    onPackClick: (SuggestedPack) -> Unit,
+    onUpsellClick: () -> Unit = {}
 ) {
+    val isPremium by remember { mutableStateOf(premiumRepository.isPremium()) }
     val categories = remember {
         listOf(
             SuggestedPack.Days,
@@ -54,25 +60,31 @@ fun SuggestedPacksList(
         // --- WEATHER BASED SECTION ---
         item {
             PackSectionHeader(stringResource(R.string.weather_atmosphere), stringResource(R.string.weather_atmosphere_desc))
-            PackHorizontalRow(PredefinedPacks.weatherPacks, heroes, onPackClick)
+            PackHorizontalRow(PredefinedPacks.weatherPacks, heroes, isPremium, onPackClick, onUpsellClick)
         }
 
         // --- WEEKLY SECTION ---
         item {
             PackSectionHeader(stringResource(R.string.weekly_calendars), stringResource(R.string.weekly_calendars_desc))
-            PackHorizontalRow(PredefinedPacks.weeklyPacks, heroes, onPackClick)
+            PackHorizontalRow(PredefinedPacks.weeklyPacks, heroes, isPremium, onPackClick, onUpsellClick)
         }
 
         // --- TIME BASED SECTION ---
         item {
             PackSectionHeader(stringResource(R.string.time_overrides), stringResource(R.string.time_overrides_desc))
-            PackHorizontalRow(PredefinedPacks.timePacks, heroes, onPackClick)
+            PackHorizontalRow(PredefinedPacks.timePacks, heroes, isPremium, onPackClick, onUpsellClick)
         }
 
         // --- RANDOM SECTION ---
         item {
             PackSectionHeader(stringResource(R.string.surprise_random), stringResource(R.string.surprise_random_desc))
-            PackHorizontalRow(PredefinedPacks.randomPacks, heroes, onPackClick)
+            PackHorizontalRow(PredefinedPacks.randomPacks, heroes, isPremium, onPackClick, onUpsellClick)
+        }
+
+        // --- TEMPERATURE SECTION ---
+        item {
+            PackSectionHeader(stringResource(R.string.temp_by_weather), stringResource(R.string.temp_by_weather_desc))
+            PackHorizontalRow(PredefinedPacks.temperaturePacks, heroes, isPremium, onPackClick, onUpsellClick)
         }
 
         // --- MANUAL CONFIGURATION ---
@@ -117,15 +129,22 @@ private fun PackSectionHeader(title: String, subtitle: String) {
 private fun PackHorizontalRow(
     packs: List<PredefinedPack>, 
     heroes: Map<String, String>,
-    onPackClick: (SuggestedPack) -> Unit
+    isPremium: Boolean,
+    onPackClick: (SuggestedPack) -> Unit,
+    onUpsellClick: () -> Unit
 ) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(packs) { pack ->
-            PredefinedPackCard(pack, heroes[pack.id]) {
-                onPackClick(SuggestedPack.Predefined(pack.id, pack.name, pack.description))
+            val isLocked = pack.isPremium && !isPremium
+            PredefinedPackCard(pack, heroes[pack.id], isLocked) {
+                if (isLocked) {
+                    onUpsellClick()
+                } else {
+                    onPackClick(SuggestedPack.Predefined(pack.id, pack.name, pack.description))
+                }
             }
         }
     }
@@ -135,6 +154,7 @@ private fun PackHorizontalRow(
 private fun PredefinedPackCard(
     pack: PredefinedPack,
     heroUrl: String?,
+    isLocked: Boolean = false,
     onClick: () -> Unit
 ) {
     Column(
@@ -146,8 +166,8 @@ private fun PredefinedPackCard(
         Card(
             modifier = Modifier
                 .width(160.dp)
-                .height(240.dp), // Slightly taller for more impact
-            shape = RoundedCornerShape(28.dp), // More rounded
+                .height(240.dp),
+            shape = RoundedCornerShape(28.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -173,6 +193,39 @@ private fun PredefinedPackCard(
                         )
                 )
 
+                // Premium lock overlay
+                if (isLocked) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f))
+                    )
+                    Icon(
+                        imageVector = Icons.Default.AddCircle,
+                        contentDescription = stringResource(R.string.premium_pack_locked),
+                        tint = Color.White.copy(alpha = 0.9f),
+                        modifier = Modifier
+                            .size(48.dp)
+                            .align(Alignment.Center)
+                    )
+                    // PRO badge
+                    Surface(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .align(Alignment.TopStart),
+                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.95f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "PRO",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
+                }
+
                 // Type Badge
                 Surface(
                     modifier = Modifier
@@ -185,6 +238,7 @@ private fun PredefinedPackCard(
                         text = when {
                             pack.isTimeBased -> stringResource(R.string.badge_time)
                             pack.type == PackType.WEEKLY -> stringResource(R.string.badge_weekly)
+                            pack.type == PackType.TEMPERATURE -> stringResource(R.string.badge_temp)
                             pack.isFullRandom -> stringResource(R.string.badge_mix)
                             else -> stringResource(R.string.badge_weather)
                         },
@@ -229,7 +283,7 @@ private fun CategoryItem(
         SuggestedPack.Days -> Icons.Default.DateRange
         SuggestedPack.Weather -> Icons.Default.AddCircle
         SuggestedPack.Time -> Icons.Default.Create
-        else -> Icons.Default.Star
+        else -> Icons.Default.AddCircle
     }
 
     Card(

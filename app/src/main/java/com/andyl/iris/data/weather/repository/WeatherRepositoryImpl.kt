@@ -32,12 +32,13 @@ class WeatherRepositoryImpl(
             val sunrise = response.daily?.sunrise?.firstOrNull()
             val sunset = response.daily?.sunset?.firstOrNull()
 
-            Log.d("IRIS_WEATHER", "✅ Weather fetched: ${domainWeather.javaClass.simpleName}, Sunrise: $sunrise, Sunset: $sunset")
+            Log.d("IRIS_WEATHER", "✅ Weather fetched: ${domainWeather.javaClass.simpleName}, Sunrise: $sunrise, Sunset: $sunset, Temp: ${current.temperature}")
             
             WeatherInfo(
                 weather = domainWeather,
                 sunrise = sunrise,
-                sunset = sunset
+                sunset = sunset,
+                temperature = current.temperature
             )
         } catch (e: Exception) {
             Log.e("IRIS_WEATHER", "❌ Failed to fetch weather", e)

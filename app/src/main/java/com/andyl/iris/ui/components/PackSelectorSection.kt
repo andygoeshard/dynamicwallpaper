@@ -48,6 +48,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Surface
+import com.andyl.iris.domain.repository.PremiumRepository
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.Color
@@ -60,11 +61,16 @@ import com.andyl.iris.R
 @Composable
 fun PackSelectorSection(
     state: DynamicWallpaperUiState,
-    onEvent: (WallpaperEvent) -> Unit
+    premiumRepository: PremiumRepository,
+    onEvent: (WallpaperEvent) -> Unit,
+    onUpsellClick: () -> Unit = {}
 ) {
     val coroutineScope = rememberCoroutineScope()
     val packs = state.availablePacks
     if (packs.isEmpty()) return
+
+    val maxCustomPacks = premiumRepository.getMaxCustomPacks()
+    val isAtLimit = packs.size >= maxCustomPacks
 
     val hasMultiplePacks = packs.size > 1
     val totalItems = if (hasMultiplePacks) 10000 else 1
@@ -130,12 +136,12 @@ fun PackSelectorSection(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = stringResource(R.string.pack_sel_my_packages) + " (${packs.size}/10)",
+                            text = stringResource(R.string.pack_sel_my_packages) + " (${packs.size}/$maxCustomPacks)",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = if (isAtLimit && !premiumRepository.isPremium()) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
                         )
 
-                        if (packs.size < 10) {
+                        if (!isAtLimit) {
                             TextButton(
                                 onClick = {
                                     onEvent(WallpaperEvent.OnAddNewPack)
@@ -145,6 +151,13 @@ fun PackSelectorSection(
                                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.btn_add), modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(4.dp))
                                 Text(stringResource(R.string.btn_add), style = MaterialTheme.typography.labelLarge)
+                            }
+                        } else if (!premiumRepository.isPremium()) {
+                            TextButton(
+                                onClick = onUpsellClick,
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                            ) {
+                                Text("PRO", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.tertiary)
                             }
                         }
                     }

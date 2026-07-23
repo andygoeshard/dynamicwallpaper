@@ -17,6 +17,7 @@ data class WallpaperPackDto(
     val weatherRules: List<WallpaperRuleDto>,
     val dailyRules: Map<String, String> = emptyMap(),
     val fixedTimeRules: Map<String, String> = emptyMap(),
+    val temperatureRules: Map<String, String> = emptyMap(),
     val enabledWeathers: List<String> = listOf("CLEAR", "CLOUDY", "RAIN", "SNOW", "FOG", "STORM"),
     val scaleMode: String = "FIT"
 )
@@ -40,6 +41,7 @@ fun WallpaperPackDto.toDomain(activeId: String): WallpaperConfig {
         },
         dailyRules = this.dailyRules,
         fixedTimeRules = this.fixedTimeRules,
+        temperatureRules = this.temperatureRules,
         enabledWeathers = this.enabledWeathers.map { weatherFromKey(it) }.toSet(),
         activePackId = activeId,
         scaleMode = try {

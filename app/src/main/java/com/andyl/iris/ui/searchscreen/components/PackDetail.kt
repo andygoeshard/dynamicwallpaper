@@ -31,6 +31,7 @@ import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.model.WallpaperRule
+import com.andyl.iris.domain.repository.PremiumRepository
 import com.andyl.iris.ui.components.CyberpunkLoadingBar
 import com.andyl.iris.ui.searchscreen.SuggestedPack
 
@@ -80,11 +81,15 @@ fun PackDetailList(
     fixedRules: Map<String, String> = emptyMap(),
     previewImages: List<String?> = emptyList(),
     isLoading: Boolean = false,
+    premiumRepository: PremiumRepository,
     onSlotClick: (Weather?, TimeOfDay?, String?, String?, String) -> Unit,
     onDownloadFullPack: (SuggestedPack) -> Unit,
     onLongPressInstall: () -> Unit = {},
-    onAddCustomTime: () -> Unit = {}
+    onAddCustomTime: () -> Unit = {},
+    onUpsellClick: () -> Unit = {}
 ) {
+    val isPremium = premiumRepository.isPremium()
+    val isPackLocked = pack is SuggestedPack.Predefined && !premiumRepository.isPackUnlocked(pack.packId)
     // ... (slots calculation logic remains the same to not break functionality)
     val slots = when (pack) {
         SuggestedPack.Days -> {
@@ -210,12 +215,23 @@ fun PackDetailList(
                 
                 Spacer(modifier = Modifier.height(28.dp))
                 
+                val buttonColor = when {
+                    isPackLocked -> MaterialTheme.colorScheme.tertiaryContainer
+                    isLoading -> MaterialTheme.colorScheme.surfaceVariant
+                    else -> MaterialTheme.colorScheme.primary
+                }
+                val buttonContentColor = when {
+                    isPackLocked -> MaterialTheme.colorScheme.onTertiaryContainer
+                    isLoading -> MaterialTheme.colorScheme.onSurfaceVariant
+                    else -> MaterialTheme.colorScheme.onPrimary
+                }
+                
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    color = if (isLoading) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
-                    contentColor = if (isLoading) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary,
-                    shadowElevation = if (isLoading) 0.dp else 8.dp
+                    color = buttonColor,
+                    contentColor = buttonContentColor,
+                    shadowElevation = if (isLoading || isPackLocked) 0.dp else 8.dp
                 ) {
                     val interactionSource = remember { MutableInteractionSource() }
                     Row(
@@ -224,8 +240,14 @@ fun PackDetailList(
                             .combinedClickable(
                                 interactionSource = interactionSource,
                                 indication = if (isLoading) null else ripple(),
-                                onClick = { if (!isLoading) onDownloadFullPack(pack) },
-                                onLongClick = { if (!isLoading) onLongPressInstall() },
+                                onClick = {
+                                    if (isPackLocked) {
+                                        onUpsellClick()
+                                    } else if (!isLoading) {
+                                        onDownloadFullPack(pack)
+                                    }
+                                },
+                                onLongClick = { if (!isLoading && !isPackLocked) onLongPressInstall() },
                                 enabled = !isLoading
                             )
                             .padding(vertical = 18.dp),
@@ -241,6 +263,10 @@ fun PackDetailList(
                             )
                             Spacer(Modifier.width(12.dp))
                             Text(stringResource(com.andyl.iris.R.string.processing).uppercase(), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+                        } else if (isPackLocked) {
+                            Text("PRO", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Black)
+                            Spacer(Modifier.width(12.dp))
+                            Text(stringResource(com.andyl.iris.R.string.premium_unlock), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         } else {
                             Icon(Icons.Default.Add, null, modifier = Modifier.size(24.dp))
                             Spacer(Modifier.width(12.dp))

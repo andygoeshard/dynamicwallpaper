@@ -122,6 +122,8 @@ class DynamicWallpaperViewModel(
 
             is WallpaperEvent.OnDeleteFixedTimeRule -> deleteFixedTimeWallpaper(event.context,event.time)
 
+            is WallpaperEvent.SetTemperatureRule -> setTemperatureRule(event.tempRange, event.timeOfDay, event.uri, event.target)
+
             is WallpaperEvent.UpdateScaleMode -> updateScaleMode(event.mode)
 
             is WallpaperEvent.OnConfirmFirstTime -> confirmFirstTimeApply()
@@ -264,6 +266,7 @@ class DynamicWallpaperViewModel(
                     rules = state.rules.values.toList(),
                     dailyRules = state.dailyRules,
                     fixedTimeRules = state.fixedRules,
+                    temperatureRules = state.temperatureRules,
                     enabledWeathers = state.enabledWeathers,
                     activePackId = state.activePackId,
                     scaleMode = state.scaleMode
@@ -345,6 +348,7 @@ class DynamicWallpaperViewModel(
                     packName = data.conf.name,
                     dailyRules = data.conf.dailyRules,
                     fixedRules = data.conf.fixedTimeRules,
+                    temperatureRules = data.conf.temperatureRules,
                     enabledWeathers = data.conf.enabledWeathers,
                     activePackId = data.conf.activePackId,
                     editingPackId = data.conf.activePackId,
@@ -382,6 +386,7 @@ class DynamicWallpaperViewModel(
                         packName = config.name,
                         dailyRules = config.dailyRules,
                         fixedRules = config.fixedTimeRules,
+                        temperatureRules = config.temperatureRules,
                         enabledWeathers = config.enabledWeathers,
                         isLoading = false,
                         error = null,
@@ -472,6 +477,7 @@ class DynamicWallpaperViewModel(
                     editingPackId = packId,
                     dailyRules = config.dailyRules,
                     fixedRules = config.fixedTimeRules,
+                    temperatureRules = config.temperatureRules,
                     enabledWeathers = config.enabledWeathers,
                     isLoading = false,
                     scaleMode = config.scaleMode,
@@ -490,6 +496,7 @@ class DynamicWallpaperViewModel(
             rules = state.rules.values.toList(),
             dailyRules = state.dailyRules,
             fixedTimeRules = state.fixedRules,
+            temperatureRules = state.temperatureRules,
             enabledWeathers = state.enabledWeathers,
             activePackId = state.activePackId,
             scaleMode = state.scaleMode
@@ -545,6 +552,31 @@ class DynamicWallpaperViewModel(
 
         AlarmHelper.scheduleFixedTimeAlarm(context, timeBase)
         
+        val state = _uiState.value
+        if (state.editingPackId == state.activePackId) {
+            applyWallpaper()
+        }
+    }
+
+    private fun setTemperatureRule(tempRange: String, timeOfDay: String, uri: String, target: Int) {
+        _uiState.update { currentState ->
+            val newTempRules = currentState.temperatureRules.toMutableMap()
+            val baseKey = "$tempRange-$timeOfDay"
+
+            if (target == 3) {
+                newTempRules.remove("$baseKey-1")
+                newTempRules.remove("$baseKey-2")
+                newTempRules[baseKey] = uri
+            } else {
+                newTempRules.remove(baseKey)
+                newTempRules["$baseKey-$target"] = uri
+            }
+
+            currentState.copy(temperatureRules = newTempRules)
+        }
+
+        saveCurrentConfigToRepo()
+
         val state = _uiState.value
         if (state.editingPackId == state.activePackId) {
             applyWallpaper()

@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.andyl.iris.R
 import com.andyl.iris.domain.model.ImageResult
+import com.andyl.iris.domain.repository.PremiumRepository
 import com.andyl.iris.ui.searchscreen.components.DownloadStatusSection
 import com.andyl.iris.ui.searchscreen.components.LocalImageThumbnail
 import com.andyl.iris.ui.searchscreen.components.PackDetailList
@@ -46,7 +47,10 @@ import com.andyl.iris.ui.searchscreen.components.WallpaperSearchResultItem
 import com.andyl.iris.ui.searchscreen.components.WallpaperDetailSheet
 import com.andyl.iris.ui.components.CyberpunkBox
 import com.andyl.iris.ui.components.CyberpunkLoadingBar
+import com.andyl.iris.ui.components.PremiumUpsellSheet
+import com.andyl.iris.billing.BillingManager
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 import com.andyl.iris.domain.model.DownloadStatus
 import com.andyl.iris.domain.model.DownloadTask
@@ -61,6 +65,8 @@ fun SearchScreen(
     val wallpaperState by viewModel.wallpaperViewModel.uiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val context = LocalContext.current
+    val premiumRepository: PremiumRepository = koinInject()
+    var showUpsellSheet by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -388,9 +394,11 @@ fun SearchScreen(
                                 val heroes by viewModel.packHeroes.collectAsState()
                                 SuggestedPacksList(
                                     heroes = heroes,
+                                    premiumRepository = premiumRepository,
                                     onPackClick = { pack ->
                                         viewModel.selectPack(pack)
-                                    }
+                                    },
+                                    onUpsellClick = { showUpsellSheet = true }
                                 )
                             }
 
@@ -449,6 +457,7 @@ fun SearchScreen(
                                         fixedRules = wallpaperState.fixedRules,
                                         previewImages = state.previewImages,
                                         isLoading = state.isLoading,
+                                        premiumRepository = premiumRepository,
                                         onSlotClick = { weather, time, dayName, fixedTime, label ->
                                             viewModel.selectSlot(WallpaperSlot(weather, time, dayName, fixedTime, label))
                                         },
@@ -466,7 +475,8 @@ fun SearchScreen(
                                                 val timeStr = String.format("%02d:%02d", hour, minute)
                                                 viewModel.selectSlot(WallpaperSlot(null, null, null, timeStr, "Override: $timeStr"))
                                             }, calendar.get(java.util.Calendar.HOUR_OF_DAY), calendar.get(java.util.Calendar.MINUTE), true).show()
-                                        }
+                                        },
+                                        onUpsellClick = { showUpsellSheet = true }
                                     )
                                 }
                             }
@@ -573,6 +583,15 @@ fun SearchScreen(
                         }
                     )
                 }
+            }
+
+            // Premium Upsell Sheet
+            if (showUpsellSheet) {
+                val billingManager = koinInject<BillingManager>()
+                PremiumUpsellSheet(
+                    billingManager = billingManager,
+                    onDismiss = { showUpsellSheet = false }
+                )
             }
         }
     }

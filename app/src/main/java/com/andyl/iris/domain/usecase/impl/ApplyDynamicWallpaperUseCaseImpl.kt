@@ -48,6 +48,7 @@ class ApplyDynamicWallpaperUseCaseImpl(
             var detectedWeather: com.andyl.iris.domain.model.Weather? = null
             var currentSunrise: String? = null
             var currentSunset: String? = null
+            var currentTemperature: Double? = null
 
             // Only fetch weather if we DON'T have an overriding fixed/daily rule 
             // OR if weather is actually enabled in this pack.
@@ -60,6 +61,7 @@ class ApplyDynamicWallpaperUseCaseImpl(
                     currentSunrise = weatherInfo.sunrise
                     currentSunset = weatherInfo.sunset
                     detectedWeather = weatherInfo.weather
+                    currentTemperature = weatherInfo.temperature
                     
                     Log.d("IRIS_WORKER", "✅ Weather detected: $detectedWeather")
                     preferencesRepository.saveLastWeather(detectedWeather)
@@ -77,7 +79,7 @@ class ApplyDynamicWallpaperUseCaseImpl(
 
             preferencesRepository.saveLastUpdateTime(System.currentTimeMillis())
 
-            val rulesToApply = resolveWallpaperUseCase(finalWeather, timeOfDay, config)
+            val rulesToApply = resolveWallpaperUseCase(finalWeather, timeOfDay, config, currentTemperature)
             Log.d("IRIS_WORKER", "4. Rules to apply: ${rulesToApply.size}")
 
             if (rulesToApply.isNotEmpty()) {

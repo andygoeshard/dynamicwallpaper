@@ -11,6 +11,7 @@ import com.andyl.iris.domain.model.WallpaperId
 import com.andyl.iris.domain.model.WallpaperRule
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.repository.UserPreferencesRepository
+import com.andyl.iris.domain.repository.PremiumRepository
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import androidx.core.content.edit
@@ -24,6 +25,7 @@ import kotlinx.coroutines.withContext
 
 class UserPreferencesRepositoryImpl(
     context: Context,
+    private val premiumRepository: PremiumRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : UserPreferencesRepository {
 
@@ -73,6 +75,7 @@ class UserPreferencesRepositoryImpl(
             },
             dailyRules = config.dailyRules,
             fixedTimeRules = config.fixedTimeRules,
+            temperatureRules = config.temperatureRules,
             enabledWeathers = config.enabledWeathers.map { it.toKey() },
             scaleMode = config.scaleMode.name
         )
@@ -154,9 +157,10 @@ class UserPreferencesRepositoryImpl(
 
     override suspend fun addNewPack(): List<PackInfo> {
         val allPacks = getAllPacks()
+        val maxPacks = premiumRepository.getMaxCustomPacks()
 
-        if (allPacks.size >= 10) {
-            throw IllegalStateException("Límite de 10 paquetes alcanzado")
+        if (allPacks.size >= maxPacks) {
+            throw IllegalStateException("Límite de $maxPacks paquetes alcanzado")
         }
 
         val newId = System.currentTimeMillis().toString()

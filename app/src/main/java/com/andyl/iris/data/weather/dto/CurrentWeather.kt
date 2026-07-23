@@ -6,5 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CurrentWeatherDto(
     @SerialName("weathercode")
-    val weatherCode: Int
+    val weatherCode: Int,
+    @SerialName("temperature")
+    val temperature: Double? = null
 )

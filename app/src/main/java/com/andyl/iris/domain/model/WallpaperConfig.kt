@@ -7,6 +7,7 @@ data class WallpaperConfig(
     val rules: List<WallpaperRule> = emptyList(),
     val dailyRules: Map<String, String> = emptyMap(),
     val fixedTimeRules: Map<String, String> = emptyMap(),
+    val temperatureRules: Map<String, String> = emptyMap(),
     val enabledWeathers: Set<Weather> = Weather.all(),
     val activePackId: String,
     val scaleMode: ScaleMode = ScaleMode.FIT

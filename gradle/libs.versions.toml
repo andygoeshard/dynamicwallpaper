@@ -20,6 +20,7 @@ uiText = "1.10.0"
 ui = "1.10.0"
 uiVersion = "1.10.5"
 room = "2.6.1"
+billing = "7.1.1"
 
 
 [libraries]
@@ -69,6 +70,9 @@ play-services-location = { group = "com.google.android.gms", name = "play-servic
 androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 ui = { group = "androidx.compose.ui", name = "ui", version.ref = "uiVersion" }
+
+# ---------- Billing ----------
+androidx-billing = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
 
 
 [plugins]

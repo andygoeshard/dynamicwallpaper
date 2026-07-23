@@ -139,6 +139,7 @@
     <string name="badge_weekly">Weekly</string>
     <string name="badge_mix">Mix</string>
     <string name="badge_weather">Weather</string>
+    <string name="badge_temp">Temp</string>
 
     <string name="rating_title">Do you like Iris?</string>
     <string name="rating_description">If you enjoy using the app, please consider giving us a rating! It helps us a lot.</string>
@@ -152,7 +153,48 @@
     <string name="cfg_battery_desc">Android may stop background updates to save battery. For better results, allow Iris to run in the background.</string>
     <string name="cfg_battery_button">Optimize Battery</string>
     <string name="cfg_about_title">About Iris</string>
-    <string name="cfg_about_version">Version 1.7</string>
+    <string name="cfg_about_version">Version 1.8</string>
     <string name="cfg_about_feedback">Send Feedback</string>
     <string name="cfg_about_privacy">Privacy Policy</string>
+
+    <string name="premium_title">Iris Pro</string>
+    <string name="premium_subtitle">Unlock all packs and features</string>
+    <string name="premium_monthly">Monthly</string>
+    <string name="premium_yearly">Yearly (Save 30%%)</string>
+    <string name="premium_unlock">Unlock</string>
+    <string name="premium_pack_locked">Premium Pack</string>
+    <string name="premium_feature_locked">Pro Feature</string>
+    <string name="premium_temperature_rules">Temperature Rules</string>
+    <string name="premium_temperature_rules_desc">Set wallpapers based on exact temperature ranges</string>
+    <string name="upsell_title">Unlock this feature</string>
+    <string name="upsell_description">Upgrade to Iris Pro to access all packs, scale modes, screen targets, and more.</string>
+    <string name="upsell_button">See Plans</string>
+    <string name="premium_pack_limit">Pack limit reached</string>
+    <string name="premium_pack_limit_desc">Upgrade to Iris Pro for up to 10 custom packs.</string>
+    <string name="temp_freezing">Freezing (&lt;0°C)</string>
+    <string name="temp_cold">Cold (0–12°C)</string>
+    <string name="temp_cool">Cool (12–22°C)</string>
+    <string name="temp_warm">Warm (22–32°C)</string>
+    <string name="temp_hot">Hot (&gt;32°C)</string>
+    <string name="temp_by_weather">By Temperature</string>
+    <string name="temp_by_weather_desc">Auto-change based on temperature range</string>
+    <string name="restore_purchases">Restore Purchases</string>
+    <string name="loading_plans">Loading plans…</string>
+    <string name="upsell_feature_packs">All 41 weather packs</string>
+    <string name="upsell_feature_custom">Up to 10 custom packs</string>
+    <string name="upsell_feature_modes">All scale modes (Crop, Stretch, Fit)</string>
+    <string name="upsell_feature_screens">Home + Lock screen</string>
+    <string name="upsell_feature_sources">Unsplash, Pexels &amp; Pixabay</string>
+    <string name="upsell_feature_temp">Temperature-based rules + 5 temp packs</string>
+
+    <string name="purchase_thanks_title">Welcome to Iris Pro!</string>
+    <string name="purchase_thanks_subtitle">Thank you for supporting Iris. You now have access to everything.</string>
+    <string name="purchase_thanks_unlocked">What\'s unlocked</string>
+    <string name="purchase_feature_all_packs">All 41 weather packs</string>
+    <string name="purchase_feature_custom_packs">Up to 10 custom packs</string>
+    <string name="purchase_feature_scale_modes">All scale modes</string>
+    <string name="purchase_feature_screens">Home + Lock screen</string>
+    <string name="purchase_feature_sources">Unsplash, Pexels &amp; Pixabay</string>
+    <string name="purchase_feature_temp_rules">Temperature-based rules</string>
+    <string name="purchase_thanks_cta">Start Exploring</string>
 </resources>
