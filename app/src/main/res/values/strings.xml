@@ -180,6 +180,15 @@
     <string name="temp_by_weather_desc">Auto-change based on temperature range</string>
     <string name="restore_purchases">Restore Purchases</string>
     <string name="loading_plans">Loading plans…</string>
+    <string name="billing_error_title">Plans unavailable</string>
+    <string name="billing_error_desc">Could not load subscription plans. Check your connection and try again.</string>
+    <string name="billing_retry">Retry</string>
+    <string name="billing_purchase_error">Purchase failed. Please try again.</string>
+    <string name="billing_error_activity">Could not open payment screen. Please try again.</string>
+    <string name="pro_active_title">Iris Pro Active</string>
+    <string name="pro_active_desc">All features unlocked</string>
+    <string name="error_no_email_app">No email app found</string>
+    <string name="error_no_browser">No browser found</string>
     <string name="upsell_feature_packs">All 41 weather packs</string>
     <string name="upsell_feature_custom">Up to 10 custom packs</string>
     <string name="upsell_feature_modes">All scale modes (Crop, Stretch, Fit)</string>

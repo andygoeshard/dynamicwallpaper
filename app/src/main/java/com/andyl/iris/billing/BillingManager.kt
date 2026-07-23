@@ -13,10 +13,19 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class BillingManager(context: Context) : PurchasesUpdatedListener {
+
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.Main + job)
 
     @Suppress("DEPRECATION")
     private val billingClient = BillingClient.newBuilder(context)
@@ -36,10 +45,16 @@ class BillingManager(context: Context) : PurchasesUpdatedListener {
     private val _purchaseResult = MutableStateFlow<PurchaseResult>(PurchaseResult.None)
     val purchaseResult: StateFlow<PurchaseResult> = _purchaseResult
 
+    private val _productsLoadFailed = MutableStateFlow(false)
+    val productsLoadFailed: StateFlow<Boolean> = _productsLoadFailed
+
+    private var reconnectAttempt = 0
+
     companion object {
         const val PRODUCT_ID_MONTHLY = "iris_pro_monthly"
         const val PRODUCT_ID_YEARLY = "iris_pro_yearly"
         private const val TAG = "BILLING_MANAGER"
+        private const val MAX_RECONNECT_ATTEMPTS = 3
     }
 
     sealed class PurchaseResult {
@@ -50,27 +65,45 @@ class BillingManager(context: Context) : PurchasesUpdatedListener {
     }
 
     fun startConnection() {
+        _productsLoadFailed.value = false
+        reconnectAttempt = 0
+        connect()
+    }
+
+    private fun connect() {
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(result: BillingResult) {
                 if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                     Log.d(TAG, "Billing connected")
                     _isConnected.value = true
+                    reconnectAttempt = 0
                     queryProducts()
                     queryExistingPurchases()
                 } else {
                     Log.e(TAG, "Billing setup failed: ${result.debugMessage}")
                     _isConnected.value = false
+                    _productsLoadFailed.value = true
                 }
             }
 
             override fun onBillingServiceDisconnected() {
                 Log.w(TAG, "Billing disconnected")
                 _isConnected.value = false
+                if (reconnectAttempt < MAX_RECONNECT_ATTEMPTS) {
+                    reconnectAttempt++
+                    val delayMs = 3000L * reconnectAttempt
+                    Log.d(TAG, "Reconnecting in ${delayMs}ms (attempt $reconnectAttempt)")
+                    scope.launch {
+                        delay(delayMs)
+                        connect()
+                    }
+                }
             }
         })
     }
 
     fun endConnection() {
+        job.cancel()
         billingClient.endConnection()
     }
 
@@ -90,12 +123,22 @@ class BillingManager(context: Context) : PurchasesUpdatedListener {
             .setProductList(productList)
             .build()
 
+        scope.launch {
+            delay(5000)
+            if (_productDetails.value.isEmpty()) {
+                Log.w(TAG, "Products not found after 5s")
+                _productsLoadFailed.value = true
+            }
+        }
+
         billingClient.queryProductDetailsAsync(params) { result, details ->
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                 _productDetails.value = details
+                _productsLoadFailed.value = false
                 Log.d(TAG, "Products found: ${details.size}")
             } else {
                 Log.e(TAG, "Product query failed: ${result.debugMessage}")
+                _productsLoadFailed.value = true
             }
         }
     }
@@ -121,7 +164,16 @@ class BillingManager(context: Context) : PurchasesUpdatedListener {
     }
 
     fun launchBillingFlow(activity: Activity, productDetails: ProductDetails) {
-        val offerToken = productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken ?: return
+        if (!billingClient.isReady) {
+            _purchaseResult.value = PurchaseResult.Error("Billing service not available. Please try again.")
+            return
+        }
+
+        val offerToken = productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
+        if (offerToken == null) {
+            _purchaseResult.value = PurchaseResult.Error("Billing configuration error. Please try again later.")
+            return
+        }
 
         val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
             .setProductDetails(productDetails)
@@ -169,19 +221,6 @@ class BillingManager(context: Context) : PurchasesUpdatedListener {
                     Log.e(TAG, "Acknowledge failed: ${result.debugMessage}")
                 }
             }
-        }
-    }
-
-    fun hasActiveSubscription(): Boolean {
-        return _activePurchases.value.any {
-            it.purchaseState == Purchase.PurchaseState.PURCHASED && it.isAcknowledged
-        }
-    }
-
-    fun isProductPurchased(productId: String): Boolean {
-        return _activePurchases.value.any { purchase ->
-            purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
-                    purchase.products.contains(productId)
         }
     }
 

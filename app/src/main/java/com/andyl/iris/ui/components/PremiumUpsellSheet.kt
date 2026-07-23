@@ -1,6 +1,7 @@
 package com.andyl.iris.ui.components
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,7 +24,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.andyl.iris.R
 import com.andyl.iris.billing.BillingManager
-import com.android.billingclient.api.ProductDetails
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,21 +33,25 @@ fun PremiumUpsellSheet(
 ) {
     val productDetails by billingManager.productDetails.collectAsState()
     val purchaseResult by billingManager.purchaseResult.collectAsState()
-    val activity = LocalContext.current as? Activity
+    val productsLoadFailed by billingManager.productsLoadFailed.collectAsState()
+    val context = LocalContext.current
     var showPostPurchase by remember { mutableStateOf(false) }
 
-    when (purchaseResult) {
-        is BillingManager.PurchaseResult.Success -> {
-            showPostPurchase = true
-            billingManager.resetPurchaseResult()
+    LaunchedEffect(purchaseResult) {
+        when (purchaseResult) {
+            is BillingManager.PurchaseResult.Success -> {
+                showPostPurchase = true
+                billingManager.resetPurchaseResult()
+            }
+            is BillingManager.PurchaseResult.Cancelled -> {
+                billingManager.resetPurchaseResult()
+            }
+            is BillingManager.PurchaseResult.Error -> {
+                Toast.makeText(context, context.getString(R.string.billing_purchase_error), Toast.LENGTH_SHORT).show()
+                billingManager.resetPurchaseResult()
+            }
+            is BillingManager.PurchaseResult.None -> {}
         }
-        is BillingManager.PurchaseResult.Cancelled -> {
-            billingManager.resetPurchaseResult()
-        }
-        is BillingManager.PurchaseResult.Error -> {
-            billingManager.resetPurchaseResult()
-        }
-        is BillingManager.PurchaseResult.None -> {}
     }
 
     if (showPostPurchase) {
@@ -127,18 +132,24 @@ fun PremiumUpsellSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            val activity = context as? Activity
+
             // Monthly plan
             monthlyDetails?.let { details ->
                 val pricing = details.subscriptionOfferDetails?.firstOrNull()?.pricingPhases
                     ?.pricingPhaseList?.firstOrNull()
-                val priceText = pricing?.formattedPrice ?: "$1.99/mes"
+                val priceText = pricing?.formattedPrice ?: ""
 
                 PlanCard(
                     title = stringResource(R.string.premium_monthly),
                     price = priceText,
                     isSelected = false,
                     onClick = {
-                        activity?.let { billingManager.launchBillingFlow(it, details) }
+                        if (activity != null) {
+                            billingManager.launchBillingFlow(activity, details)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.billing_error_activity), Toast.LENGTH_SHORT).show()
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -150,7 +161,7 @@ fun PremiumUpsellSheet(
             yearlyDetails?.let { details ->
                 val pricing = details.subscriptionOfferDetails?.firstOrNull()?.pricingPhases
                     ?.pricingPhaseList?.firstOrNull()
-                val priceText = pricing?.formattedPrice ?: "$14.99/año"
+                val priceText = pricing?.formattedPrice ?: ""
 
                 PlanCard(
                     title = stringResource(R.string.premium_yearly),
@@ -158,7 +169,11 @@ fun PremiumUpsellSheet(
                     isSelected = false,
                     isRecommended = true,
                     onClick = {
-                        activity?.let { billingManager.launchBillingFlow(it, details) }
+                        if (activity != null) {
+                            billingManager.launchBillingFlow(activity, details)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.billing_error_activity), Toast.LENGTH_SHORT).show()
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -166,25 +181,58 @@ fun PremiumUpsellSheet(
 
             // Fallback if products not loaded yet
             if (monthlyDetails == null && yearlyDetails == null) {
-                OutlinedCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                if (productsLoadFailed) {
+                    OutlinedCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
                     ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            stringResource(R.string.loading_plans),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                stringResource(R.string.billing_error_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                stringResource(R.string.billing_error_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            OutlinedButton(
+                                onClick = { billingManager.startConnection() }
+                            ) {
+                                Text(stringResource(R.string.billing_retry))
+                            }
+                        }
+                    }
+                } else {
+                    OutlinedCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                stringResource(R.string.loading_plans),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -265,12 +313,14 @@ private fun PlanCard(
                         }
                     }
                 }
-                Text(
-                    text = price,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
+                if (price.isNotEmpty()) {
+                    Text(
+                        text = price,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

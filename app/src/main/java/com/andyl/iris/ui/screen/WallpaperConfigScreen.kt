@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.andyl.iris.R
+import kotlinx.coroutines.launch
 import com.andyl.iris.billing.BillingManager
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.repository.PremiumRepository
@@ -50,6 +51,7 @@ fun WallpaperConfigScreen(
     val searchResults by viewModel.searchResults.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(uiState.error, uiState.successMessage) {
         uiState.error?.let {
@@ -64,7 +66,12 @@ fun WallpaperConfigScreen(
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { _ -> /* :) */ }
+    ) { permissions ->
+        val granted = permissions.values.any { it }
+        if (granted) {
+            viewModel.onEvent(WallpaperEvent.OnManualRefresh)
+        }
+    }
 
     if (uiState.showRatingDialog) {
         RatingDialog(
@@ -162,7 +169,7 @@ fun WallpaperConfigScreen(
             // --- SECTION: IRIS PRO ---
             item {
                 val premiumRepository = koinInject<PremiumRepository>()
-                val isPremium = premiumRepository.isPremium()
+                val isPremium by premiumRepository.observePremiumStatus().collectAsState(initial = premiumRepository.isPremium())
                 var showUpsellSheet by remember { mutableStateOf(false) }
 
                 ConfigSection(
@@ -188,12 +195,12 @@ fun WallpaperConfigScreen(
                                 Spacer(Modifier.width(12.dp))
                                 Column {
                                     Text(
-                                        text = "Iris Pro Active",
+                                        text = stringResource(R.string.pro_active_title),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        text = "All features unlocked",
+                                        text = stringResource(R.string.pro_active_desc),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -248,7 +255,9 @@ fun WallpaperConfigScreen(
                                 }
                                 try {
                                     context.startActivity(intent)
-                                } catch (_: Exception) {}
+                                } catch (_: Exception) {
+                                    scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.error_no_email_app)) }
+                                }
                                 viewModel.onEvent(WallpaperEvent.ClearMessages)
                             }
                         }
@@ -256,8 +265,12 @@ fun WallpaperConfigScreen(
                             headlineContent = { Text(stringResource(R.string.cfg_about_privacy)) },
                             leadingContent = { Icon(Icons.Default.Lock, null) },
                             modifier = Modifier.clickable {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://docs.google.com/document/d/15OiIEyzMrf3s96Ias2Q-ACLhlITbEoAieeEoSyozeqM/edit?usp=sharing"))
-                                context.startActivity(intent)
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://docs.google.com/document/d/15OiIEyzMrf3s96Ias2Q-ACLhlITbEoAieeEoSyozeqM/edit?usp=sharing"))
+                                    context.startActivity(intent)
+                                } catch (_: Exception) {
+                                    scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.error_no_browser)) }
+                                }
                             }
                         )
                     }

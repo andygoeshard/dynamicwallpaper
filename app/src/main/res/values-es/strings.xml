@@ -185,6 +185,15 @@
     <string name="temp_by_weather_desc">Cambio automático según rango de temperatura</string>
     <string name="restore_purchases">Restaurar Compras</string>
     <string name="loading_plans">Cargando planes…</string>
+    <string name="billing_error_title">Planes no disponibles</string>
+    <string name="billing_error_desc">No se pudieron cargar los planes de suscripción. Verificá tu conexión e intentá de nuevo.</string>
+    <string name="billing_retry">Reintentar</string>
+    <string name="billing_purchase_error">La compra falló. Intentá de nuevo.</string>
+    <string name="billing_error_activity">No se pudo abrir la pantalla de pago. Intentá de nuevo.</string>
+    <string name="pro_active_title">Iris Pro Activo</string>
+    <string name="pro_active_desc">Todas las funciones desbloqueadas</string>
+    <string name="error_no_email_app">No se encontró app de correo</string>
+    <string name="error_no_browser">No se encontró navegador</string>
     <string name="upsell_feature_packs">41 paquetes del clima</string>
     <string name="upsell_feature_custom">Hasta 10 paquetes personalizados</string>
     <string name="upsell_feature_modes">Todos los modos de escala</string>

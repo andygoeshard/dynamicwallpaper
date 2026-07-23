@@ -15,6 +15,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,7 +90,7 @@ fun PackDetailList(
     onAddCustomTime: () -> Unit = {},
     onUpsellClick: () -> Unit = {}
 ) {
-    val isPremium = premiumRepository.isPremium()
+    val isPremium by premiumRepository.observePremiumStatus().collectAsState(initial = premiumRepository.isPremium())
     val isPackLocked = pack is SuggestedPack.Predefined && !premiumRepository.isPackUnlocked(pack.packId)
     // ... (slots calculation logic remains the same to not break functionality)
     val slots = when (pack) {

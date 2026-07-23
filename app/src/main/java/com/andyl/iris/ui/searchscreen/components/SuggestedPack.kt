@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +45,7 @@ fun SuggestedPacksList(
     onPackClick: (SuggestedPack) -> Unit,
     onUpsellClick: () -> Unit = {}
 ) {
-    val isPremium by remember { mutableStateOf(premiumRepository.isPremium()) }
+    val isPremium by premiumRepository.observePremiumStatus().collectAsState(initial = premiumRepository.isPremium())
     val categories = remember {
         listOf(
             SuggestedPack.Days,

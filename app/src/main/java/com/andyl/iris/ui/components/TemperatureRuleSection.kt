@@ -220,7 +220,6 @@ private fun TempSlotButton(
     onNavigateToSearch: (com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, String?, String?, String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val keyBoth = "${tempRange.name}-${timeOfDay.name}"
     val keyHome = "$keyBoth-1"
     val keyLock = "$keyBoth-2"
