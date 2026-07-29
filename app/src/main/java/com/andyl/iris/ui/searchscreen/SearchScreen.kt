@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,7 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -48,6 +51,7 @@ import com.andyl.iris.ui.searchscreen.components.WallpaperDetailSheet
 import com.andyl.iris.ui.components.CyberpunkBox
 import com.andyl.iris.ui.components.CyberpunkLoadingBar
 import com.andyl.iris.ui.components.PremiumUpsellSheet
+import coil.compose.AsyncImage
 import com.andyl.iris.billing.BillingManager
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -67,8 +71,19 @@ fun SearchScreen(
     val context = LocalContext.current
     val premiumRepository: PremiumRepository = koinInject()
     var showUpsellSheet by remember { mutableStateOf(false) }
+    var previewImageUrl by remember { mutableStateOf<String?>(null) }
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Accordion state for pack of the day/month/year
+    val packsListState = rememberLazyListState()
+    var isDayExpanded by remember { mutableStateOf(true) }
+    var isMonthExpanded by remember { mutableStateOf(true) }
+    var isYearExpanded by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        viewModel.wallpaperViewModel.loadFeaturedPacks()
+    }
 
     // Permission handling for local gallery
     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -101,8 +116,10 @@ fun SearchScreen(
     }
 
     // LOCAL BACK NAVIGATION MANAGEMENT
-    BackHandler(enabled = state.selectedImage != null || searchQuery.isNotEmpty() || state.currentPack != null || state.activeSlot != null || state.showPackSelectionDialog || state.showDownloads) {
-        if (state.selectedImage != null) {
+    BackHandler(enabled = previewImageUrl != null || state.selectedImage != null || searchQuery.isNotEmpty() || state.currentPack != null || state.activeSlot != null || state.showPackSelectionDialog || state.showDownloads) {
+        if (previewImageUrl != null) {
+            previewImageUrl = null
+        } else if (state.selectedImage != null) {
             viewModel.selectImage(null)
         } else if (searchQuery.isNotEmpty()) {
             viewModel.onSearchQueryChanged("")
@@ -398,7 +415,17 @@ fun SearchScreen(
                                     onPackClick = { pack ->
                                         viewModel.selectPack(pack)
                                     },
-                                    onUpsellClick = { showUpsellSheet = true }
+                                    onUpsellClick = { showUpsellSheet = true },
+                                    listState = packsListState,
+                                    packOfDay = wallpaperState.packOfDay,
+                                    packOfMonth = wallpaperState.packOfMonth,
+                                    packOfYear = wallpaperState.packOfYear,
+                                    isDayExpanded = isDayExpanded,
+                                    isMonthExpanded = isMonthExpanded,
+                                    isYearExpanded = isYearExpanded,
+                                    onToggleDay = { isDayExpanded = !isDayExpanded },
+                                    onToggleMonth = { isMonthExpanded = !isMonthExpanded },
+                                    onToggleYear = { isYearExpanded = !isYearExpanded }
                                 )
                             }
 
@@ -476,7 +503,8 @@ fun SearchScreen(
                                                 viewModel.selectSlot(WallpaperSlot(null, null, null, timeStr, "Override: $timeStr"))
                                             }, calendar.get(java.util.Calendar.HOUR_OF_DAY), calendar.get(java.util.Calendar.MINUTE), true).show()
                                         },
-                                        onUpsellClick = { showUpsellSheet = true }
+                                        onUpsellClick = { showUpsellSheet = true },
+                                        onImagePreview = { url -> previewImageUrl = url }
                                     )
                                 }
                             }
@@ -592,6 +620,35 @@ fun SearchScreen(
                     billingManager = billingManager,
                     onDismiss = { showUpsellSheet = false }
                 )
+            }
+
+            if (previewImageUrl != null) {
+                Dialog(onDismissRequest = { previewImageUrl = null }) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black)
+                            .clickable { previewImageUrl = null },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model = previewImageUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp)
+                                .size(28.dp)
+                                .clickable { previewImageUrl = null }
+                        )
+                    }
+                }
             }
         }
     }

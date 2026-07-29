@@ -123,7 +123,7 @@ fun CyberpunkLoadingBar(
                 .border(1.dp, colorPrimary.copy(alpha = 0.5f), shape)
                 .padding(if (barHeight > 4.dp) 2.dp else 1.dp)
                 .clip(shape)
-                .background(CyberDark)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             // Background scan lines
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -140,6 +140,7 @@ fun CyberpunkLoadingBar(
             }
 
             // Progress bar
+            val glowColor = MaterialTheme.colorScheme.onPrimary
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -157,7 +158,7 @@ fun CyberpunkLoadingBar(
                                 brush = Brush.horizontalGradient(
                                     colors = listOf(
                                         Color.Transparent,
-                                        Color.White.copy(alpha = glowAlpha),
+                                        glowColor.copy(alpha = glowAlpha),
                                         Color.Transparent
                                     ),
                                     startX = size.width - 20.dp.toPx(),
@@ -216,7 +217,7 @@ fun CyberpunkBox(
                 ),
                 shape = shape
             )
-            .background(CyberDark.copy(alpha = 0.9f), shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant, shape)
             .padding(16.dp),
         content = content
     )

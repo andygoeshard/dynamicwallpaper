@@ -17,6 +17,7 @@ import com.andyl.iris.domain.model.WallpaperConfig
 import com.andyl.iris.domain.model.WallpaperId
 import com.andyl.iris.domain.model.WallpaperRule
 import com.andyl.iris.domain.model.Weather
+import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.domain.repository.LocationRepository
 import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.domain.usecase.contract.AddPackUseCase
@@ -30,6 +31,7 @@ import com.andyl.iris.domain.usecase.contract.GetWallpaperConfigUseCase
 import com.andyl.iris.domain.usecase.contract.SetWallpaperRuleUseCase
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.state.DynamicWallpaperUiState
+import com.andyl.iris.ui.theme.ThemeManager
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,7 +57,8 @@ class DynamicWallpaperViewModel(
     private val getFirstTimeKeyUseCase: GetFirstTimeKeyUseCase,
     private val changeFirstTimeKeyUseCase: ChangeFirstTimeKeyUseCase,
     private val locationRepository: LocationRepository,
-    private val preferencesRepository: UserPreferencesRepository
+    private val preferencesRepository: UserPreferencesRepository,
+    private val themeManager: ThemeManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DynamicWallpaperUiState())
@@ -141,6 +144,8 @@ class DynamicWallpaperViewModel(
             is WallpaperEvent.OnRateApp -> onRateApp(event.stars)
 
             WallpaperEvent.OnFeedbackClicked -> onFeedbackClicked()
+
+            is WallpaperEvent.OnToggleDarkMode -> toggleDarkMode(event.enabled)
         }
     }
 
@@ -165,6 +170,14 @@ class DynamicWallpaperViewModel(
                 _searchResults.value = emptyList()
                 applyDynamicWallpaperUseCase()
             }
+        }
+    }
+
+    private fun toggleDarkMode(enabled: Boolean) {
+        _uiState.update { it.copy(isDarkMode = enabled) }
+        themeManager.setDarkMode(enabled)
+        viewModelScope.launch {
+            preferencesRepository.setDarkMode(enabled)
         }
     }
 
@@ -314,6 +327,7 @@ class DynamicWallpaperViewModel(
                 val useGps = locationRepository.shouldUseGps()
                 val lastWeather = preferencesRepository.getLastWeather()
                 val lastTimeRaw = preferencesRepository.getLastUpdateTime()
+                val darkMode = themeManager.isDarkMode.value
                 
                 val formatter = DateTimeFormatter.ofPattern("HH:mm")
                 val lastTimeFormatted = if (lastTimeRaw > 0) {
@@ -340,8 +354,11 @@ class DynamicWallpaperViewModel(
                     val weather = lastWeather
                     val updateTime = lastTimeFormatted
                     val nextTimeFormatted = nextTimeFormatted
+                    val darkMode = darkMode
                 }
             }.onSuccess { data ->
+                refreshFeaturedPacks()
+
                 _uiState.update { it.copy(
                     availablePacks = data.packs,
                     rules = data.rules,
@@ -359,7 +376,8 @@ class DynamicWallpaperViewModel(
                     useGps = data.gps,
                     currentWeather = data.weather,
                     lastUpdateTime = data.updateTime,
-                    nextUpdateTime = data.nextTimeFormatted
+                    nextUpdateTime = data.nextTimeFormatted,
+                    isDarkMode = data.darkMode
                 ) }
                 
                 if (!data.gps) {
@@ -396,6 +414,27 @@ class DynamicWallpaperViewModel(
                 .onFailure { t ->
                     _uiState.update { it.copy(isLoading = false, error = t.message) }
                 }
+        }
+    }
+
+    private suspend fun refreshFeaturedPacks() {
+        val freePacks = PredefinedPacks.packs.filter { !it.isPremium }
+        val dayId = preferencesRepository.getFeaturedPackId("day")
+        val monthId = preferencesRepository.getFeaturedPackId("month")
+        val yearId = preferencesRepository.getFeaturedPackId("year")
+        _uiState.update {
+            it.copy(
+                packOfDay = freePacks.find { p -> p.id == dayId },
+                packOfMonth = freePacks.find { p -> p.id == monthId },
+                packOfYear = freePacks.find { p -> p.id == yearId }
+            )
+        }
+    }
+
+    fun loadFeaturedPacks() {
+        viewModelScope.launch {
+            preferencesRepository.refreshFeaturedPacks()
+            refreshFeaturedPacks()
         }
     }
 

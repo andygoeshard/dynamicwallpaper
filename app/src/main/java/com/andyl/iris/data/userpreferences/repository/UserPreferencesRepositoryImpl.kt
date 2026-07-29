@@ -18,6 +18,7 @@ import androidx.core.content.edit
 import com.andyl.iris.data.userpreferences.dto.WallpaperPackDto
 import com.andyl.iris.data.userpreferences.dto.toDomain
 import com.andyl.iris.domain.model.PackInfo
+import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.domain.model.ScaleMode
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -279,6 +280,45 @@ class UserPreferencesRepositoryImpl(
         prefs.getBoolean(KEY_HAS_RATED, false)
     }
 
+    override suspend fun isOnboardingCompleted(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_ONBOARDING_COMPLETED, false)
+    }
+
+    override suspend fun setOnboardingCompleted() = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_ONBOARDING_COMPLETED, true) }
+    }
+
+    override suspend fun refreshFeaturedPacks() = withContext(ioDispatcher) {
+        val freePacks = PredefinedPacks.packs.filter { !it.isPremium }
+        val cal = java.util.Calendar.getInstance()
+        val dayPack = freePacks.getOrNull(cal.get(java.util.Calendar.DAY_OF_YEAR) % freePacks.size)
+        val monthPack = freePacks.getOrNull(cal.get(java.util.Calendar.MONTH) % freePacks.size)
+        val yearPack = freePacks.getOrNull(cal.get(java.util.Calendar.YEAR) % freePacks.size)
+        prefs.edit {
+            putString(KEY_FEATURED_DAY, dayPack?.id)
+            putString(KEY_FEATURED_MONTH, monthPack?.id)
+            putString(KEY_FEATURED_YEAR, yearPack?.id)
+        }
+    }
+
+    override suspend fun getFeaturedPackId(type: String): String? = withContext(ioDispatcher) {
+        val key = when (type) {
+            "day" -> KEY_FEATURED_DAY
+            "month" -> KEY_FEATURED_MONTH
+            "year" -> KEY_FEATURED_YEAR
+            else -> return@withContext null
+        }
+        prefs.getString(key, null)
+    }
+
+    override suspend fun getDarkModePreference(): Boolean? = withContext(ioDispatcher) {
+        if (prefs.contains(KEY_DARK_MODE)) prefs.getBoolean(KEY_DARK_MODE, false) else null
+    }
+
+    override suspend fun setDarkMode(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_DARK_MODE, enabled) }
+    }
+
     companion object {
         private const val KEY_PACK_DATA = "wallpaper_pack_data"
         private const val KEY_RULES = "wallpaper_rules"
@@ -292,6 +332,11 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_LAST_UPDATE_TIME = "last_update_time"
         private const val KEY_SUCCESS_COUNT = "app_success_count"
         private const val KEY_HAS_RATED = "has_rated"
+        private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        private const val KEY_FEATURED_DAY = "featured_pack_day"
+        private const val KEY_FEATURED_MONTH = "featured_pack_month"
+        private const val KEY_FEATURED_YEAR = "featured_pack_year"
+        private const val KEY_DARK_MODE = "dark_mode"
     }
 }
 

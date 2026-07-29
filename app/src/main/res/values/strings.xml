@@ -153,7 +153,7 @@
     <string name="cfg_battery_desc">Android may stop background updates to save battery. For better results, allow Iris to run in the background.</string>
     <string name="cfg_battery_button">Optimize Battery</string>
     <string name="cfg_about_title">About Iris</string>
-    <string name="cfg_about_version">Version 1.8</string>
+    <string name="cfg_about_version">Version 2.2</string>
     <string name="cfg_about_feedback">Send Feedback</string>
     <string name="cfg_about_privacy">Privacy Policy</string>
 
@@ -206,4 +206,27 @@
     <string name="purchase_feature_sources">Unsplash, Pexels &amp; Pixabay</string>
     <string name="purchase_feature_temp_rules">Temperature-based rules</string>
     <string name="purchase_thanks_cta">Start Exploring</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Your wallpaper, your style</string>
+    <string name="onboarding_desc_1">Iris changes your wallpaper automatically based on weather, time of day, and day of the week. Just set it up once and enjoy.</string>
+    <string name="onboarding_title_2">116 packs to explore</string>
+    <string name="onboarding_desc_2">From cinematic landscapes to curated daily collections. Weather, weekly, time-based and temperature packs.</string>
+    <string name="onboarding_title_3">Customize everything</string>
+    <string name="onboarding_desc_3">Create custom rules, choose scale modes, and unlock premium packs with Iris Pro.</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_start">Start</string>
+
+    <!-- Pack of the Day -->
+    <string name="pack_of_the_day">Pack of the Day</string>
+    <string name="pack_of_the_day_subtitle">A new curated pack every day</string>
+    <string name="pack_of_the_day_view">View Pack</string>
+    <string name="pack_of_the_month">Pack of the Month</string>
+    <string name="pack_of_the_year">Pack of the Year</string>
+
+    <!-- Theme -->
+    <string name="cfg_theme_title">Appearance</string>
+    <string name="cfg_theme_dark_mode">Dark Mode</string>
+    <string name="cfg_theme_dark_mode_desc">Switch between dark and light theme</string>
 </resources>

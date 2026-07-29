@@ -30,6 +30,7 @@ class ApplyDynamicWallpaperUseCaseImpl(
 
         mutex.withLock {
             Log.d("IRIS_WORKER", "🚀 Starting ApplyDynamicWallpaper process...")
+            preferencesRepository.refreshFeaturedPacks()
             val config = preferencesRepository.getWallpaperConfig(packId)
             
             // OPTIMIZATION: Check for weather-independent rules FIRST

@@ -33,4 +33,13 @@ interface UserPreferencesRepository {
     suspend fun getAppSuccessCount(): Int
     suspend fun setRated(rated: Boolean)
     suspend fun hasRated(): Boolean
+
+    suspend fun isOnboardingCompleted(): Boolean
+    suspend fun setOnboardingCompleted()
+
+    suspend fun refreshFeaturedPacks()
+    suspend fun getFeaturedPackId(type: String): String?
+
+    suspend fun getDarkModePreference(): Boolean?
+    suspend fun setDarkMode(enabled: Boolean)
 }

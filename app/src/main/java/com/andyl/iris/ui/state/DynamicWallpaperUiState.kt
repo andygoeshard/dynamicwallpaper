@@ -1,6 +1,7 @@
 package com.andyl.iris.ui.state
 
 import com.andyl.iris.domain.model.PackInfo
+import com.andyl.iris.domain.model.PredefinedPack
 import com.andyl.iris.domain.model.ScaleMode
 import com.andyl.iris.domain.model.WallpaperRule
 import com.andyl.iris.domain.model.Weather
@@ -29,5 +30,9 @@ data class DynamicWallpaperUiState(
     val lastUpdateTime: String = "",
     val nextUpdateTime: String = "",
     val currentWeather: Weather? = null,
-    val showRatingDialog: Boolean = false
+    val showRatingDialog: Boolean = false,
+    val packOfDay: PredefinedPack? = null,
+    val packOfMonth: PredefinedPack? = null,
+    val packOfYear: PredefinedPack? = null,
+    val isDarkMode: Boolean = false
 )

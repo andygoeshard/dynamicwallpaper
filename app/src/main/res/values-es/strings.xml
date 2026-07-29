@@ -158,7 +158,7 @@
     <string name="cfg_battery_desc">Android puede detener las actualizaciones en segundo plano para ahorrar batería. Para mejores resultados, permití que Iris corra sin restricciones.</string>
     <string name="cfg_battery_button">Configurar Batería</string>
     <string name="cfg_about_title">Acerca de Iris</string>
-    <string name="cfg_about_version">Versión 1.8</string>
+    <string name="cfg_about_version">Versión 2.2</string>
     <string name="cfg_about_feedback">Enviar Comentarios</string>
     <string name="cfg_about_privacy">Política de Privacidad</string>
 
@@ -211,4 +211,22 @@
     <string name="purchase_feature_sources">Unsplash, Pexels y Pixabay</string>
     <string name="purchase_feature_temp_rules">Reglas por temperatura</string>
     <string name="purchase_thanks_cta">Empezar a Explorar</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Tu wallpaper, tu estilo</string>
+    <string name="onboarding_desc_1">Iris cambia tu fondo automáticamente según el clima, la hora y el día de la semana. Configuralo una vez y listo.</string>
+    <string name="onboarding_title_2">116 paquetes para explorar</string>
+    <string name="onboarding_desc_2">Desde paisajes cinematográficos hasta colecciones curadas. Del clima, semanales, por hora y por temperatura.</string>
+    <string name="onboarding_title_3">Personalizá todo</string>
+    <string name="onboarding_desc_3">Creá reglas propias, elegí modos de escala y desbloqueá paquetes premium con Iris Pro.</string>
+    <string name="onboarding_skip">Saltar</string>
+    <string name="onboarding_next">Siguiente</string>
+    <string name="onboarding_start">Empezar</string>
+
+    <!-- Pack del Día -->
+    <string name="pack_of_the_day">Pack del Día</string>
+    <string name="pack_of_the_day_subtitle">Un paquete nuevo cada día</string>
+    <string name="pack_of_the_day_view">Ver Pack</string>
+    <string name="pack_of_the_month">Pack del Mes</string>
+    <string name="pack_of_the_year">Pack del Año</string>
 </resources>

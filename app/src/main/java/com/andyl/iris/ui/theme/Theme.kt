@@ -30,6 +30,19 @@ private val CyberpunkGreenColorScheme = darkColorScheme(
     onSurface = CyberGreen.copy(alpha = 0.8f)
 )
 
+private val CyberpunkLightColorScheme = lightColorScheme(
+    primary = Color(0xFF008A2A),
+    secondary = Color(0xFF008A8A),
+    tertiary = CyberPink,
+    background = Color(0xFFF5F5F0),
+    surface = Color(0xFFFFFFFF),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1A1A1A),
+    onSurface = Color(0xFF1A1A1A)
+)
+
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
@@ -39,27 +52,15 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun IrisWallpaperTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true, // Volvemos a true para usar los colores del fondo
-    isCyberpunk: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val dynamic = if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-            if (isCyberpunk) {
-                // Si es cyberpunk, mantenemos el fondo oscuro pero usamos colores dinámicos
-                dynamic.copy(
-                    background = CyberDark,
-                    surface = Color(0xFF1A1A1A),
-                    onBackground = dynamic.primary,
-                    onSurface = dynamic.primary.copy(alpha = 0.8f)
-                )
-            } else dynamic
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        isCyberpunk -> CyberpunkGreenColorScheme
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> CyberpunkGreenColorScheme
+        else -> CyberpunkLightColorScheme
     }
 
     MaterialTheme(

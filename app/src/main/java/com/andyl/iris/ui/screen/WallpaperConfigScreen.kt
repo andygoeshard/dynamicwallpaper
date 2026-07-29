@@ -123,6 +123,44 @@ fun WallpaperConfigScreen(
                 }
             }
 
+            // --- SECTION: APPEARANCE ---
+            item {
+                ConfigSection(
+                    title = stringResource(R.string.cfg_theme_title),
+                    description = stringResource(R.string.cfg_theme_dark_mode_desc)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    if (uiState.isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
+                                    null,
+                                    tint = if (uiState.isDarkMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    stringResource(R.string.cfg_theme_dark_mode),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                            Switch(
+                                checked = uiState.isDarkMode,
+                                onCheckedChange = { viewModel.onEvent(WallpaperEvent.OnToggleDarkMode(it)) }
+                            )
+                        }
+                    }
+                }
+            }
+
             // --- SECTION: LOCATION SETTINGS ---
             item {
                 ConfigSection(

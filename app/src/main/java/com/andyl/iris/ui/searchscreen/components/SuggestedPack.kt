@@ -5,8 +5,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
@@ -36,6 +38,7 @@ import com.andyl.iris.domain.model.PackType
 import com.andyl.iris.domain.model.PredefinedPack
 import com.andyl.iris.domain.model.PredefinedPacks
 import com.andyl.iris.domain.repository.PremiumRepository
+import com.andyl.iris.ui.components.AccordionPackCard
 import com.andyl.iris.ui.searchscreen.SuggestedPack
 
 @Composable
@@ -43,7 +46,17 @@ fun SuggestedPacksList(
     heroes: Map<String, String> = emptyMap(),
     premiumRepository: PremiumRepository,
     onPackClick: (SuggestedPack) -> Unit,
-    onUpsellClick: () -> Unit = {}
+    onUpsellClick: () -> Unit = {},
+    listState: LazyListState = rememberLazyListState(),
+    packOfDay: PredefinedPack? = null,
+    packOfMonth: PredefinedPack? = null,
+    packOfYear: PredefinedPack? = null,
+    isDayExpanded: Boolean = true,
+    isMonthExpanded: Boolean = true,
+    isYearExpanded: Boolean = true,
+    onToggleDay: () -> Unit = {},
+    onToggleMonth: () -> Unit = {},
+    onToggleYear: () -> Unit = {}
 ) {
     val isPremium by premiumRepository.observePremiumStatus().collectAsState(initial = premiumRepository.isPremium())
     val categories = remember {
@@ -56,6 +69,7 @@ fun SuggestedPacksList(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
+        state = listState,
         contentPadding = PaddingValues(bottom = 32.dp)
     ) {
         // --- WEATHER BASED SECTION ---
@@ -74,6 +88,49 @@ fun SuggestedPacksList(
         item {
             PackSectionHeader(stringResource(R.string.time_overrides), stringResource(R.string.time_overrides_desc))
             PackHorizontalRow(PredefinedPacks.timePacks, heroes, isPremium, onPackClick, onUpsellClick)
+        }
+
+        // --- ACCORDION CARDS (Day, Month, Year) ---
+        packOfDay?.let { pack ->
+            item(key = "accordion_day") {
+                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    AccordionPackCard(
+                        pack = pack,
+                        badge = stringResource(R.string.pack_of_the_day),
+                        isExpanded = isDayExpanded,
+                        onClick = { onToggleDay() },
+                        onPackClick = { onPackClick(SuggestedPack.Predefined(pack.id, pack.name, pack.description)) }
+                    )
+                }
+            }
+        }
+
+        packOfMonth?.let { pack ->
+            item(key = "accordion_month") {
+                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    AccordionPackCard(
+                        pack = pack,
+                        badge = stringResource(R.string.pack_of_the_month),
+                        isExpanded = isMonthExpanded,
+                        onClick = { onToggleMonth() },
+                        onPackClick = { onPackClick(SuggestedPack.Predefined(pack.id, pack.name, pack.description)) }
+                    )
+                }
+            }
+        }
+
+        packOfYear?.let { pack ->
+            item(key = "accordion_year") {
+                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    AccordionPackCard(
+                        pack = pack,
+                        badge = stringResource(R.string.pack_of_the_year),
+                        isExpanded = isYearExpanded,
+                        onClick = { onToggleYear() },
+                        onPackClick = { onPackClick(SuggestedPack.Predefined(pack.id, pack.name, pack.description)) }
+                    )
+                }
+            }
         }
 
         // --- RANDOM SECTION ---

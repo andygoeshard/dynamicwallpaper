@@ -13,12 +13,24 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import com.andyl.iris.domain.repository.UserPreferencesRepository
+import com.andyl.iris.ui.components.OnboardingScreen
 import com.andyl.iris.ui.navigation.AppNav
 import com.andyl.iris.ui.theme.IrisWallpaperTheme
+import com.andyl.iris.ui.theme.ThemeManager
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,7 +38,36 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val context = LocalContext.current
-            IrisWallpaperTheme {
+            val userPreferences: UserPreferencesRepository = koinInject()
+            val themeManager: ThemeManager = koinInject()
+            val scope = rememberCoroutineScope()
+            var onboardingCompleted by remember { mutableStateOf<Boolean?>(null) }
+            val systemDark = isSystemInDarkTheme()
+
+            LaunchedEffect(Unit) {
+                onboardingCompleted = userPreferences.isOnboardingCompleted()
+                val saved = userPreferences.getDarkModePreference()
+                themeManager.setDarkMode(saved ?: systemDark)
+            }
+
+            val isDarkMode by themeManager.isDarkMode.collectAsState()
+
+            IrisWallpaperTheme(darkTheme = isDarkMode) {
+                if (onboardingCompleted == null) {
+                    // Loading state - show nothing while checking
+                    return@IrisWallpaperTheme
+                }
+
+                if (onboardingCompleted == false) {
+                    OnboardingScreen(
+                        onFinish = {
+                            scope.launch {
+                                userPreferences.setOnboardingCompleted()
+                                onboardingCompleted = true
+                            }
+                        }
+                    )
+                } else {
                 
                 val launcher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -67,6 +108,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 AppNav()
+                }
             }
         }
     }

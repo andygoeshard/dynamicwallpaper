@@ -88,7 +88,8 @@ fun PackDetailList(
     onDownloadFullPack: (SuggestedPack) -> Unit,
     onLongPressInstall: () -> Unit = {},
     onAddCustomTime: () -> Unit = {},
-    onUpsellClick: () -> Unit = {}
+    onUpsellClick: () -> Unit = {},
+    onImagePreview: (String) -> Unit = {}
 ) {
     val isPremium by premiumRepository.observePremiumStatus().collectAsState(initial = premiumRepository.isPremium())
     val isPackLocked = pack is SuggestedPack.Predefined && !premiumRepository.isPackUnlocked(pack.packId)
@@ -305,7 +306,13 @@ fun PackDetailList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
-                    .clickable { onSlotClick(slot.weather, slot.time, slot.dayName, slot.fixedTime, label) },
+                    .clickable {
+                        if (isPredefinedPreview && displayUri != null) {
+                            onImagePreview(displayUri)
+                        } else {
+                            onSlotClick(slot.weather, slot.time, slot.dayName, slot.fixedTime, label)
+                        }
+                    },
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = if (status.hasAny) 

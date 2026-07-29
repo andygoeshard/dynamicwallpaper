@@ -46,4 +46,5 @@ sealed interface WallpaperEvent{
     object OnDismissRatingDialog : WallpaperEvent
     data class OnRateApp(val stars: Int) : WallpaperEvent
     object OnFeedbackClicked : WallpaperEvent
+    data class OnToggleDarkMode(val enabled: Boolean) : WallpaperEvent
 }

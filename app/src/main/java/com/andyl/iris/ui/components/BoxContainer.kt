@@ -13,9 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.andyl.iris.ui.theme.CyberDark
 
 @Composable
 fun BoxContainer(
@@ -31,19 +29,19 @@ fun BoxContainer(
     val shape = RoundedCornerShape(24.dp)
 
     val backgroundColor = if (useCyberStyle) {
-        CyberDark.copy(alpha = 0.8f)
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
     } else if (isDark) {
-        Color.White.copy(alpha = 0.05f)
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     } else {
-        Color.White.copy(alpha = 0.7f)
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     }
 
     val borderBrush = if (useCyberStyle) {
         Brush.linearGradient(listOf(colorPrimary.copy(alpha = 0.5f), colorSecondary.copy(alpha = 0.3f)))
     } else {
         Brush.linearGradient(listOf(
-            if (isDark) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.1f),
-            if (isDark) Color.White.copy(alpha = 0.15f) else Color.Black.copy(alpha = 0.1f)
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         ))
     }
 
