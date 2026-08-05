@@ -12,7 +12,9 @@ import com.andyl.iris.domain.mapper.*
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.ui.screen.DynamicWallpaperScreen
+import com.andyl.iris.ui.screen.StatsScreen
 import com.andyl.iris.ui.screen.WallpaperConfigScreen
+import com.andyl.iris.ui.screen.WeatherForecastScreen
 import com.andyl.iris.ui.searchscreen.SearchScreen
 import com.andyl.iris.ui.searchscreen.SearchViewModel
 import com.andyl.iris.ui.searchscreen.WallpaperSlot
@@ -98,7 +100,22 @@ fun AppNav() {
             val parentEntry = remember(it) { navController.getBackStackEntry("main") }
             val viewModel: DynamicWallpaperViewModel = koinViewModel(viewModelStoreOwner = parentEntry)
             WallpaperConfigScreen(
-                viewModel,onBack = { navController.popBackStack() }
+                viewModel,
+                onBack = { navController.popBackStack() },
+                onOpenStats = { navController.navigate("stats") },
+                onOpenWeather = { navController.navigate("weather") }
+            )
+        }
+
+        composable("stats") {
+            StatsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("weather") {
+            WeatherForecastScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }

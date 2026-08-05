@@ -1,5 +1,25 @@
 package com.andyl.iris.domain.model
 
+import java.time.LocalDate
+
+data class SeasonalWindow(
+    val startMonth: Int,
+    val startDay: Int,
+    val endMonth: Int,
+    val endDay: Int
+) {
+    fun contains(date: LocalDate): Boolean {
+        val ref = LocalDate.of(2000, date.monthValue, date.dayOfMonth)
+        val start = LocalDate.of(2000, startMonth, startDay)
+        val end = LocalDate.of(2000, endMonth, endDay)
+        return if (!start.isAfter(end)) {
+            !ref.isBefore(start) && !ref.isAfter(end)
+        } else {
+            !ref.isBefore(start) || !ref.isAfter(end)
+        }
+    }
+}
+
 data class PredefinedPack(
     val id: String,
     val name: String,
@@ -9,7 +29,8 @@ data class PredefinedPack(
     val type: PackType = PackType.WEATHER,
     val isTimeBased: Boolean = false,
     val isFullRandom: Boolean = false,
-    val isPremium: Boolean = false
+    val isPremium: Boolean = false,
+    val season: SeasonalWindow? = null
 )
 
 enum class PackType {
@@ -1037,5 +1058,43 @@ object PredefinedPacks {
         )
     )
 
-    val packs = weatherPacks + weeklyPacks + timePacks + randomPacks + temperaturePacks
+    val seasonalPacks = listOf(
+        PredefinedPack(
+            id = "christmas_seasonal",
+            name = "Christmas Magic",
+            description = "Cozy lights, snow and festive warmth for the holidays.",
+            previewUrl = "https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "christmas tree ornaments lights snow holiday cozy",
+            season = SeasonalWindow(12, 1, 12, 26)
+        ),
+        PredefinedPack(
+            id = "new_year_seasonal",
+            name = "New Year Spark",
+            description = "Fireworks and celebrations to welcome the new year.",
+            previewUrl = "https://images.unsplash.com/photo-1467810563316-b5476525c0f9?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "new year fireworks celebration night sky sparkler",
+            season = SeasonalWindow(12, 27, 1, 3)
+        ),
+        PredefinedPack(
+            id = "halloween_seasonal",
+            name = "Spooky Season",
+            description = "Pumpkins, fog and eerie vibes for Halloween.",
+            previewUrl = "https://images.unsplash.com/photo-1509557965875-b88c97052f0e?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "halloween pumpkin jack o lantern spooky dark fog",
+            season = SeasonalWindow(10, 15, 11, 1)
+        ),
+        PredefinedPack(
+            id = "valentine_seasonal",
+            name = "Love Bloom",
+            description = "Roses and soft romantic scenes for Valentine's Day.",
+            previewUrl = "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=800&q=80",
+            categoryQuery = "valentines day roses hearts red romantic",
+            season = SeasonalWindow(2, 7, 2, 15)
+        )
+    )
+
+    val packs = weatherPacks + weeklyPacks + timePacks + randomPacks + temperaturePacks + seasonalPacks
+
+    fun currentSeasonalPacks(date: LocalDate = LocalDate.now()): List<PredefinedPack> =
+        seasonalPacks.filter { it.season?.contains(date) == true }
 }

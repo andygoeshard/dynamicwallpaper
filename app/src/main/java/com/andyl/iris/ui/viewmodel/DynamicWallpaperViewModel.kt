@@ -58,7 +58,8 @@ class DynamicWallpaperViewModel(
     private val changeFirstTimeKeyUseCase: ChangeFirstTimeKeyUseCase,
     private val locationRepository: LocationRepository,
     private val preferencesRepository: UserPreferencesRepository,
-    private val themeManager: ThemeManager
+    private val themeManager: ThemeManager,
+    private val wallpaperRepository: com.andyl.iris.domain.repository.WallpaperRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DynamicWallpaperUiState())
@@ -145,7 +146,23 @@ class DynamicWallpaperViewModel(
 
             WallpaperEvent.OnFeedbackClicked -> onFeedbackClicked()
 
-            is WallpaperEvent.OnToggleDarkMode -> toggleDarkMode(event.enabled)
+            is WallpaperEvent.OnSetDarkModePref -> setDarkModePref(event.pref)
+
+            is WallpaperEvent.OnChangeAccentColor -> changeAccentColor(event.color)
+
+            is WallpaperEvent.OnToggleAmoledMode -> toggleAmoledMode(event.enabled)
+
+            is WallpaperEvent.OnToggleReduceAnimations -> toggleReduceAnimations(event.enabled)
+
+            is WallpaperEvent.OnToggleHaptics -> toggleHaptics(event.enabled)
+
+            is WallpaperEvent.OnToggleSound -> toggleSound(event.enabled)
+
+            is WallpaperEvent.OnToggleWallpaperBackground -> toggleWallpaperBackground(event.enabled)
+
+            is WallpaperEvent.OnRevertWallpaper -> revertWallpaper(event.uri)
+
+            WallpaperEvent.OnClearWallpaperHistory -> clearWallpaperHistory()
         }
     }
 
@@ -173,11 +190,96 @@ class DynamicWallpaperViewModel(
         }
     }
 
-    private fun toggleDarkMode(enabled: Boolean) {
-        _uiState.update { it.copy(isDarkMode = enabled) }
-        themeManager.setDarkMode(enabled)
+    private fun setDarkModePref(pref: Boolean?) {
+        _uiState.update { it.copy(darkModePref = pref) }
+        themeManager.setDarkModePref(pref)
         viewModelScope.launch {
-            preferencesRepository.setDarkMode(enabled)
+            preferencesRepository.setDarkModePref(pref)
+        }
+    }
+
+    private fun changeAccentColor(color: String?) {
+        _uiState.update { it.copy(accentColor = color) }
+        themeManager.setAccentColor(color)
+        viewModelScope.launch {
+            preferencesRepository.setAccentColor(color)
+        }
+    }
+
+    private fun toggleAmoledMode(enabled: Boolean) {
+        _uiState.update { it.copy(amoledMode = enabled) }
+        themeManager.setAmoledMode(enabled)
+        viewModelScope.launch {
+            preferencesRepository.setAmoledMode(enabled)
+        }
+    }
+
+    private fun toggleReduceAnimations(enabled: Boolean) {
+        _uiState.update { it.copy(reduceAnimations = enabled) }
+        themeManager.setReduceAnimations(enabled)
+        viewModelScope.launch {
+            preferencesRepository.setReduceAnimations(enabled)
+        }
+    }
+
+    private fun toggleHaptics(enabled: Boolean) {
+        _uiState.update { it.copy(hapticsEnabled = enabled) }
+        themeManager.setHapticsEnabled(enabled)
+        viewModelScope.launch {
+            preferencesRepository.setHapticsEnabled(enabled)
+        }
+    }
+
+    private fun toggleSound(enabled: Boolean) {
+        _uiState.update { it.copy(soundEnabled = enabled) }
+        viewModelScope.launch {
+            preferencesRepository.setSoundEnabled(enabled)
+        }
+    }
+
+    private fun toggleWallpaperBackground(enabled: Boolean) {
+        _uiState.update { it.copy(useWallpaperBackground = enabled) }
+        viewModelScope.launch {
+            preferencesRepository.setUseWallpaperBackground(enabled)
+        }
+    }
+
+    private fun revertWallpaper(uri: String) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            _uiState.update { it.copy(isLoading = true, error = null, successMessage = null) }
+
+            runCatching {
+                wallpaperRepository.applyWallpaper(
+                    wallpaperId = WallpaperId(uri),
+                    scaleMode = state.scaleMode,
+                    target = 3
+                )
+                preferencesRepository.saveLastAppliedWallpaper(uri)
+                preferencesRepository.addWallpaperHistoryEntry(uri, state.currentWeather, System.currentTimeMillis())
+                preferencesRepository.getWallpaperHistory()
+            }.onSuccess { history ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isApplied = true,
+                        lastAppliedWallpaper = uri,
+                        wallpaperHistory = history,
+                        successMessage = "Wallpaper restored!"
+                    )
+                }
+            }.onFailure { t ->
+                if (t !is kotlinx.coroutines.CancellationException) {
+                    _uiState.update { it.copy(isLoading = false, error = t.message ?: "Failed to restore wallpaper") }
+                }
+            }
+        }
+    }
+
+    private fun clearWallpaperHistory() {
+        viewModelScope.launch {
+            runCatching { preferencesRepository.clearWallpaperHistory() }
+                .onSuccess { _uiState.update { it.copy(wallpaperHistory = emptyList()) } }
         }
     }
 
@@ -291,9 +393,11 @@ class DynamicWallpaperViewModel(
                 
                 // Track success for rating strategy
                 preferencesRepository.incrementAppSuccessCount()
+                preferencesRepository.recordChange(_uiState.value.currentWeather)
                 checkRatingCondition()
+                preferencesRepository.getWallpaperHistory()
             }
-                .onSuccess {
+                .onSuccess { history ->
                     _uiState.update { s ->
                         val updatedPacks = s.availablePacks.map {
                             it.copy(isActive = it.id == currentEditingId)
@@ -303,6 +407,7 @@ class DynamicWallpaperViewModel(
                             isApplied = true,
                             activePackId = currentEditingId,
                             availablePacks = updatedPacks,
+                            wallpaperHistory = history,
                             successMessage = "Changes applied successfully!"
                         )
                     }
@@ -327,7 +432,15 @@ class DynamicWallpaperViewModel(
                 val useGps = locationRepository.shouldUseGps()
                 val lastWeather = preferencesRepository.getLastWeather()
                 val lastTimeRaw = preferencesRepository.getLastUpdateTime()
-                val darkMode = themeManager.isDarkMode.value
+                val darkMode = themeManager.darkModePref.value
+                val accent = themeManager.accentColor.value
+                val amoled = themeManager.amoledMode.value
+                val reduceAnimations = themeManager.reduceAnimations.value
+                val haptics = themeManager.hapticsEnabled.value
+                val sound = preferencesRepository.getSoundEnabled()
+                val wallpaperBackground = preferencesRepository.getUseWallpaperBackground()
+                val lastAppliedWallpaper = preferencesRepository.getLastAppliedWallpaper()
+                val wallpaperHistory = preferencesRepository.getWallpaperHistory()
                 
                 val formatter = DateTimeFormatter.ofPattern("HH:mm")
                 val lastTimeFormatted = if (lastTimeRaw > 0) {
@@ -355,6 +468,14 @@ class DynamicWallpaperViewModel(
                     val updateTime = lastTimeFormatted
                     val nextTimeFormatted = nextTimeFormatted
                     val darkMode = darkMode
+                    val accent = accent
+                    val amoled = amoled
+                    val reduceAnimations = reduceAnimations
+                    val haptics = haptics
+                    val sound = sound
+                    val wallpaperBackground = wallpaperBackground
+                    val lastAppliedWallpaper = lastAppliedWallpaper
+                    val wallpaperHistory = wallpaperHistory
                 }
             }.onSuccess { data ->
                 refreshFeaturedPacks()
@@ -377,7 +498,15 @@ class DynamicWallpaperViewModel(
                     currentWeather = data.weather,
                     lastUpdateTime = data.updateTime,
                     nextUpdateTime = data.nextTimeFormatted,
-                    isDarkMode = data.darkMode
+                    darkModePref = data.darkMode,
+                    accentColor = data.accent,
+                    amoledMode = data.amoled,
+                    reduceAnimations = data.reduceAnimations,
+                    hapticsEnabled = data.haptics,
+                    soundEnabled = data.sound,
+                    useWallpaperBackground = data.wallpaperBackground,
+                    lastAppliedWallpaper = data.lastAppliedWallpaper,
+                    wallpaperHistory = data.wallpaperHistory
                 ) }
                 
                 if (!data.gps) {

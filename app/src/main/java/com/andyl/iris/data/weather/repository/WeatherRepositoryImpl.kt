@@ -3,6 +3,8 @@ package com.andyl.iris.data.weather.repository
 import android.util.Log
 import com.andyl.iris.data.weather.api.WeatherApi
 import com.andyl.iris.domain.mapper.toDomain
+import com.andyl.iris.domain.mapper.weatherCodeToWeather
+import com.andyl.iris.domain.model.DailyForecast
 import com.andyl.iris.domain.model.GeoLocation
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.repository.WeatherInfo
@@ -43,6 +45,37 @@ class WeatherRepositoryImpl(
         } catch (e: Exception) {
             Log.e("IRIS_WEATHER", "❌ Failed to fetch weather", e)
             WeatherInfo(Weather.Cloudy)
+        }
+    }
+
+    override suspend fun getDailyForecast(
+        location: GeoLocation,
+        days: Int
+    ): List<DailyForecast> {
+        return try {
+            Log.d("IRIS_WEATHER", "Fetching ${days}-day forecast for Lat: ${location.latitude}, Lon: ${location.longitude}")
+            val response = api.getDailyForecast(
+                latitude = location.latitude,
+                longitude = location.longitude,
+                days = days
+            )
+
+            val daily = response.daily ?: return emptyList()
+            val times = daily.time.orEmpty()
+
+            times.mapIndexed { index, date ->
+                DailyForecast(
+                    date = date,
+                    weather = daily.weatherCode?.getOrNull(index)?.let { weatherCodeToWeather(it) }
+                        ?: Weather.Cloudy,
+                    tempMax = daily.temperatureMax?.getOrNull(index),
+                    tempMin = daily.temperatureMin?.getOrNull(index),
+                    precipitationProbability = daily.precipitationProbabilityMax?.getOrNull(index)
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("IRIS_WEATHER", "❌ Failed to fetch forecast", e)
+            emptyList()
         }
     }
 }

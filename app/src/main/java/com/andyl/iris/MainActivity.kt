@@ -15,6 +15,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,8 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.core.view.WindowCompat
 import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.ui.components.OnboardingScreen
 import com.andyl.iris.ui.navigation.AppNav
@@ -47,12 +50,32 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(Unit) {
                 onboardingCompleted = userPreferences.isOnboardingCompleted()
                 val saved = userPreferences.getDarkModePreference()
-                themeManager.setDarkMode(saved ?: systemDark)
+                themeManager.setDarkModePref(saved)
+                themeManager.setAccentColor(userPreferences.getAccentColor())
+                themeManager.setAmoledMode(userPreferences.getAmoledMode())
+                themeManager.setReduceAnimations(userPreferences.getReduceAnimations())
+                themeManager.setHapticsEnabled(userPreferences.getHapticsEnabled())
             }
 
-            val isDarkMode by themeManager.isDarkMode.collectAsState()
+            val darkModePref by themeManager.darkModePref.collectAsState()
+            val accentColor by themeManager.accentColor.collectAsState()
+            val amoledMode by themeManager.amoledMode.collectAsState()
+            val reduceAnimations by themeManager.reduceAnimations.collectAsState()
+            val isDarkMode = darkModePref ?: systemDark
 
-            IrisWallpaperTheme(darkTheme = isDarkMode) {
+            val view = LocalView.current
+            SideEffect {
+                val controller = WindowCompat.getInsetsController(window, view)
+                controller.isAppearanceLightStatusBars = !isDarkMode
+                controller.isAppearanceLightNavigationBars = !isDarkMode
+            }
+
+            IrisWallpaperTheme(
+                darkTheme = isDarkMode,
+                accentColor = accentColor,
+                amoled = amoledMode,
+                reduceAnimations = reduceAnimations
+            ) {
                 if (onboardingCompleted == null) {
                     // Loading state - show nothing while checking
                     return@IrisWallpaperTheme

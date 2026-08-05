@@ -20,6 +20,7 @@ val viewModelModule = module {
             changeFirstTimeKeyUseCase = get(),
             locationRepository = get(),
             get(),
+            get(),
             get()
         )
     }

@@ -35,6 +35,7 @@
     <string name="pack_content_transition">PackContentTransition</string>
 
     <string name="cfg_screen_title">Iris Settings</string>
+    <string name="cfg_quick_settings_title">Quick Settings</string>
     <string name="btn_back">Back</string>
     <string name="cfg_screen_img_settings_title">Image Settings</string>
     <string name="cfg_screen_img_settings_text">Adjust background scaling for your screen resolution.</string>
@@ -140,6 +141,10 @@
     <string name="badge_mix">Mix</string>
     <string name="badge_weather">Weather</string>
     <string name="badge_temp">Temp</string>
+    <string name="badge_seasonal">Seasonal</string>
+
+    <string name="seasonal_packs">In Season</string>
+    <string name="seasonal_packs_desc">Limited-time packs, only available during their season.</string>
 
     <string name="rating_title">Do you like Iris?</string>
     <string name="rating_description">If you enjoy using the app, please consider giving us a rating! It helps us a lot.</string>
@@ -153,7 +158,7 @@
     <string name="cfg_battery_desc">Android may stop background updates to save battery. For better results, allow Iris to run in the background.</string>
     <string name="cfg_battery_button">Optimize Battery</string>
     <string name="cfg_about_title">About Iris</string>
-    <string name="cfg_about_version">Version 2.2</string>
+    <string name="cfg_about_version">Version 2.3</string>
     <string name="cfg_about_feedback">Send Feedback</string>
     <string name="cfg_about_privacy">Privacy Policy</string>
 
@@ -227,6 +232,85 @@
 
     <!-- Theme -->
     <string name="cfg_theme_title">Appearance</string>
-    <string name="cfg_theme_dark_mode">Dark Mode</string>
-    <string name="cfg_theme_dark_mode_desc">Switch between dark and light theme</string>
+    <string name="cfg_theme_desc">Tune how Iris looks and feels</string>
+    <string name="cfg_theme_preview">Live preview</string>
+    <string name="theme_mode_system">System</string>
+    <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_dark">Dark</string>
+    <string name="cfg_theme_amoled">AMOLED Mode</string>
+    <string name="cfg_theme_amoled_desc">Pure black backgrounds to save battery on OLED screens</string>
+    <string name="cfg_theme_reduce_animations">Reduce Animations</string>
+    <string name="cfg_theme_reduce_animations_desc">Minimize motion and transitions</string>
+    <string name="cfg_theme_accent">Accent Color</string>
+    <string name="cfg_theme_accent_desc">Pick the app accent. System follows your wallpaper</string>
+    <string name="accent_system">System</string>
+    <string name="accent_green">Green</string>
+    <string name="accent_cyan">Cyan</string>
+    <string name="accent_blue">Blue</string>
+    <string name="accent_pink">Pink</string>
+    <string name="accent_purple">Purple</string>
+    <string name="accent_orange">Orange</string>
+
+    <!-- Haptics -->
+    <string name="cfg_haptics">Haptic Feedback</string>
+    <string name="cfg_haptics_desc">Vibrate on apply and refresh actions</string>
+    <string name="cfg_sound">Sound Effects</string>
+    <string name="cfg_sound_desc">Play a subtle sound on apply and refresh</string>
+    <string name="cfg_app_background">Wallpaper Background</string>
+    <string name="cfg_app_background_desc">Use the current wallpaper as the app background</string>
+
+    <!-- Upcoming changes timeline -->
+    <string name="timeline_title">Upcoming Changes</string>
+    <string name="timeline_empty">No scheduled changes</string>
+    <string name="timeline_next_update">Weather update</string>
+    <string name="timeline_fixed_time">Scheduled time</string>
+    <string name="timeline_daily">Weekly change</string>
+
+    <!-- Statistics -->
+    <string name="stats_title">Statistics</string>
+    <string name="stats_total_changes">Total changes</string>
+    <string name="stats_last_7_days">Last 7 days</string>
+    <string name="stats_by_weather">By weather</string>
+    <string name="stats_config">Current configuration</string>
+    <string name="stats_no_data">No data yet</string>
+    <string name="stats_rules">%1$d active rules</string>
+
+    <!-- Weather simulator -->
+    <string name="weather_simulator_title">Weather Simulator</string>
+    <string name="weather_simulator_desc">Preview which wallpaper will be applied for any weather and time.</string>
+    <string name="weather_simulator_weather">Weather</string>
+    <string name="weather_simulator_time">Time of day</string>
+    <string name="weather_simulator_empty">No image configured\nfor this combination</string>
+    <string name="weather_simulator_target_both">Applies to: Home + Lock</string>
+    <string name="weather_simulator_target_home">Applies to: Home screen</string>
+    <string name="weather_simulator_target_lock">Applies to: Lock screen</string>
+    <string name="weather_simulator_pro_title">Preview before it changes</string>
+    <string name="weather_simulator_pro_desc">See exactly which wallpaper each weather and time will trigger, before the sky decides.</string>
+    <string name="weather_simulator_unlock">Unlock with Iris Pro</string>
+
+    <!-- Pack overview grid -->
+    <string name="pack_preview_title">Pack Overview</string>
+    <string name="pack_preview_desc">All 24 weather and time combinations at a glance.</string>
+    <string name="pack_preview_pro_title">See your whole pack at once</string>
+    <string name="pack_preview_pro_desc">Browse every weather and time combination in a single grid.</string>
+
+    <!-- Wallpaper history -->
+    <string name="history_title">Wallpaper History</string>
+    <string name="history_desc">Your recently applied wallpapers. Tap one to restore it.</string>
+    <string name="history_empty">No wallpapers applied yet.</string>
+    <string name="history_clear">Clear history</string>
+
+    <!-- Weather forecast -->
+    <string name="weather_forecast_title">Forecast</string>
+    <string name="weather_forecast_week">Next 7 days</string>
+    <string name="weather_forecast_empty">No forecast available yet.</string>
+    <string name="weather_forecast_error">Couldn\'t load the forecast. Check your connection.</string>
+    <string name="weather_forecast_range">Range %1$s</string>
+    <string name="weather_forecast_precip">Rain</string>
+    <string name="weather_forecast_sunrise">Sunrise</string>
+    <string name="weather_forecast_sunset">Sunset</string>
+
+    <!-- Live preview -->
+    <string name="live_preview_title">Live Preview</string>
+    <string name="live_preview_subtitle">What your wallpaper looks like right now.</string>
 </resources>

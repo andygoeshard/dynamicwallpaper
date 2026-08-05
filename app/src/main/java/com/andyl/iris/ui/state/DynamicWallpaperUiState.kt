@@ -3,6 +3,7 @@ package com.andyl.iris.ui.state
 import com.andyl.iris.domain.model.PackInfo
 import com.andyl.iris.domain.model.PredefinedPack
 import com.andyl.iris.domain.model.ScaleMode
+import com.andyl.iris.domain.model.WallpaperHistoryEntry
 import com.andyl.iris.domain.model.WallpaperRule
 import com.andyl.iris.domain.model.Weather
 
@@ -34,5 +35,13 @@ data class DynamicWallpaperUiState(
     val packOfDay: PredefinedPack? = null,
     val packOfMonth: PredefinedPack? = null,
     val packOfYear: PredefinedPack? = null,
-    val isDarkMode: Boolean = false
+    val darkModePref: Boolean? = null,
+    val accentColor: String? = null,
+    val amoledMode: Boolean = false,
+    val reduceAnimations: Boolean = false,
+    val hapticsEnabled: Boolean = true,
+    val soundEnabled: Boolean = true,
+    val useWallpaperBackground: Boolean = false,
+    val lastAppliedWallpaper: String? = null,
+    val wallpaperHistory: List<WallpaperHistoryEntry> = emptyList()
 )

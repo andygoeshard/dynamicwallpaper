@@ -11,6 +11,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,13 +36,16 @@ fun CyberpunkLoadingBar(
     barHeight: Dp = 12.dp,
     useRounded: Boolean = true
 ) {
+    val reduceAnimations = LocalReduceAnimations.current
     val infiniteTransition = rememberInfiniteTransition(label = "Loading")
     val density = LocalDensity.current
     val colorPrimary = MaterialTheme.colorScheme.primary
     val colorSecondary = MaterialTheme.colorScheme.secondary
     
-    val animatedProgress by if (progress == null) {
-        infiniteTransition.animateFloat(
+    val animatedProgress by when {
+        progress != null -> rememberUpdatedState(progress)
+        reduceAnimations -> remember { mutableFloatStateOf(0.5f) }
+        else -> infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 1f,
             animationSpec = infiniteRepeatable(
@@ -49,8 +54,6 @@ fun CyberpunkLoadingBar(
             ),
             label = "IndeterminateProgress"
         )
-    } else {
-        rememberUpdatedState(progress)
     }
 
     val shape = if (useRounded) {
@@ -68,25 +71,33 @@ fun CyberpunkLoadingBar(
         }
     }
 
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.8f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "GlowAlpha"
-    )
+    val glowAlpha by if (reduceAnimations) {
+        remember { mutableFloatStateOf(0.5f) }
+    } else {
+        infiniteTransition.animateFloat(
+            initialValue = 0.3f,
+            targetValue = 0.8f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "GlowAlpha"
+        )
+    }
 
-    val scanLineOffset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "ScanLine"
-    )
+    val scanLineOffset by if (reduceAnimations) {
+        remember { mutableFloatStateOf(0f) }
+    } else {
+        infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(2000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "ScanLine"
+        )
+    }
 
     Column(
         modifier = modifier.fillMaxWidth(),

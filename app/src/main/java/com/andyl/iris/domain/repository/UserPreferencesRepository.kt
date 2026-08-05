@@ -3,6 +3,7 @@ package com.andyl.iris.domain.repository
 import com.andyl.iris.domain.model.GeoLocation
 import com.andyl.iris.domain.model.PackInfo
 import com.andyl.iris.domain.model.WallpaperConfig
+import com.andyl.iris.domain.model.WallpaperHistoryEntry
 import com.andyl.iris.domain.model.Weather
 
 interface UserPreferencesRepository {
@@ -41,5 +42,33 @@ interface UserPreferencesRepository {
     suspend fun getFeaturedPackId(type: String): String?
 
     suspend fun getDarkModePreference(): Boolean?
-    suspend fun setDarkMode(enabled: Boolean)
+    suspend fun setDarkModePref(pref: Boolean?)
+
+    suspend fun getAccentColor(): String?
+    suspend fun setAccentColor(color: String?)
+
+    suspend fun getAmoledMode(): Boolean
+    suspend fun setAmoledMode(enabled: Boolean)
+
+    suspend fun getReduceAnimations(): Boolean
+    suspend fun setReduceAnimations(enabled: Boolean)
+
+    suspend fun getHapticsEnabled(): Boolean
+    suspend fun setHapticsEnabled(enabled: Boolean)
+
+    suspend fun getSoundEnabled(): Boolean
+    suspend fun setSoundEnabled(enabled: Boolean)
+
+    suspend fun getUseWallpaperBackground(): Boolean
+    suspend fun setUseWallpaperBackground(enabled: Boolean)
+    suspend fun getLastAppliedWallpaper(): String?
+    suspend fun saveLastAppliedWallpaper(uri: String?)
+
+    suspend fun recordChange(weather: Weather?)
+    suspend fun getChangesHistory(): Map<String, Int>
+    suspend fun getWeatherChanges(): Map<String, Int>
+
+    suspend fun getWallpaperHistory(): List<WallpaperHistoryEntry>
+    suspend fun addWallpaperHistoryEntry(uri: String, weather: Weather?, timestamp: Long)
+    suspend fun clearWallpaperHistory()
 }

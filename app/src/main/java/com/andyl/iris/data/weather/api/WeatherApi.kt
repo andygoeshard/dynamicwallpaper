@@ -36,4 +36,32 @@ class WeatherApi(
             WeatherResponseDto()
         }
     }
+
+    suspend fun getDailyForecast(
+        latitude: Double,
+        longitude: Double,
+        days: Int = 7
+    ): WeatherResponseDto {
+        return try {
+            val response: HttpResponse = client.get("https://api.open-meteo.com/v1/forecast") {
+                parameter("latitude", latitude)
+                parameter("longitude", longitude)
+                parameter("current_weather", true)
+                parameter("daily", "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max")
+                parameter("forecast_days", days)
+                parameter("timezone", "auto")
+            }
+
+            if (response.status.value in 200..299) {
+                response.body()
+            } else {
+                val error = response.body<String>()
+                Log.e("IRIS_WEATHER_API", "Error ${response.status.value}: $error")
+                WeatherResponseDto()
+            }
+        } catch (e: Exception) {
+            Log.e("IRIS_WEATHER_API", "Failed to fetch forecast", e)
+            WeatherResponseDto()
+        }
+    }
 }

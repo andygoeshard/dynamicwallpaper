@@ -3,8 +3,8 @@
 import com.andyl.iris.data.weather.dto.CurrentWeatherDto
 import com.andyl.iris.domain.model.Weather
 
-fun CurrentWeatherDto.toDomain(): Weather =
-    when (weatherCode) {
+fun weatherCodeToWeather(code: Int): Weather =
+    when (code) {
         0, 1 -> Weather.Clear // 0: Clear sky, 1: Mainly clear
         2, 3 -> Weather.Cloudy // 2: Partly cloudy, 3: Overcast
         45, 48 -> Weather.Fog // Fog and depositing rime fog
@@ -14,6 +14,8 @@ fun CurrentWeatherDto.toDomain(): Weather =
         95, 96, 99 -> Weather.Storm // Thunderstorm
         else -> Weather.Cloudy
     }
+
+fun CurrentWeatherDto.toDomain(): Weather = weatherCodeToWeather(weatherCode)
 
 fun Weather.toKey(): String = when (this) {
     Weather.Clear -> "CLEAR"

@@ -48,6 +48,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,11 +61,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.andyl.iris.R
+import com.andyl.iris.ui.components.AppWallpaperBackground
 import com.andyl.iris.ui.components.DaySelectionSection
 import com.andyl.iris.ui.components.FixedTimeSection
 import com.andyl.iris.ui.components.BoxContainer
@@ -77,6 +81,7 @@ import com.andyl.iris.ui.components.TemperatureRuleSection
 import com.andyl.iris.ui.components.RatingDialog
 import com.andyl.iris.ui.components.WeatherSection
 import com.andyl.iris.ui.event.WallpaperEvent
+import com.andyl.iris.ui.theme.LocalReduceAnimations
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
 import com.andyl.iris.domain.repository.PremiumRepository
 import com.andyl.iris.billing.BillingManager
@@ -96,6 +101,8 @@ fun DynamicWallpaperScreen(
     var showUpsellSheet by remember { mutableStateOf(false) }
     var isTemperatureExpanded by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val hapticFeedback = LocalHapticFeedback.current
+    val soundManager = koinInject<com.andyl.iris.ui.sound.SoundManager>()
 
     LaunchedEffect(state.error, state.successMessage) {
         state.error?.let {
@@ -177,34 +184,55 @@ fun DynamicWallpaperScreen(
         )
     }
 
+    AppWallpaperBackground(
+        wallpaperUri = state.lastAppliedWallpaper,
+        enabled = state.useWallpaperBackground
+    ) {
     Scaffold(
         modifier = Modifier.statusBarsPadding(),
+        containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
+            val wallpaperBg = state.useWallpaperBackground
             CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = if (wallpaperBg) Color.Transparent else MaterialTheme.colorScheme.surface
+                ),
                 navigationIcon = {
-                    IrisLogo(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .padding(8.dp)
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (wallpaperBg) glassSurfaceColor() else Color.Transparent,
+                        border = if (wallpaperBg) glassBorder() else null
+                    ) {
+                        IrisLogo(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .padding(8.dp)
+                        )
+                    }
                 },
                 title = {
                     Text(stringResource(R.string.top_bar_name), fontWeight = FontWeight.Black) },
                 actions = {
-                    IconButton(onClick = { onNavigateToSearch(null, null, null, null, null) }) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Explorar fondos"
-                        )
-                    }
+                    TopBarIconButton(
+                        glass = wallpaperBg,
+                        onClick = { onNavigateToSearch(null, null, null, null, null) },
+                        icon = Icons.Default.Search,
+                        contentDescription = "Explorar fondos"
+                    )
 
-                    IconButton(onClick = { viewModel.onEvent(WallpaperEvent.OnAddNewPack) }) {
-                        Icon(Icons.Default.AddCircle, contentDescription = stringResource(R.string.add_new_pack))
-                    }
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.cfg_screen_img_settings_title))
-                    }
+                    TopBarIconButton(
+                        glass = wallpaperBg,
+                        onClick = { viewModel.onEvent(WallpaperEvent.OnAddNewPack) },
+                        icon = Icons.Default.AddCircle,
+                        contentDescription = stringResource(R.string.add_new_pack)
+                    )
+                    TopBarIconButton(
+                        glass = wallpaperBg,
+                        onClick = onNavigateToSettings,
+                        icon = Icons.Default.Settings,
+                        contentDescription = stringResource(R.string.cfg_screen_img_settings_title)
+                    )
                 }
             )
         },
@@ -226,7 +254,15 @@ fun DynamicWallpaperScreen(
                         val btnShape = RoundedCornerShape(16.dp)
 
                         Button(
-                            onClick = { viewModel.onEvent(WallpaperEvent.OnApplyWallpaper) },
+                            onClick = {
+                                if (state.hapticsEnabled) {
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                }
+                                if (state.soundEnabled) {
+                                    soundManager.playConfirm()
+                                }
+                                viewModel.onEvent(WallpaperEvent.OnApplyWallpaper)
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(56.dp),
@@ -281,10 +317,14 @@ fun DynamicWallpaperScreen(
                     onUpsellClick = { showUpsellSheet = true }
                 )
 
+                val reduceAnimations = LocalReduceAnimations.current
+
                 AnimatedContent(
                     targetState = state.editingPackId,
                     transitionSpec = {
-                        if (state.slideDirection > 0) {
+                        if (reduceAnimations) {
+                            (fadeIn(tween(0)) togetherWith fadeOut(tween(0))).using(SizeTransform(clip = false))
+                        } else if (state.slideDirection > 0) {
                             (slideInHorizontally { it } + fadeIn()) togetherWith
                                     (slideOutHorizontally { -it } + fadeOut())
                         } else {
@@ -327,6 +367,7 @@ fun DynamicWallpaperScreen(
                 }
             }
         }
+    }
     }
 
     if (showUpsellSheet) {

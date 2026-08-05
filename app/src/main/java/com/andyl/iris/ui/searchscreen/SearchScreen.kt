@@ -49,6 +49,7 @@ import com.andyl.iris.ui.searchscreen.components.SuggestedPacksList
 import com.andyl.iris.ui.searchscreen.components.WallpaperSearchResultItem
 import com.andyl.iris.ui.searchscreen.components.WallpaperDetailSheet
 import com.andyl.iris.ui.components.CyberpunkBox
+import com.andyl.iris.ui.theme.LocalReduceAnimations
 import com.andyl.iris.ui.components.CyberpunkLoadingBar
 import com.andyl.iris.ui.components.PremiumUpsellSheet
 import coil.compose.AsyncImage
@@ -315,6 +316,7 @@ fun SearchScreen(
                 }
 
                 Box(modifier = Modifier.weight(1f)) {
+                    val reduceAnimations = LocalReduceAnimations.current
                     AnimatedContent(
                         targetState = when {
                             state.searchResults.isNotEmpty() -> 3 // Search results always take over
@@ -324,7 +326,9 @@ fun SearchScreen(
                             else -> 2 // Packs list
                         },
                         transitionSpec = {
-                            if (targetState > initialState) {
+                            if (reduceAnimations) {
+                                (fadeIn(tween(0)) togetherWith fadeOut(tween(0))).using(SizeTransform(clip = false))
+                            } else if (targetState > initialState) {
                                 slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
                             } else {
                                 slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()

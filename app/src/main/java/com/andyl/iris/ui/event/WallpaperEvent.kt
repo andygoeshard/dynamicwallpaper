@@ -46,5 +46,13 @@ sealed interface WallpaperEvent{
     object OnDismissRatingDialog : WallpaperEvent
     data class OnRateApp(val stars: Int) : WallpaperEvent
     object OnFeedbackClicked : WallpaperEvent
-    data class OnToggleDarkMode(val enabled: Boolean) : WallpaperEvent
+    data class OnSetDarkModePref(val pref: Boolean?) : WallpaperEvent
+    data class OnChangeAccentColor(val color: String?) : WallpaperEvent
+    data class OnToggleAmoledMode(val enabled: Boolean) : WallpaperEvent
+    data class OnToggleReduceAnimations(val enabled: Boolean) : WallpaperEvent
+    data class OnToggleHaptics(val enabled: Boolean) : WallpaperEvent
+    data class OnToggleSound(val enabled: Boolean) : WallpaperEvent
+    data class OnToggleWallpaperBackground(val enabled: Boolean) : WallpaperEvent
+    data class OnRevertWallpaper(val uri: String) : WallpaperEvent
+    object OnClearWallpaperHistory : WallpaperEvent
 }

@@ -37,6 +37,7 @@
     <string name="pack_content_transition">Transición de contenido del paquete</string>
 
     <string name="cfg_screen_title">Ajustes de Iris</string>
+    <string name="cfg_quick_settings_title">Ajustes rápidos</string>
     <string name="btn_back">Volver</string>
     <string name="cfg_screen_img_settings_title">Ajustes de Imagen</string>
     <string name="cfg_screen_img_settings_text">Ajustá la escala del fondo para la resolución de tu pantalla.</string>
@@ -145,6 +146,10 @@
     <string name="badge_mix">Mix</string>
     <string name="badge_weather">Clima</string>
     <string name="badge_temp">Temp</string>
+    <string name="badge_seasonal">Temporada</string>
+
+    <string name="seasonal_packs">De temporada</string>
+    <string name="seasonal_packs_desc">Packs por tiempo limitado, solo disponibles durante su temporada.</string>
 
     <string name="rating_title">¿Te gusta Iris?</string>
     <string name="rating_description">Si disfrutás la app, ¡considerá darnos una calificación! Nos ayuda muchísimo.</string>
@@ -158,7 +163,7 @@
     <string name="cfg_battery_desc">Android puede detener las actualizaciones en segundo plano para ahorrar batería. Para mejores resultados, permití que Iris corra sin restricciones.</string>
     <string name="cfg_battery_button">Configurar Batería</string>
     <string name="cfg_about_title">Acerca de Iris</string>
-    <string name="cfg_about_version">Versión 2.2</string>
+    <string name="cfg_about_version">Versión 2.3</string>
     <string name="cfg_about_feedback">Enviar Comentarios</string>
     <string name="cfg_about_privacy">Política de Privacidad</string>
 
@@ -229,4 +234,88 @@
     <string name="pack_of_the_day_view">Ver Pack</string>
     <string name="pack_of_the_month">Pack del Mes</string>
     <string name="pack_of_the_year">Pack del Año</string>
+
+    <!-- Tema -->
+    <string name="cfg_theme_title">Apariencia</string>
+    <string name="cfg_theme_desc">Ajustá cómo se ve y se siente Iris</string>
+    <string name="cfg_theme_preview">Vista previa en vivo</string>
+    <string name="theme_mode_system">Sistema</string>
+    <string name="theme_mode_light">Claro</string>
+    <string name="theme_mode_dark">Oscuro</string>
+    <string name="cfg_theme_amoled">Modo AMOLED</string>
+    <string name="cfg_theme_amoled_desc">Fondos negros puros para ahorrar batería en pantallas OLED</string>
+    <string name="cfg_theme_reduce_animations">Reducir Animaciones</string>
+    <string name="cfg_theme_reduce_animations_desc">Minimizá el movimiento y las transiciones</string>
+    <string name="cfg_theme_accent">Color de Acento</string>
+    <string name="cfg_theme_accent_desc">Elegí el acento de la app. Sistema sigue el color de tu fondo de pantalla</string>
+    <string name="accent_system">Sistema</string>
+    <string name="accent_green">Verde</string>
+    <string name="accent_cyan">Cian</string>
+    <string name="accent_blue">Azul</string>
+    <string name="accent_pink">Rosa</string>
+    <string name="accent_purple">Púrpura</string>
+    <string name="accent_orange">Naranja</string>
+
+    <!-- Háptica -->
+    <string name="cfg_haptics">Vibración háptica</string>
+    <string name="cfg_haptics_desc">Vibrar al aplicar y actualizar</string>
+    <string name="cfg_sound">Efectos de sonido</string>
+    <string name="cfg_sound_desc">Reproducir un sonido sutil al aplicar y actualizar</string>
+    <string name="cfg_app_background">Fondo del wallpaper</string>
+    <string name="cfg_app_background_desc">Usar el fondo actual como fondo de la app</string>
+
+    <!-- Próximos cambios -->
+    <string name="timeline_title">Próximos cambios</string>
+    <string name="timeline_empty">Sin cambios programados</string>
+    <string name="timeline_next_update">Actualización del clima</string>
+    <string name="timeline_fixed_time">Horario programado</string>
+    <string name="timeline_daily">Cambio semanal</string>
+
+    <!-- Estadísticas -->
+    <string name="stats_title">Estadísticas</string>
+    <string name="stats_total_changes">Cambios totales</string>
+    <string name="stats_last_7_days">Últimos 7 días</string>
+    <string name="stats_by_weather">Por clima</string>
+    <string name="stats_config">Configuración actual</string>
+    <string name="stats_no_data">Aún no hay datos</string>
+    <string name="stats_rules">%1$d reglas activas</string>
+
+    <!-- Simulador de clima -->
+    <string name="weather_simulator_title">Simulador de clima</string>
+    <string name="weather_simulator_desc">Previsualizá qué fondo se aplicará con cualquier clima y hora.</string>
+    <string name="weather_simulator_weather">Clima</string>
+    <string name="weather_simulator_time">Hora del día</string>
+    <string name="weather_simulator_empty">No hay imagen configurada\npara esta combinación</string>
+    <string name="weather_simulator_target_both">Se aplica a: Inicio + Bloqueo</string>
+    <string name="weather_simulator_target_home">Se aplica a: Pantalla de inicio</string>
+    <string name="weather_simulator_target_lock">Se aplica a: Pantalla de bloqueo</string>
+    <string name="weather_simulator_pro_title">Previsualizá antes de que cambie</string>
+    <string name="weather_simulator_pro_desc">Vé exactamente qué fondo activará cada clima y hora, antes de que el cielo decida.</string>
+    <string name="weather_simulator_unlock">Desbloquear con Iris Pro</string>
+
+    <!-- Grilla del pack -->
+    <string name="pack_preview_title">Vista del pack</string>
+    <string name="pack_preview_desc">Las 24 combinaciones de clima y hora de un vistazo.</string>
+    <string name="pack_preview_pro_title">Vé todo tu pack de una vez</string>
+    <string name="pack_preview_pro_desc">Explorá cada combinación de clima y hora en una sola grilla.</string>
+
+    <!-- Historial de fondos -->
+    <string name="history_title">Historial de fondos</string>
+    <string name="history_desc">Tus fondos aplicados recientemente. Tocá uno para restaurarlo.</string>
+    <string name="history_empty">Todavía no aplicaste fondos.</string>
+    <string name="history_clear">Vaciar historial</string>
+
+    <!-- Pronóstico del clima -->
+    <string name="weather_forecast_title">Pronóstico</string>
+    <string name="weather_forecast_week">Próximos 7 días</string>
+    <string name="weather_forecast_empty">Todavía no hay pronóstico.</string>
+    <string name="weather_forecast_error">No se pudo cargar el pronóstico. Revisá tu conexión.</string>
+    <string name="weather_forecast_range">Rango %1$s</string>
+    <string name="weather_forecast_precip">Lluvia</string>
+    <string name="weather_forecast_sunrise">Amanecer</string>
+    <string name="weather_forecast_sunset">Atardecer</string>
+
+    <!-- Vista previa en vivo -->
+    <string name="live_preview_title">Vista previa en vivo</string>
+    <string name="live_preview_subtitle">Así se ve tu fondo ahora mismo.</string>
 </resources>

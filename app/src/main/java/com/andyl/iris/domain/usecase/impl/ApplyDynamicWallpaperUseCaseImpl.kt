@@ -84,6 +84,16 @@ class ApplyDynamicWallpaperUseCaseImpl(
             Log.d("IRIS_WORKER", "4. Rules to apply: ${rulesToApply.size}")
 
             if (rulesToApply.isNotEmpty()) {
+                val stored = rulesToApply.firstOrNull { it.target == 3 }
+                    ?: rulesToApply.firstOrNull { it.target == 1 }
+                    ?: rulesToApply.firstOrNull { it.target == 2 }
+                preferencesRepository.saveLastAppliedWallpaper(stored?.wallpaperId?.value)
+                preferencesRepository.addWallpaperHistoryEntry(
+                    uri = stored?.wallpaperId?.value.orEmpty(),
+                    weather = finalWeather,
+                    timestamp = System.currentTimeMillis()
+                )
+
                 rulesToApply.forEach { rule ->
                     if (rule.wallpaperId.value.isNotEmpty()) {
                         wallpaperRepository.applyWallpaper(

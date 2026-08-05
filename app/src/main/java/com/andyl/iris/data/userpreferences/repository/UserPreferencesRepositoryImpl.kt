@@ -9,6 +9,7 @@ import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.WallpaperConfig
 import com.andyl.iris.domain.model.WallpaperId
 import com.andyl.iris.domain.model.WallpaperRule
+import com.andyl.iris.domain.model.WallpaperHistoryEntry
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.domain.repository.PremiumRepository
@@ -289,15 +290,23 @@ class UserPreferencesRepositoryImpl(
     }
 
     override suspend fun refreshFeaturedPacks() = withContext(ioDispatcher) {
-        val freePacks = PredefinedPacks.packs.filter { !it.isPremium }
+        val freePacks = PredefinedPacks.packs.filter { !it.isPremium && it.season == null }
+        if (freePacks.isEmpty()) return@withContext
         val cal = java.util.Calendar.getInstance()
-        val dayPack = freePacks.getOrNull(cal.get(java.util.Calendar.DAY_OF_YEAR) % freePacks.size)
-        val monthPack = freePacks.getOrNull(cal.get(java.util.Calendar.MONTH) % freePacks.size)
-        val yearPack = freePacks.getOrNull(cal.get(java.util.Calendar.YEAR) % freePacks.size)
+        val size = freePacks.size
+        val dayIndex = (cal.get(java.util.Calendar.YEAR) * 366 + cal.get(java.util.Calendar.DAY_OF_YEAR)) % size
+        val monthIndex = cal.get(java.util.Calendar.MONTH) % size
+        val yearIndex = cal.get(java.util.Calendar.YEAR) % size
+
+        var d = dayIndex
+        var m = monthIndex
+        while (m == yearIndex || m == d) m = (m + 1) % size
+        while (d == yearIndex || d == m) d = (d + 1) % size
+
         prefs.edit {
-            putString(KEY_FEATURED_DAY, dayPack?.id)
-            putString(KEY_FEATURED_MONTH, monthPack?.id)
-            putString(KEY_FEATURED_YEAR, yearPack?.id)
+            putString(KEY_FEATURED_DAY, freePacks[d].id)
+            putString(KEY_FEATURED_MONTH, freePacks[m].id)
+            putString(KEY_FEATURED_YEAR, freePacks[yearIndex].id)
         }
     }
 
@@ -315,8 +324,119 @@ class UserPreferencesRepositoryImpl(
         if (prefs.contains(KEY_DARK_MODE)) prefs.getBoolean(KEY_DARK_MODE, false) else null
     }
 
-    override suspend fun setDarkMode(enabled: Boolean) = withContext(ioDispatcher) {
-        prefs.edit { putBoolean(KEY_DARK_MODE, enabled) }
+    override suspend fun setDarkModePref(pref: Boolean?) = withContext(ioDispatcher) {
+        prefs.edit {
+            if (pref == null) remove(KEY_DARK_MODE) else putBoolean(KEY_DARK_MODE, pref)
+        }
+    }
+
+    override suspend fun getAccentColor(): String? = withContext(ioDispatcher) {
+        prefs.getString(KEY_ACCENT_COLOR, null)
+    }
+
+    override suspend fun setAccentColor(color: String?) = withContext(ioDispatcher) {
+        prefs.edit {
+            if (color == null) remove(KEY_ACCENT_COLOR) else putString(KEY_ACCENT_COLOR, color)
+        }
+    }
+
+    override suspend fun getAmoledMode(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_AMOLED_MODE, false)
+    }
+
+    override suspend fun setAmoledMode(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_AMOLED_MODE, enabled) }
+    }
+
+    override suspend fun getReduceAnimations(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_REDUCE_ANIMATIONS, false)
+    }
+
+    override suspend fun setReduceAnimations(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_REDUCE_ANIMATIONS, enabled) }
+    }
+
+    override suspend fun getHapticsEnabled(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_HAPTICS, true)
+    }
+
+    override suspend fun setHapticsEnabled(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_HAPTICS, enabled) }
+    }
+
+    override suspend fun getSoundEnabled(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_SOUND, true)
+    }
+
+    override suspend fun setSoundEnabled(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_SOUND, enabled) }
+    }
+
+    override suspend fun getUseWallpaperBackground(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_APP_BACKGROUND, false)
+    }
+
+    override suspend fun setUseWallpaperBackground(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_APP_BACKGROUND, enabled) }
+    }
+
+    override suspend fun getLastAppliedWallpaper(): String? = withContext(ioDispatcher) {
+        prefs.getString(KEY_LAST_WALLPAPER, null)
+    }
+
+    override suspend fun saveLastAppliedWallpaper(uri: String?) = withContext(ioDispatcher) {
+        prefs.edit {
+            if (uri == null) remove(KEY_LAST_WALLPAPER) else putString(KEY_LAST_WALLPAPER, uri)
+        }
+    }
+
+    override suspend fun recordChange(weather: Weather?) = withContext(ioDispatcher) {
+        val today = java.time.LocalDate.now().toString()
+        val daily = jsonToIntMap(prefs.getString(KEY_STATS_HISTORY, null)).toMutableMap()
+        daily[today] = (daily[today] ?: 0) + 1
+        prefs.edit { putString(KEY_STATS_HISTORY, json.encodeToString(daily)) }
+
+        if (weather != null) {
+            val weatherMap = jsonToIntMap(prefs.getString(KEY_STATS_WEATHER, null)).toMutableMap()
+            val key = weather.toKey()
+            weatherMap[key] = (weatherMap[key] ?: 0) + 1
+            prefs.edit { putString(KEY_STATS_WEATHER, json.encodeToString(weatherMap)) }
+        }
+    }
+
+    override suspend fun getChangesHistory(): Map<String, Int> = withContext(ioDispatcher) {
+        jsonToIntMap(prefs.getString(KEY_STATS_HISTORY, null))
+    }
+
+    override suspend fun getWeatherChanges(): Map<String, Int> = withContext(ioDispatcher) {
+        jsonToIntMap(prefs.getString(KEY_STATS_WEATHER, null))
+    }
+
+    override suspend fun getWallpaperHistory(): List<WallpaperHistoryEntry> = withContext(ioDispatcher) {
+        val raw = prefs.getString(KEY_WALLPAPER_HISTORY, null)
+        if (raw.isNullOrBlank()) emptyList()
+        else runCatching {
+            json.decodeFromString<List<WallpaperHistoryEntry>>(raw)
+        }.getOrDefault(emptyList())
+    }
+
+    override suspend fun addWallpaperHistoryEntry(uri: String, weather: Weather?, timestamp: Long) = withContext(ioDispatcher) {
+        if (uri.isBlank()) return@withContext
+        val current = getWallpaperHistory().toMutableList()
+        current.removeAll { it.uri == uri }
+        current.add(0, WallpaperHistoryEntry(uri, weather?.toKey(), timestamp))
+        prefs.edit { putString(KEY_WALLPAPER_HISTORY, json.encodeToString(current.take(8))) }
+    }
+
+    override suspend fun clearWallpaperHistory() = withContext(ioDispatcher) {
+        prefs.edit { remove(KEY_WALLPAPER_HISTORY) }
+    }
+
+    private fun jsonToIntMap(raw: String?): Map<String, Int> {
+        if (raw.isNullOrBlank()) return emptyMap()
+        return runCatching {
+            json.decodeFromString<Map<String, Int>>(raw)
+        }.getOrDefault(emptyMap())
     }
 
     companion object {
@@ -337,6 +457,16 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_FEATURED_MONTH = "featured_pack_month"
         private const val KEY_FEATURED_YEAR = "featured_pack_year"
         private const val KEY_DARK_MODE = "dark_mode"
+        private const val KEY_ACCENT_COLOR = "accent_color"
+        private const val KEY_AMOLED_MODE = "amoled_mode"
+        private const val KEY_REDUCE_ANIMATIONS = "reduce_animations"
+        private const val KEY_HAPTICS = "haptics_enabled"
+        private const val KEY_SOUND = "sound_enabled"
+        private const val KEY_APP_BACKGROUND = "app_background_enabled"
+        private const val KEY_LAST_WALLPAPER = "last_applied_wallpaper"
+        private const val KEY_STATS_HISTORY = "stats_changes_history"
+        private const val KEY_STATS_WEATHER = "stats_weather_changes"
+        private const val KEY_WALLPAPER_HISTORY = "wallpaper_history"
     }
 }
 

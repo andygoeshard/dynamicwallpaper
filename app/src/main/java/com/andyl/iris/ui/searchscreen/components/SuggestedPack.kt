@@ -66,12 +66,21 @@ fun SuggestedPacksList(
             SuggestedPack.Time
         )
     }
+    val seasonalPacks = remember { PredefinedPacks.currentSeasonalPacks() }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = listState,
         contentPadding = PaddingValues(bottom = 32.dp)
     ) {
+        // --- SEASONAL SECTION (only in season) ---
+        if (seasonalPacks.isNotEmpty()) {
+            item {
+                PackSectionHeader(stringResource(R.string.seasonal_packs), stringResource(R.string.seasonal_packs_desc))
+                PackHorizontalRow(seasonalPacks, heroes, isPremium, onPackClick, onUpsellClick)
+            }
+        }
+
         // --- WEATHER BASED SECTION ---
         item {
             PackSectionHeader(stringResource(R.string.weather_atmosphere), stringResource(R.string.weather_atmosphere_desc))
@@ -294,6 +303,7 @@ private fun PredefinedPackCard(
                 ) {
                     Text(
                         text = when {
+                            pack.season != null -> stringResource(R.string.badge_seasonal)
                             pack.isTimeBased -> stringResource(R.string.badge_time)
                             pack.type == PackType.WEEKLY -> stringResource(R.string.badge_weekly)
                             pack.type == PackType.TEMPERATURE -> stringResource(R.string.badge_temp)
