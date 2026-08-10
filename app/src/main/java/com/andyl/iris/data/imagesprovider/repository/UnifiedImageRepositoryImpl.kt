@@ -10,6 +10,8 @@ import com.andyl.iris.domain.model.ImageResult
 import com.andyl.iris.domain.repository.ImageRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 class UnifiedImageRepositoryImpl(
     private val unsplashDataSource: UnsplashRemoteDataSource,
@@ -17,6 +19,10 @@ class UnifiedImageRepositoryImpl(
     private val pixabayDataSource: PixabayRemoteDataSource,
     private val cacheDao: ImageCacheDao
 ) : ImageRepository {
+
+    // Global cap on concurrent provider calls to avoid hitting API rate limits
+    // (heroes + pack previews + searches fire many requests in parallel).
+    private val apiSemaphore = Semaphore(4)
 
     override suspend fun searchImages(query: String, forceRefresh: Boolean): Result<List<ImageResult>> {
         val cleanQuery = query.lowercase().trim()
@@ -29,9 +35,9 @@ class UnifiedImageRepositoryImpl(
         }
 
         return coroutineScope {
-            val uDef = async { unsplashDataSource.searchPhotos(cleanQuery).getOrNull()?.results?.map { it.toDomain() } ?: emptyList() }
-            val pDef = async { pexelsDataSource.searchPhotos(cleanQuery, perPage = 40).getOrNull()?.photos?.map { it.toDomain() } ?: emptyList() }
-            val pixDef = async { pixabayDataSource.searchPhotos(cleanQuery, perPage = 40).getOrNull()?.hits?.map { it.toDomain() } ?: emptyList() }
+            val uDef = async { apiSemaphore.withPermit { unsplashDataSource.searchPhotos(cleanQuery).getOrNull()?.results?.map { it.toDomain() } ?: emptyList() } }
+            val pDef = async { apiSemaphore.withPermit { pexelsDataSource.searchPhotos(cleanQuery, perPage = 40).getOrNull()?.photos?.map { it.toDomain() } ?: emptyList() } }
+            val pixDef = async { apiSemaphore.withPermit { pixabayDataSource.searchPhotos(cleanQuery, perPage = 40).getOrNull()?.hits?.map { it.toDomain() } ?: emptyList() } }
 
             val uRes = uDef.await()
             val pRes = pDef.await()

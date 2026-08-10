@@ -63,12 +63,35 @@ interface UserPreferencesRepository {
     suspend fun setUseWallpaperBackground(enabled: Boolean)
     suspend fun getLastAppliedWallpaper(): String?
     suspend fun saveLastAppliedWallpaper(uri: String?)
+    suspend fun getBatterySaverEnabled(): Boolean
+    suspend fun setBatterySaverEnabled(enabled: Boolean)
 
     suspend fun recordChange(weather: Weather?)
     suspend fun getChangesHistory(): Map<String, Int>
     suspend fun getWeatherChanges(): Map<String, Int>
+    suspend fun recordPackChange(packId: String)
+    suspend fun getPackChanges(): Map<String, Int>
 
     suspend fun getWallpaperHistory(): List<WallpaperHistoryEntry>
     suspend fun addWallpaperHistoryEntry(uri: String, weather: Weather?, timestamp: Long)
     suspend fun clearWallpaperHistory()
+
+    suspend fun getWallpaperOverlayText(): String?
+    suspend fun setWallpaperOverlayText(text: String?)
+    suspend fun getOverlayTextEnabled(): Boolean
+    suspend fun setOverlayTextEnabled(enabled: Boolean)
+
+    suspend fun getPlaces(): List<com.andyl.iris.domain.model.GeoPlace>
+    suspend fun setPlaces(places: List<com.andyl.iris.domain.model.GeoPlace>)
+
+    suspend fun getRandomGalleryBucketId(): String?
+    suspend fun setRandomGalleryBucketId(bucketId: String?)
+
+    suspend fun getLiveVideoPath(): String?
+    suspend fun setLiveVideoPath(path: String?)
+    suspend fun setLiveVideoEnabled(enabled: Boolean)
+    suspend fun setActiveVideoPackId(packId: String?)
+
+    suspend fun getHomeSectionsOrder(): List<String>
+    suspend fun setHomeSectionsOrder(order: List<String>)
 }

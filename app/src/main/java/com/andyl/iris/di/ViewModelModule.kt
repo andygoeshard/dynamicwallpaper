@@ -21,6 +21,7 @@ val viewModelModule = module {
             locationRepository = get(),
             get(),
             get(),
+            get(),
             get()
         )
     }
@@ -33,6 +34,7 @@ val viewModelModule = module {
             favoriteRepository = get(),
             localImageRepository = get(),
             wallpaperRepository = get(),
+            preferencesRepository = get(),
             wallpaperViewModel = params.get()
         )
     }

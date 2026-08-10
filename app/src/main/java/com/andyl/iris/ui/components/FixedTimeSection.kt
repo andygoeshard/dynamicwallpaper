@@ -71,11 +71,6 @@ fun FixedTimeSection(
     val groupedRules = state.fixedRules.entries.groupBy { it.key.split("-")[0] }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = stringResource(R.string.fixed_time_section_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
-        Text(text = stringResource(R.string.fixed_time_section_subtitle), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             groupedRules.forEach { (displayTime, _) ->
                 TimeRuleItem(

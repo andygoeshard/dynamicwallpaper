@@ -43,5 +43,6 @@ data class DynamicWallpaperUiState(
     val soundEnabled: Boolean = true,
     val useWallpaperBackground: Boolean = false,
     val lastAppliedWallpaper: String? = null,
-    val wallpaperHistory: List<WallpaperHistoryEntry> = emptyList()
+    val wallpaperHistory: List<WallpaperHistoryEntry> = emptyList(),
+    val pendingUndoUri: String? = null
 )

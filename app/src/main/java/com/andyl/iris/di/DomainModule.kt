@@ -72,6 +72,7 @@ val domainModule = module {
             detectTimeOfDayUseCase = get(),
             resolveWallpaperUseCase = get(),
             wallpaperRepository = get(),
+            context = get(),
         )
     }
 

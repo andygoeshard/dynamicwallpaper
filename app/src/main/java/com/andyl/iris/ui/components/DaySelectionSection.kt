@@ -81,14 +81,6 @@ fun DaySelectionSection(
     val snapBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.weekCalendar),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         LazyRow(
             state = listState,
             flingBehavior = snapBehavior,

@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -59,7 +60,8 @@ class DynamicWallpaperViewModel(
     private val locationRepository: LocationRepository,
     private val preferencesRepository: UserPreferencesRepository,
     private val themeManager: ThemeManager,
-    private val wallpaperRepository: com.andyl.iris.domain.repository.WallpaperRepository
+    private val wallpaperRepository: com.andyl.iris.domain.repository.WallpaperRepository,
+    private val favoriteRepository: com.andyl.iris.domain.repository.FavoriteRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DynamicWallpaperUiState())
@@ -84,6 +86,7 @@ class DynamicWallpaperViewModel(
             WallpaperEvent.OnApplyWallpaper -> {
                 applyWallpaper()
             }
+
 
             is WallpaperEvent.OnChangePack -> changePack(event.packId, event.direction)
 
@@ -163,6 +166,10 @@ class DynamicWallpaperViewModel(
             is WallpaperEvent.OnRevertWallpaper -> revertWallpaper(event.uri)
 
             WallpaperEvent.OnClearWallpaperHistory -> clearWallpaperHistory()
+
+            WallpaperEvent.OnUndoWallpaper -> undoWallpaper()
+
+            WallpaperEvent.OnClearPendingUndo -> clearPendingUndo()
         }
     }
 
@@ -247,23 +254,26 @@ class DynamicWallpaperViewModel(
     private fun revertWallpaper(uri: String) {
         viewModelScope.launch {
             val state = _uiState.value
+            var appliedUri: String = uri
             _uiState.update { it.copy(isLoading = true, error = null, successMessage = null) }
 
             runCatching {
-                wallpaperRepository.applyWallpaper(
+                val resolved = wallpaperRepository.applyWallpaper(
                     wallpaperId = WallpaperId(uri),
                     scaleMode = state.scaleMode,
                     target = 3
-                )
-                preferencesRepository.saveLastAppliedWallpaper(uri)
-                preferencesRepository.addWallpaperHistoryEntry(uri, state.currentWeather, System.currentTimeMillis())
+                ).getOrThrow()
+                appliedUri = resolved
+                preferencesRepository.saveLastAppliedWallpaper(resolved)
+                preferencesRepository.addWallpaperHistoryEntry(resolved, state.currentWeather, System.currentTimeMillis())
+                preferencesRepository.recordPackChange(state.activePackId)
                 preferencesRepository.getWallpaperHistory()
             }.onSuccess { history ->
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         isApplied = true,
-                        lastAppliedWallpaper = uri,
+                        lastAppliedWallpaper = appliedUri,
                         wallpaperHistory = history,
                         successMessage = "Wallpaper restored!"
                     )
@@ -281,6 +291,16 @@ class DynamicWallpaperViewModel(
             runCatching { preferencesRepository.clearWallpaperHistory() }
                 .onSuccess { _uiState.update { it.copy(wallpaperHistory = emptyList()) } }
         }
+    }
+
+    private fun clearPendingUndo() {
+        _uiState.update { it.copy(pendingUndoUri = null) }
+    }
+
+    private fun undoWallpaper() {
+        val undoUri = _uiState.value.pendingUndoUri ?: return
+        _uiState.update { it.copy(pendingUndoUri = null) }
+        revertWallpaper(undoUri)
     }
 
     private fun updateScaleMode(mode: ScaleMode) {
@@ -373,6 +393,8 @@ class DynamicWallpaperViewModel(
             val currentEditingId = state.editingPackId
             _uiState.update { it.copy(isLoading = true, error = null, successMessage = null) }
 
+            val previousUri = preferencesRepository.getLastAppliedWallpaper()
+
             runCatching {
                 // Save directly instead of launch/join to avoid coroutine overhead
                 val config = WallpaperConfig(
@@ -394,10 +416,13 @@ class DynamicWallpaperViewModel(
                 // Track success for rating strategy
                 preferencesRepository.incrementAppSuccessCount()
                 preferencesRepository.recordChange(_uiState.value.currentWeather)
+                preferencesRepository.recordPackChange(currentEditingId)
                 checkRatingCondition()
                 preferencesRepository.getWallpaperHistory()
             }
                 .onSuccess { history ->
+                    val newUri = preferencesRepository.getLastAppliedWallpaper()
+                    val canUndo = previousUri != null && previousUri != newUri
                     _uiState.update { s ->
                         val updatedPacks = s.availablePacks.map {
                             it.copy(isActive = it.id == currentEditingId)
@@ -408,7 +433,8 @@ class DynamicWallpaperViewModel(
                             activePackId = currentEditingId,
                             availablePacks = updatedPacks,
                             wallpaperHistory = history,
-                            successMessage = "Changes applied successfully!"
+                            pendingUndoUri = if (canUndo) previousUri else null,
+                            successMessage = if (canUndo) null else "Changes applied successfully!"
                         )
                     }
                 }
@@ -506,7 +532,8 @@ class DynamicWallpaperViewModel(
                     soundEnabled = data.sound,
                     useWallpaperBackground = data.wallpaperBackground,
                     lastAppliedWallpaper = data.lastAppliedWallpaper,
-                    wallpaperHistory = data.wallpaperHistory
+                    wallpaperHistory = data.wallpaperHistory,
+                    isWeatherFeatureEnabled = data.conf.enabledWeathers.isNotEmpty()
                 ) }
                 
                 if (!data.gps) {

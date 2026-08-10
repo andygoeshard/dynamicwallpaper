@@ -11,6 +11,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -45,6 +47,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,6 +60,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,9 +77,12 @@ import com.andyl.iris.ui.components.AppWallpaperBackground
 import com.andyl.iris.ui.components.DaySelectionSection
 import com.andyl.iris.ui.components.FixedTimeSection
 import com.andyl.iris.ui.components.BoxContainer
+import com.andyl.iris.ui.components.CollapsibleSectionCard
+import com.andyl.iris.ui.components.SectionBuildMode
 import com.andyl.iris.ui.components.CyberpunkBox
-import com.andyl.iris.ui.components.CyberpunkLoadingBar
+import com.andyl.iris.ui.components.ApplyFeedbackOverlay
 import com.andyl.iris.ui.components.IrisLogo
+import com.andyl.iris.ui.components.LoadingScreen
 import com.andyl.iris.ui.components.PackSelectorSection
 import com.andyl.iris.ui.components.PremiumUpsellSheet
 import com.andyl.iris.ui.components.TemperatureRuleSection
@@ -84,10 +92,16 @@ import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.theme.LocalReduceAnimations
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
 import com.andyl.iris.domain.repository.PremiumRepository
+import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.billing.BillingManager
 import org.koin.compose.koinInject
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.snapshotFlow
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DynamicWallpaperScreen(
     viewModel: DynamicWallpaperViewModel,
@@ -97,12 +111,21 @@ fun DynamicWallpaperScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val premiumRepository = koinInject<PremiumRepository>()
+    val userPreferencesRepository = koinInject<UserPreferencesRepository>()
+    val scope = rememberCoroutineScope()
     var showPermissionDialog by remember { mutableStateOf(false) }
     var showUpsellSheet by remember { mutableStateOf(false) }
-    var isTemperatureExpanded by remember { mutableStateOf(false) }
+    var showTransition by remember { mutableStateOf(false) }
+    var homeSections by remember { mutableStateOf<List<String>>(emptyList()) }
+    var buildMode by remember { mutableStateOf(false) }
+    val homeListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val hapticFeedback = LocalHapticFeedback.current
     val soundManager = koinInject<com.andyl.iris.ui.sound.SoundManager>()
+
+    LaunchedEffect(Unit) {
+        homeSections = userPreferencesRepository.getHomeSectionsOrder()
+    }
 
     LaunchedEffect(state.error, state.successMessage) {
         state.error?.let {
@@ -112,6 +135,21 @@ fun DynamicWallpaperScreen(
         state.successMessage?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.onEvent(WallpaperEvent.ClearMessages)
+        }
+    }
+
+    LaunchedEffect(state.pendingUndoUri) {
+        state.pendingUndoUri?.let {
+            val result = snackbarHostState.showSnackbar(
+                message = context.getString(R.string.undo_message),
+                actionLabel = context.getString(R.string.undo_action),
+                duration = SnackbarDuration.Long
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.onEvent(WallpaperEvent.OnUndoWallpaper)
+            } else {
+                viewModel.onEvent(WallpaperEvent.OnClearPendingUndo)
+            }
         }
     }
 
@@ -157,6 +195,7 @@ fun DynamicWallpaperScreen(
             confirmButton = {
                 Button(
                     onClick = {
+                        showTransition = true
                         viewModel.onEvent(WallpaperEvent.OnConfirmFirstTime)
                         viewModel.onEvent(WallpaperEvent.OnApplyWallpaper)
                     },
@@ -253,37 +292,44 @@ fun DynamicWallpaperScreen(
                     ) {
                         val btnShape = RoundedCornerShape(16.dp)
 
-                        Button(
-                            onClick = {
-                                if (state.hapticsEnabled) {
-                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                }
-                                if (state.soundEnabled) {
-                                    soundManager.playConfirm()
-                                }
-                                viewModel.onEvent(WallpaperEvent.OnApplyWallpaper)
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            shape = btnShape,
-                            enabled = !state.isLoading
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            if (state.isLoading) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.onPrimary,
-                                        strokeWidth = 2.dp
-                                    )
-                                    Spacer(Modifier.width(12.dp))
-                                    Text(stringResource(R.string.applying_changes), fontWeight = FontWeight.ExtraBold)
-                                }
-                            } else {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.CheckCircle, contentDescription = null)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(if(state.editingPackId != state.activePackId)stringResource(R.string.activate_package) else stringResource(R.string.apply_wallpaper), fontWeight = FontWeight.ExtraBold)
+                            Button(
+                                onClick = {
+                                    if (state.hapticsEnabled) {
+                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
+                                    if (state.soundEnabled) {
+                                        soundManager.playConfirm()
+                                    }
+                                    showTransition = true
+                                    viewModel.onEvent(WallpaperEvent.OnApplyWallpaper)
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(56.dp),
+                                shape = btnShape,
+                                enabled = !state.isLoading
+                            ) {
+                                if (state.isLoading) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(24.dp),
+                                            color = MaterialTheme.colorScheme.onPrimary,
+                                            strokeWidth = 2.dp
+                                        )
+                                        Spacer(Modifier.width(12.dp))
+                                        Text(stringResource(R.string.applying_changes), fontWeight = FontWeight.ExtraBold)
+                                    }
+                                } else {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.CheckCircle, contentDescription = null)
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(if(state.editingPackId != state.activePackId)stringResource(R.string.activate_package) else stringResource(R.string.apply_wallpaper), fontWeight = FontWeight.ExtraBold)
+                                    }
                                 }
                             }
                         }
@@ -292,23 +338,10 @@ fun DynamicWallpaperScreen(
             }
         }
     ) { padding ->
-        if (state.isLoading && state.rules.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(48.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CyberpunkLoadingBar(
-                    progress = null,
-                    label = "INITIALIZING CORE..."
-                )
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = padding.calculateTopPadding())
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = padding.calculateTopPadding())
             ) {
                 PackSelectorSection(
                     state = state,
@@ -337,6 +370,7 @@ fun DynamicWallpaperScreen(
                 ) { id ->
                     key(id) {
                         LazyColumn(
+                            state = homeListState,
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(
                                 start = 16.dp,
@@ -346,27 +380,55 @@ fun DynamicWallpaperScreen(
                             ),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            item { BoxContainer { DaySelectionSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch) } }
-                            item { BoxContainer { WeatherSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch) } }
-                            item { BoxContainer { FixedTimeSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch) } }
-                            item {
-                                BoxContainer {
-                                    TemperatureRuleSection(
-                                        state = state,
-                                        isPremium = premiumRepository.isPremium(),
-                                        isExpanded = isTemperatureExpanded,
-                                        onToggleExpand = { isTemperatureExpanded = !isTemperatureExpanded },
-                                        onEvent = { viewModel.onEvent(it) },
-                                        onNavigateToSearch = onNavigateToSearch,
-                                        onUpsellClick = { showUpsellSheet = true }
-                                    )
+                            items(homeSections, key = { it }) { sectionId ->
+                                val enterBuildMode = { buildMode = true }
+                                val sectionContent: @Composable () -> Unit = when (sectionId) {
+                                    "day" -> ({
+                                        DaySelectionSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch)
+                                    })
+                                    "weather" -> ({
+                                        WeatherSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch)
+                                    })
+                                    "fixed" -> ({
+                                        FixedTimeSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch)
+                                    })
+                                    else -> ({
+                                        TemperatureRuleSection(
+                                            state = state,
+                                            isPremium = premiumRepository.isPremium(),
+                                            isExpanded = true,
+                                            onToggleExpand = {},
+                                            onEvent = { viewModel.onEvent(it) },
+                                            onNavigateToSearch = onNavigateToSearch,
+                                            onUpsellClick = { showUpsellSheet = true }
+                                        )
+                                    })
+                                }
+                                val sectionTitle = when (sectionId) {
+                                    "day" -> stringResource(R.string.weekCalendar)
+                                    "weather" -> stringResource(R.string.weather_section_config)
+                                    "fixed" -> stringResource(R.string.fixed_time_section_title)
+                                    else -> stringResource(R.string.temp_by_weather)
+                                }
+                                val sectionSubtitle = when (sectionId) {
+                                    "weather" -> stringResource(R.string.weather_section_tap_config)
+                                    "fixed" -> stringResource(R.string.fixed_time_section_subtitle)
+                                    else -> stringResource(R.string.temp_by_weather_desc)
+                                }
+
+                                CollapsibleSectionCard(
+                                    sectionId = sectionId,
+                                    title = sectionTitle,
+                                    subtitle = sectionSubtitle,
+                                    onLongClick = enterBuildMode
+                                ) {
+                                    sectionContent()
                                 }
                             }
                         }
                     }
                 }
             }
-        }
     }
     }
 
@@ -376,5 +438,62 @@ fun DynamicWallpaperScreen(
             billingManager = billingManager,
             onDismiss = { showUpsellSheet = false }
         )
+    }
+
+    if (showTransition && !LocalReduceAnimations.current) {
+        ApplyFeedbackOverlay(
+            onFinished = { showTransition = false }
+        )
+    }
+
+    if (buildMode) {
+        SectionBuildMode(
+            sections = homeSections,
+            titles = mapOf(
+                "day" to stringResource(R.string.weekCalendar),
+                "weather" to stringResource(R.string.weather_section_config),
+                "fixed" to stringResource(R.string.fixed_time_section_title),
+                "temperature" to stringResource(R.string.temp_by_weather)
+            ),
+            subtitles = mapOf(
+                "weather" to stringResource(R.string.weather_section_tap_config),
+                "fixed" to stringResource(R.string.fixed_time_section_subtitle),
+                "temperature" to stringResource(R.string.temp_by_weather_desc)
+            ),
+            sectionContent = { sectionId ->
+                when (sectionId) {
+                    "day" -> DaySelectionSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch)
+                    "weather" -> WeatherSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch)
+                    "fixed" -> FixedTimeSection(state = state, onEvent = { viewModel.onEvent(it) }, onNavigateToSearch = onNavigateToSearch)
+                    else -> TemperatureRuleSection(
+                        state = state,
+                        isPremium = premiumRepository.isPremium(),
+                        isExpanded = true,
+                        onToggleExpand = {},
+                        onEvent = { viewModel.onEvent(it) },
+                        onNavigateToSearch = onNavigateToSearch,
+                        onUpsellClick = { showUpsellSheet = true }
+                    )
+                }
+            },
+            onReorder = { newOrder ->
+                homeSections = newOrder
+                scope.launch { userPreferencesRepository.setHomeSectionsOrder(newOrder) }
+            },
+            onExit = { buildMode = false }
+        )
+    }
+
+    var startupLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        snapshotFlow { state.isLoading }
+            .filter { !it }
+            .first()
+        delay(700)
+        startupLoading = false
+    }
+
+    if (startupLoading) {
+        LoadingScreen(label = "INITIALIZING CORE...")
     }
 }

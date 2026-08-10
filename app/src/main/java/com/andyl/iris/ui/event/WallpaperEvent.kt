@@ -55,4 +55,6 @@ sealed interface WallpaperEvent{
     data class OnToggleWallpaperBackground(val enabled: Boolean) : WallpaperEvent
     data class OnRevertWallpaper(val uri: String) : WallpaperEvent
     object OnClearWallpaperHistory : WallpaperEvent
+    object OnUndoWallpaper : WallpaperEvent
+    object OnClearPendingUndo : WallpaperEvent
 }

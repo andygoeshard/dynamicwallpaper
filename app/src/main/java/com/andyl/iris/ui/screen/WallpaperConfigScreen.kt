@@ -5,10 +5,13 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.provider.MediaStore
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -16,7 +19,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -64,12 +70,15 @@ import com.andyl.iris.domain.mapper.weatherFromKey
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
 import com.andyl.iris.domain.model.WallpaperHistoryEntry
+import com.andyl.iris.domain.repository.LocationRepository
 import com.andyl.iris.domain.repository.PremiumRepository
+import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.ui.components.AppWallpaperBackground
 import com.andyl.iris.ui.components.EmptyState
 import com.andyl.iris.ui.components.PremiumUpsellSheet
 import com.andyl.iris.ui.components.RatingDialog
 import com.andyl.iris.ui.components.ScaleModeSelector
+import com.andyl.iris.ui.components.WallpaperPreviewImage
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.state.DynamicWallpaperUiState
 import com.andyl.iris.ui.theme.AccentOptions
@@ -95,7 +104,8 @@ fun WallpaperConfigScreen(
     viewModel: DynamicWallpaperViewModel,
     onBack: () -> Unit,
     onOpenStats: () -> Unit = {},
-    onOpenWeather: () -> Unit = {}
+    onOpenWeather: () -> Unit = {},
+    onOpenAchievements: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -106,8 +116,35 @@ fun WallpaperConfigScreen(
     val hapticFeedback = LocalHapticFeedback.current
     val soundManager = koinInject<com.andyl.iris.ui.sound.SoundManager>()
     val premiumRepository = koinInject<PremiumRepository>()
+    val userPreferencesRepository = koinInject<UserPreferencesRepository>()
+    val locationRepository = koinInject<LocationRepository>()
     val isPremium by premiumRepository.observePremiumStatus().collectAsState(initial = premiumRepository.isPremium())
     var showUpsellSheet by remember { mutableStateOf(false) }
+
+    var overlayText by remember { mutableStateOf("") }
+    var overlayEnabled by remember { mutableStateOf(false) }
+    var batterySaverEnabled by remember { mutableStateOf(false) }
+    var galleryBucketId by remember { mutableStateOf<String?>(null) }
+    var galleryAlbums by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+    var showAlbumPicker by remember { mutableStateOf(false) }
+    var places by remember { mutableStateOf<List<com.andyl.iris.domain.model.GeoPlace>>(emptyList()) }
+    var placeBusy by remember { mutableStateOf(false) }
+    var showPlaceDialog by remember { mutableStateOf(false) }
+    var placeDialogRadiusKm by remember { mutableFloatStateOf(2f) }
+    var placeDialogInvert by remember { mutableStateOf(false) }
+    var placeEditingId by remember { mutableStateOf<String?>(null) }
+    var pendingPlaceLat by remember { mutableStateOf(0.0) }
+    var pendingPlaceLon by remember { mutableStateOf(0.0) }
+    var packs by remember { mutableStateOf<List<com.andyl.iris.domain.model.PackInfo>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        overlayText = userPreferencesRepository.getWallpaperOverlayText() ?: ""
+        overlayEnabled = userPreferencesRepository.getOverlayTextEnabled()
+        batterySaverEnabled = userPreferencesRepository.getBatterySaverEnabled()
+        galleryBucketId = userPreferencesRepository.getRandomGalleryBucketId()
+        places = userPreferencesRepository.getPlaces()
+        packs = userPreferencesRepository.getAllPacks()
+    }
 
     LaunchedEffect(uiState.error, uiState.successMessage) {
         uiState.error?.let {
@@ -117,6 +154,21 @@ fun WallpaperConfigScreen(
         uiState.successMessage?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.onEvent(WallpaperEvent.ClearMessages)
+        }
+    }
+
+    LaunchedEffect(uiState.pendingUndoUri) {
+        uiState.pendingUndoUri?.let {
+            val result = snackbarHostState.showSnackbar(
+                message = context.getString(R.string.undo_message),
+                actionLabel = context.getString(R.string.undo_action),
+                duration = SnackbarDuration.Long
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.onEvent(WallpaperEvent.OnUndoWallpaper)
+            } else {
+                viewModel.onEvent(WallpaperEvent.OnClearPendingUndo)
+            }
         }
     }
 
@@ -239,6 +291,104 @@ fun WallpaperConfigScreen(
                 }
             }
 
+            // --- SECTION: WALLPAPER TEXT OVERLAY ---
+            item {
+                ExpandableSection(
+                    icon = Icons.Default.TextFields,
+                    title = stringResource(R.string.overlay_title),
+                    description = stringResource(R.string.overlay_desc)
+                ) {
+                    SettingToggleRow(
+                        icon = Icons.Default.Title,
+                        title = stringResource(R.string.overlay_enable),
+                        description = stringResource(R.string.overlay_enable_desc),
+                        checked = overlayEnabled,
+                        onCheckedChange = { enabled ->
+                            overlayEnabled = enabled
+                            scope.launch { userPreferencesRepository.setOverlayTextEnabled(enabled) }
+                        }
+                    )
+
+                    OutlinedTextField(
+                        value = overlayText,
+                        onValueChange = { newText ->
+                            overlayText = newText
+                            scope.launch { userPreferencesRepository.setWallpaperOverlayText(newText) }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.overlay_text_label)) },
+                        singleLine = true,
+                        enabled = overlayEnabled
+                    )
+
+                    Text(
+                        text = stringResource(R.string.overlay_note),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // --- SECTION: GALLERY RANDOM SOURCE ---
+            item {
+                ConfigSection(
+                    title = stringResource(R.string.gallery_random_title),
+                    description = stringResource(R.string.gallery_random_desc)
+                ) {
+                    val albumName = galleryAlbums.find { it.first == galleryBucketId }?.second
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.PhotoAlbum,
+                            null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = albumName ?: stringResource(R.string.gallery_random_all),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = stringResource(R.string.gallery_random_current),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                galleryAlbums = queryGalleryAlbums(context)
+                                showAlbumPicker = true
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.PhotoLibrary, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.gallery_random_choose))
+                        }
+                        if (galleryBucketId != null) {
+                            OutlinedButton(
+                                onClick = {
+                                    galleryBucketId = null
+                                    scope.launch { userPreferencesRepository.setRandomGalleryBucketId(null) }
+                                }
+                            ) {
+                                Text(stringResource(R.string.gallery_random_reset))
+                            }
+                        }
+                    }
+                }
+            }
+
             // --- SECTION: APPEARANCE ---
             item {
                 ExpandableSection(
@@ -287,7 +437,11 @@ fun WallpaperConfigScreen(
                     title = stringResource(R.string.live_preview_title),
                     description = stringResource(R.string.live_preview_subtitle)
                 ) {
-                    LivePreviewCard(state = uiState)
+                    LivePreviewCard(
+                        state = uiState,
+                        overlayText = overlayText,
+                        overlayEnabled = overlayEnabled
+                    )
                 }
             }
 
@@ -354,6 +508,169 @@ fun WallpaperConfigScreen(
                 }
             }
 
+            // --- SECTION: ACHIEVEMENTS ---
+            item {
+                Card(
+                    onClick = {
+                        if (uiState.hapticsEnabled) {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                        }
+                        if (uiState.soundEnabled) {
+                            soundManager.playClick()
+                        }
+                        onOpenAchievements()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.EmojiEvents, null, tint = MaterialTheme.colorScheme.primary)
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.ach_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(R.string.ach_section_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            Icons.Default.KeyboardArrowRight,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // --- SECTION: GEOFENCES ---
+            item {
+                ExpandableSection(
+                    icon = Icons.Default.Place,
+                    title = stringResource(R.string.places_title),
+                    description = stringResource(R.string.places_desc)
+                ) {
+                    if (places.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.places_empty),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    places.forEach { place ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Place,
+                                null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = place.name,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.places_meta,
+                                        packs.find { it.id == place.packId }?.name ?: (place.packId ?: "-"),
+                                        (place.radiusMeters / 1000.0).toInt()
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                if (place.invert) {
+                                    Text(
+                                        text = stringResource(R.string.places_inverted),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                            IconButton(onClick = {
+                                placeEditingId = place.id
+                                placeDialogRadiusKm = (place.radiusMeters / 1000.0).toFloat()
+                                placeDialogInvert = place.invert
+                                pendingPlaceLat = place.latitude
+                                pendingPlaceLon = place.longitude
+                                showPlaceDialog = true
+                            }) {
+                                Icon(Icons.Default.Edit, stringResource(R.string.btn_edit), tint = MaterialTheme.colorScheme.primary)
+                            }
+                            IconButton(onClick = {
+                                places = places.filterNot { it.id == place.id }
+                                scope.launch { userPreferencesRepository.setPlaces(places) }
+                            }) {
+                                Icon(Icons.Default.Delete, stringResource(R.string.btn_delete), tint = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                    }
+
+                    Button(
+                        onClick = {
+                            if (!placeBusy) {
+                                placeBusy = true
+                                val errorMsg = context.getString(R.string.places_location_error)
+                                scope.launch {
+                                    runCatching {
+                                        locationRepository.getCurrentLocation()
+                                    }.onSuccess { loc ->
+                                        placeEditingId = null
+                                        placeDialogRadiusKm = 2f
+                                        placeDialogInvert = false
+                                        pendingPlaceLat = loc.latitude
+                                        pendingPlaceLon = loc.longitude
+                                        showPlaceDialog = true
+                                    }.onFailure {
+                                        snackbarHostState.showSnackbar(errorMsg)
+                                    }
+                                    placeBusy = false
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        enabled = !placeBusy
+                    ) {
+                        Icon(Icons.Default.MyLocation, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.places_add), fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.places_note),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
             // --- SECTION: LOCATION SETTINGS ---
             item {
                 ExpandableSection(
@@ -382,6 +699,16 @@ fun WallpaperConfigScreen(
                     title = stringResource(R.string.cfg_battery_title),
                     description = stringResource(R.string.cfg_battery_desc)
                 ) {
+                    SettingToggleRow(
+                        icon = Icons.Default.BatterySaver,
+                        title = stringResource(R.string.cfg_battery_saver_title),
+                        description = stringResource(R.string.cfg_battery_saver_desc),
+                        checked = batterySaverEnabled,
+                        onCheckedChange = { enabled ->
+                            batterySaverEnabled = enabled
+                            scope.launch { userPreferencesRepository.setBatterySaverEnabled(enabled) }
+                        }
+                    )
                     Button(
                         onClick = { openBatterySettings(context) },
                         modifier = Modifier.fillMaxWidth(),
@@ -505,12 +832,167 @@ fun WallpaperConfigScreen(
                 onDismiss = { showUpsellSheet = false }
             )
         }
+
+        if (showAlbumPicker) {
+            AlertDialog(
+                onDismissRequest = { showAlbumPicker = false },
+                title = { Text(stringResource(R.string.gallery_random_picker_title)) },
+                text = {
+                    LazyColumn(modifier = Modifier.heightIn(max = 420.dp)) {
+                        item {
+                            ListItem(
+                                headlineContent = { Text(stringResource(R.string.gallery_random_all)) },
+                                leadingContent = { Icon(Icons.Default.PhotoLibrary, null) },
+                                modifier = Modifier.clickable {
+                                    galleryBucketId = null
+                                    scope.launch { userPreferencesRepository.setRandomGalleryBucketId(null) }
+                                    showAlbumPicker = false
+                                }
+                            )
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                        }
+                        items(galleryAlbums) { (id, name) ->
+                            ListItem(
+                                headlineContent = { Text(name, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+                                leadingContent = { Icon(Icons.Default.PhotoAlbum, null) },
+                                modifier = Modifier.clickable {
+                                    galleryBucketId = id
+                                    scope.launch { userPreferencesRepository.setRandomGalleryBucketId(id) }
+                                    showAlbumPicker = false
+                                }
+                            )
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { showAlbumPicker = false }) {
+                        Text(stringResource(R.string.btn_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showPlaceDialog) {
+            AlertDialog(
+                onDismissRequest = { showPlaceDialog = false },
+                title = {
+                    Text(
+                        text = stringResource(
+                            if (placeEditingId == null) R.string.places_dialog_add else R.string.places_dialog_edit
+                        )
+                    )
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = stringResource(R.string.places_radius_label),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                text = "%.1f km".format(placeDialogRadiusKm),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Slider(
+                            value = placeDialogRadiusKm,
+                            onValueChange = { placeDialogRadiusKm = it },
+                            valueRange = 0.5f..20f,
+                            steps = 38
+                        )
+                        SettingToggleRow(
+                            icon = Icons.Default.SwapVert,
+                            title = stringResource(R.string.places_invert_title),
+                            description = stringResource(R.string.places_invert_desc),
+                            checked = placeDialogInvert,
+                            onCheckedChange = { placeDialogInvert = it }
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val radiusMeters = (placeDialogRadiusKm * 1000).toDouble()
+                            val editingId = placeEditingId
+                            showPlaceDialog = false
+                            scope.launch {
+                                val activeId = userPreferencesRepository.getActivePackId()
+                                val updated = if (editingId != null) {
+                                    places.map {
+                                        if (it.id == editingId) it.copy(
+                                            radiusMeters = radiusMeters,
+                                            invert = placeDialogInvert
+                                        ) else it
+                                    }
+                                } else {
+                                    val defaultName = context.getString(R.string.places_default_name, places.size + 1)
+                                    places + com.andyl.iris.domain.model.GeoPlace(
+                                        id = System.currentTimeMillis().toString(),
+                                        name = defaultName,
+                                        latitude = pendingPlaceLat,
+                                        longitude = pendingPlaceLon,
+                                        radiusMeters = radiusMeters,
+                                        packId = activeId,
+                                        invert = placeDialogInvert
+                                    )
+                                }
+                                places = updated
+                                userPreferencesRepository.setPlaces(updated)
+                            }
+                        },
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(stringResource(R.string.btn_save), fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showPlaceDialog = false }) {
+                        Text(stringResource(R.string.btn_cancel))
+                    }
+                }
+            )
+        }
     }
     }
 }
 
+private fun queryGalleryAlbums(context: Context): List<Pair<String, String>> {
+    val map = LinkedHashMap<String, String>()
+    val projection = arrayOf(
+        MediaStore.Images.Media.BUCKET_ID,
+        MediaStore.Images.Media.BUCKET_DISPLAY_NAME
+    )
+    runCatching {
+        context.contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            null,
+            null,
+            null
+        )?.use { cursor ->
+            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID)
+            val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+            while (cursor.moveToNext()) {
+                val id = cursor.getString(idCol)
+                val name = cursor.getString(nameCol)
+                if (!id.isNullOrBlank() && !name.isNullOrBlank()) map[id] = name
+            }
+        }
+    }
+    return map.entries
+        .map { it.key to it.value }
+        .sortedBy { it.second.lowercase() }
+}
+
 @Composable
-fun LivePreviewCard(state: DynamicWallpaperUiState) {
+fun LivePreviewCard(
+    state: DynamicWallpaperUiState,
+    overlayText: String?,
+    overlayEnabled: Boolean
+) {
     val uri = remember(state.rules, state.currentWeather, state.lastAppliedWallpaper) {
         val tod = timeOfDayFor(LocalTime.now())
         previewFor(state, state.currentWeather, tod).first ?: state.lastAppliedWallpaper
@@ -546,21 +1028,20 @@ fun LivePreviewCard(state: DynamicWallpaperUiState) {
                         shape = RoundedCornerShape(30.dp)
                     )
             ) {
-                if (uri != null) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(uri)
-                            .crossfade(300)
-                            .build(),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                AnimatedContent(
+                    targetState = uri,
+                    transitionSpec = {
+                        (fadeIn(tween(450)) togetherWith fadeOut(tween(450)))
+                            .using(SizeTransform(clip = false))
+                    },
+                    label = "livePreview"
+                ) { currentUri ->
+                    WallpaperPreviewImage(
+                        uri = currentUri,
+                        scaleMode = state.scaleMode,
+                        overlayText = overlayText,
+                        overlayEnabled = overlayEnabled,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
 

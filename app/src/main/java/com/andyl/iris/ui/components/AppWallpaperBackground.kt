@@ -1,5 +1,11 @@
 package com.andyl.iris.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,15 +32,24 @@ fun AppWallpaperBackground(
             .background(MaterialTheme.colorScheme.background)
     ) {
         if (enabled && wallpaperUri != null) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(wallpaperUri)
-                    .crossfade(300)
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+            AnimatedContent(
+                targetState = wallpaperUri,
+                transitionSpec = {
+                    (fadeIn(tween(450)) togetherWith fadeOut(tween(450)))
+                        .using(SizeTransform(clip = false))
+                },
+                label = "wallpaperBg"
+            ) { uri ->
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(uri)
+                        .crossfade(300)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
             val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
             Box(
                 modifier = Modifier

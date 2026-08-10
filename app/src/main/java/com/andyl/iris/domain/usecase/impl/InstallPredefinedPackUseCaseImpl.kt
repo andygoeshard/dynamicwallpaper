@@ -146,6 +146,10 @@ class InstallPredefinedPackUseCaseImpl(
 
             if (allToGet.isEmpty()) return@withContext Result.failure(Exception("Failed to acquire unique images"))
 
+            if (pack.isGallery) {
+                return@withContext installGalleryPack(pack, targetPackId)
+            }
+
             val taskId = "install_${pack.id}_${System.currentTimeMillis()}"
             var downloadedCount = 0
             val failedUrls = mutableListOf<String>()
@@ -238,4 +242,45 @@ class InstallPredefinedPackUseCaseImpl(
     private fun buildCombinedQuery(base: String, term: String) = if (base.isEmpty()) term else "$base $term"
     private fun buildWeatherTimeQuery(base: String, weather: Weather, time: TimeOfDay) = 
         if (base.isEmpty()) "${weather.queryTerm} ${time.queryTerm}" else "$base ${weather.queryTerm} ${time.queryTerm}"
+
+    private suspend fun installGalleryPack(pack: PredefinedPack, targetPackId: String?): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            try {
+                val galleryUri = "gallery://random"
+                val rules = Weather.all().flatMap { w -> TimeOfDay.entries.map { t -> WallpaperRule(w, t, WallpaperId(galleryUri)) } }
+                val existing = targetPackId?.let { preferencesRepository.getWallpaperConfig(it) }
+
+                val finalConfig = if (existing != null) {
+                    existing.copy(
+                        name = pack.name,
+                        rules = rules,
+                        dailyRules = emptyMap(),
+                        fixedTimeRules = emptyMap(),
+                        enabledWeathers = Weather.all().toSet()
+                    )
+                } else {
+                    val newId = "pack_${pack.id}_${System.currentTimeMillis()}"
+                    WallpaperConfig(
+                        id = newId,
+                        name = pack.name,
+                        updateIntervalMinutes = 15,
+                        rules = rules,
+                        dailyRules = emptyMap(),
+                        fixedTimeRules = emptyMap(),
+                        enabledWeathers = Weather.all().toSet(),
+                        activePackId = newId,
+                        scaleMode = ScaleMode.CROP
+                    )
+                }
+
+                preferencesRepository.setWallpaperConfig(finalConfig)
+                preferencesRepository.setActivePackId(finalConfig.id)
+                applyUseCase(finalConfig.id)
+                Log.d("IRIS_VAR", "✅ SUCCESS: Installed gallery pack '${pack.name}'")
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Log.e("IRIS_VAR", "❌ GALLERY PACK FAILED", e)
+                Result.failure(e)
+            }
+        }
 }

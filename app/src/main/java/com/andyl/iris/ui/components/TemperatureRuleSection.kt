@@ -65,58 +65,6 @@ fun TemperatureRuleSection(
     onUpsellClick: () -> Unit = {}
 ) {
     Column {
-        Surface(
-            onClick = {
-                if (isPremium) onToggleExpand()
-                else onUpsellClick()
-            },
-            color = Color.Transparent
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            stringResource(R.string.temp_by_weather),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (!isPremium) {
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                "PRO",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.tertiary
-                            )
-                        }
-                    }
-                    Text(
-                        stringResource(R.string.temp_by_weather_desc),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
-                if (isPremium) {
-                    val rotation by animateFloatAsState(
-                        targetValue = if (isExpanded) 180f else 0f,
-                        label = "temp_arrow"
-                    )
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        modifier = Modifier.rotate(rotation),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
-
         AnimatedVisibility(
             visible = isExpanded && isPremium,
             enter = expandVertically(expandFrom = Alignment.Top, animationSpec = tween(400)) + fadeIn(),

@@ -39,7 +39,9 @@ fun StatsScreen(onBack: () -> Unit) {
     var totalChanges by remember { mutableStateOf(0) }
     var history by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
     var weatherChanges by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
+    var packChanges by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
     var activePack by remember { mutableStateOf<PackInfo?>(null) }
+    var packs by remember { mutableStateOf<List<PackInfo>>(emptyList()) }
     var rulesCount by remember { mutableStateOf(0) }
     var useWallpaperBackground by remember { mutableStateOf(false) }
     var lastAppliedWallpaper by remember { mutableStateOf<String?>(null) }
@@ -48,8 +50,10 @@ fun StatsScreen(onBack: () -> Unit) {
         totalChanges = repository.getAppSuccessCount()
         history = repository.getChangesHistory()
         weatherChanges = repository.getWeatherChanges()
+        packChanges = repository.getPackChanges()
         val activeId = repository.getActivePackId()
-        activePack = repository.getAllPacks().find { it.id == activeId }
+        packs = repository.getAllPacks()
+        activePack = packs.find { it.id == activeId }
         rulesCount = runCatching {
             val config = repository.getWallpaperConfig(activeId)
             config.rules.size + config.dailyRules.size + config.fixedTimeRules.size
@@ -204,6 +208,46 @@ fun StatsScreen(onBack: () -> Unit) {
                                         text = stringResource(weather.stringRes),
                                         style = MaterialTheme.typography.bodyLarge,
                                         modifier = Modifier.weight(1f)
+                                    )
+                                    Text(
+                                        text = count.toString(),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                    }
+                }
+            }
+
+            item {
+                ConfigSection(title = stringResource(R.string.stats_by_pack)) {
+                    if (packChanges.isEmpty()) {
+                        EmptyState(
+                            emoji = "🗂️",
+                            message = stringResource(R.string.stats_no_data)
+                        )
+                    } else {
+                        packChanges.entries
+                            .sortedByDescending { it.value }
+                            .forEach { (packId, count) ->
+                                val name = packs.find { it.id == packId }?.name ?: packId
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Image,
+                                        null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(
+                                        text = name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.weight(1f),
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                     )
                                     Text(
                                         text = count.toString(),

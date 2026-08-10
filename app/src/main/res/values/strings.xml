@@ -49,6 +49,10 @@
     <string name="loading">Loading...</string>
     <string name="pack_selector_save_changes">Save Changes</string>
     <string name="btn_close">Close</string>
+    <string name="local_videos_title">My Videos</string>
+    <string name="local_videos_subtitle">Videos on your device and downloaded by Iris.</string>
+    <string name="local_videos_pick">Choose video</string>
+    <string name="local_videos_error">Could not load the video.</string>
 
     <string name="mon">MON</string>
     <string name="tue">TUE</string>
@@ -157,8 +161,10 @@
     <string name="cfg_battery_title">Battery &amp; Performance</string>
     <string name="cfg_battery_desc">Android may stop background updates to save battery. For better results, allow Iris to run in the background.</string>
     <string name="cfg_battery_button">Optimize Battery</string>
+    <string name="cfg_battery_saver_title">Battery Saver</string>
+    <string name="cfg_battery_saver_desc">Skip weather updates while battery is below 20%</string>
     <string name="cfg_about_title">About Iris</string>
-    <string name="cfg_about_version">Version 2.3</string>
+    <string name="cfg_about_version">Version 2.8</string>
     <string name="cfg_about_feedback">Send Feedback</string>
     <string name="cfg_about_privacy">Privacy Policy</string>
 
@@ -271,6 +277,7 @@
     <string name="stats_total_changes">Total changes</string>
     <string name="stats_last_7_days">Last 7 days</string>
     <string name="stats_by_weather">By weather</string>
+    <string name="stats_by_pack">By pack</string>
     <string name="stats_config">Current configuration</string>
     <string name="stats_no_data">No data yet</string>
     <string name="stats_rules">%1$d active rules</string>
@@ -313,4 +320,75 @@
     <!-- Live preview -->
     <string name="live_preview_title">Live Preview</string>
     <string name="live_preview_subtitle">What your wallpaper looks like right now.</string>
+
+    <!-- Live video wallpapers -->
+    <string name="live_wallpaper_label">Iris Live Wallpaper</string>
+
+    <!-- Achievements -->
+    <string name="ach_title">Achievements</string>
+    <string name="ach_section_desc">Your milestones with Iris. Bragging rights only.</string>
+    <string name="ach_progress">%1$d / %2$d unlocked</string>
+    <string name="ach_progress_value">%1$d / %2$d</string>
+    <string name="ach_unlocked_badge">UNLOCKED</string>
+    <string name="ach_loading">Loading achievements…</string>
+    <string name="ach_first_change_title">First Change</string>
+    <string name="ach_first_change_desc">Apply your first wallpaper</string>
+    <string name="ach_changes_10_title">Getting Started</string>
+    <string name="ach_changes_10_desc">Apply 10 wallpapers</string>
+    <string name="ach_changes_50_title">Power User</string>
+    <string name="ach_changes_50_desc">Apply 50 wallpapers</string>
+    <string name="ach_changes_100_title">Century Club</string>
+    <string name="ach_changes_100_desc">Apply 100 wallpapers</string>
+    <string name="ach_days_7_title">First Week</string>
+    <string name="ach_days_7_desc">Be active on 7 different days</string>
+    <string name="ach_days_30_title">Month Strong</string>
+    <string name="ach_days_30_desc">Be active on 30 different days</string>
+    <string name="ach_weather_3_title">Weather Explorer</string>
+    <string name="ach_weather_3_desc">Use 3 different weathers</string>
+    <string name="ach_weather_all_title">Weather Master</string>
+    <string name="ach_weather_all_desc">Use all 6 weathers</string>
+    <string name="ach_packs_5_title">Pack Collector</string>
+    <string name="ach_packs_5_desc">Create 5 packs</string>
+    <string name="ach_rules_10_title">The Architect</string>
+    <string name="ach_rules_10_desc">Configure 10+ rules in a pack</string>
+    <string name="ach_streak">%1$d day streak</string>
+    <string name="apply_feedback_done">Applied</string>
+    <string name="undo_message">Wallpaper applied</string>
+    <string name="undo_action">Undo</string>
+
+    <!-- Wallpaper text overlay -->
+    <string name="overlay_title">Wallpaper Text</string>
+    <string name="overlay_desc">Draw your own text on every applied wallpaper.</string>
+    <string name="overlay_enable">Show text on wallpaper</string>
+    <string name="overlay_enable_desc">Draws the text below the wallpaper, always readable.</string>
+    <string name="overlay_text_label">Your text</string>
+    <string name="overlay_note">Tip: apply a wallpaper again to see the text.</string>
+
+    <!-- Geofences -->
+    <string name="places_title">Geofences</string>
+    <string name="places_desc">Switch pack automatically when you enter a place.</string>
+    <string name="places_empty">No places yet. Add your current location to get started.</string>
+    <string name="places_meta">%1$s · %2$d km radius</string>
+    <string name="places_default_name">Place %1$d</string>
+    <string name="places_add">Add current location</string>
+    <string name="places_note">Uses your last known location. Background monitoring is active on scheduled updates.</string>
+    <string name="places_location_error">Could not get your location.</string>
+    <string name="places_inverted">Inverted zone</string>
+    <string name="places_radius_label">Radius</string>
+    <string name="places_invert_title">Invert zone</string>
+    <string name="places_invert_desc">Apply the pack when you are OUTSIDE this area</string>
+    <string name="places_dialog_add">Add place</string>
+    <string name="places_dialog_edit">Edit place</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_edit">Edit</string>
+
+    <!-- Gallery random source -->
+    <string name="gallery_random_title">Random Gallery Source</string>
+    <string name="gallery_random_desc">Choose an album for \"gallery\" packs. Random picks from there instead of all your photos.</string>
+    <string name="gallery_random_all">All photos</string>
+    <string name="gallery_random_current">Random source for gallery packs</string>
+    <string name="gallery_random_choose">Choose album</string>
+    <string name="gallery_random_reset">Reset</string>
+    <string name="gallery_random_picker_title">Select album</string>
+    <string name="btn_cancel">Cancel</string>
 </resources>

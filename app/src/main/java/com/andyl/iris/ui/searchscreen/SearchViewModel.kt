@@ -31,6 +31,7 @@ import com.andyl.iris.domain.model.DownloadTask
 import com.andyl.iris.domain.repository.DownloadRepository
 import com.andyl.iris.domain.repository.FavoriteRepository
 import com.andyl.iris.domain.repository.LocalImageRepository
+import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.domain.repository.WallpaperRepository
 import com.andyl.iris.domain.model.WallpaperId
 
@@ -43,6 +44,7 @@ class SearchViewModel(
     private val favoriteRepository: FavoriteRepository,
     private val localImageRepository: LocalImageRepository,
     private val wallpaperRepository: WallpaperRepository,
+    private val preferencesRepository: UserPreferencesRepository,
     val wallpaperViewModel: DynamicWallpaperViewModel
 ) : ViewModel() {
 
@@ -69,7 +71,9 @@ class SearchViewModel(
             PredefinedPacks.packs.forEach { pack ->
                 if (packHeroCache.value[pack.id] == null) {
                     launch {
-                        val res = imageRepository.getRandomImages(pack.categoryQuery, count = 1).getOrNull()
+                        // Use cache first; the repository caps concurrent calls to
+                        // avoid burning the API rate limits when loading many packs.
+                        val res = imageRepository.searchImages(pack.categoryQuery, forceRefresh = false).getOrNull()
                         res?.firstOrNull()?.let { img ->
                             packHeroCache.update { it + (pack.id to img.urlSmall) }
                         }
@@ -307,6 +311,34 @@ class SearchViewModel(
         viewModelScope.launch {
             val packs = wallpaperViewModel.uiState.value.availablePacks
             _uiState.update { it.copy(showPackSelectionDialog = true, availablePacks = packs) }
+        }
+    }
+
+    fun applyLocalVideo(image: ImageResult, context: android.content.Context) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            runCatching {
+                val isContentUri = image.urlFull.startsWith("content://")
+                val videoPath = if (isContentUri) {
+                    val dir = java.io.File(context.filesDir, "live_video").apply { mkdirs() }
+                    val out = java.io.File(dir, "local_${System.currentTimeMillis()}.mp4")
+                    context.contentResolver.openInputStream(android.net.Uri.parse(image.urlFull))?.use { input ->
+                        out.outputStream().use { o -> input.copyTo(o) }
+                    } ?: throw Exception("No se pudo leer el video")
+                    out.absolutePath
+                } else {
+                    image.urlFull
+                }
+
+                preferencesRepository.setLiveVideoPath(videoPath)
+                preferencesRepository.setLiveVideoEnabled(true)
+                preferencesRepository.setActiveVideoPackId(null)
+                com.andyl.iris.ui.components.openLiveWallpaperPicker(context)
+            }.onSuccess {
+                _uiState.update { it.copy(isLoading = false) }
+            }.onFailure { e ->
+                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Error al aplicar el video") }
+            }
         }
     }
 

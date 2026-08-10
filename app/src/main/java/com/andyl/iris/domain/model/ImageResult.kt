@@ -5,5 +5,6 @@ data class ImageResult(
     val urlSmall: String,
     val urlFull: String,
     val provider: String,
-    val alt: String? = null
+    val alt: String? = null,
+    val isVideo: Boolean = false
 )

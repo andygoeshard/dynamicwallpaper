@@ -14,8 +14,8 @@ android {
         applicationId = "com.andyl.iris"
         minSdk = 26
         targetSdk = 36
-        versionCode = 20
-        versionName = "2.3"
+        versionCode = 25
+        versionName = "2.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -76,6 +76,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation(libs.ui)
     implementation(libs.androidx.billing)
+    implementation("sh.calvin.reorderable:reorderable:2.5.1")
 
 
     testImplementation(libs.junit)

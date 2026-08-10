@@ -12,7 +12,7 @@ interface WallpaperRepository {
         cropX: Float? = null,
         cropY: Float? = null,
         cropScale: Float? = null
-    ): Result<Unit>
+    ): Result<String>
 
     suspend fun cropAndSaveWallpaper(
         wallpaperId: WallpaperId,

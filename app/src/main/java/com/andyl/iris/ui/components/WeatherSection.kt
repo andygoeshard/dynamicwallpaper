@@ -38,43 +38,6 @@ fun WeatherSection(
     onNavigateToSearch: (com.andyl.iris.domain.model.Weather?, com.andyl.iris.domain.model.TimeOfDay?, String?, String?, String?) -> Unit
 ) {
     Column {
-        Surface(
-            onClick = { onEvent(WallpaperEvent.OnToggleWeatherFeature) },
-            color = androidx.compose.ui.graphics.Color.Transparent
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        stringResource(R.string.weather_section_config),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        stringResource(R.string.weather_section_tap_config),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
-                val rotation by animateFloatAsState(
-                    targetValue = if (state.isWeatherFeatureEnabled) 180f else 0f,
-                    label = stringResource(R.string.acc_arrow_rotation)
-                )
-
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    modifier = Modifier.rotate(rotation),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-
         AnimatedVisibility(
             visible = state.isWeatherFeatureEnabled,
             enter = expandVertically(expandFrom = Alignment.Top, animationSpec = tween(400)) + fadeIn(),

@@ -26,6 +26,7 @@
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 
     <application
     android:name=".IrisWallpaperApp"
@@ -75,6 +76,20 @@
         android:name="androidx.work.impl.foreground.SystemForegroundService"
         android:foregroundServiceType="dataSync"
         tools:node="merge" />
+
+    <service
+        android:name=".service.IrisLiveWallpaperService"
+        android:exported="true"
+        android:label="@string/live_wallpaper_label"
+        android:permission="android.permission.BIND_WALLPAPER"
+        android:process=":wallpaper">
+        <intent-filter>
+            <action android:name="android.service.wallpaper.WallpaperService" />
+        </intent-filter>
+        <meta-data
+            android:name="android.service.wallpaper"
+            android:resource="@xml/iris_live_wallpaper" />
+    </service>
 </application>
 
 </manifest>

@@ -49,6 +49,7 @@ import com.andyl.iris.ui.searchscreen.components.SuggestedPacksList
 import com.andyl.iris.ui.searchscreen.components.WallpaperSearchResultItem
 import com.andyl.iris.ui.searchscreen.components.WallpaperDetailSheet
 import com.andyl.iris.ui.components.CyberpunkBox
+import com.andyl.iris.ui.components.LocalVideosSection
 import com.andyl.iris.ui.theme.LocalReduceAnimations
 import com.andyl.iris.ui.components.CyberpunkLoadingBar
 import com.andyl.iris.ui.components.PremiumUpsellSheet
@@ -60,6 +61,7 @@ import org.koin.compose.koinInject
 import com.andyl.iris.domain.model.DownloadStatus
 import com.andyl.iris.domain.model.DownloadTask
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun SearchScreen(
@@ -75,6 +77,7 @@ fun SearchScreen(
     var previewImageUrl by remember { mutableStateOf<String?>(null) }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     // Accordion state for pack of the day/month/year
     val packsListState = rememberLazyListState()
@@ -86,23 +89,23 @@ fun SearchScreen(
         viewModel.wallpaperViewModel.loadFeaturedPacks()
     }
 
-    // Permission handling for local gallery
-    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        Manifest.permission.READ_MEDIA_IMAGES
+    // Permission handling for local gallery (images + videos)
+    val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO)
     } else {
-        Manifest.permission.READ_EXTERNAL_STORAGE
+        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
     }
 
     val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { grants ->
+        if (grants.values.any { it }) {
             viewModel.refreshLocalImages()
         }
     }
 
     LaunchedEffect(Unit) {
-        launcher.launch(permission)
+        launcher.launch(permissions)
     }
 
     LaunchedEffect(state.error, state.successMessage) {
@@ -339,32 +342,46 @@ fun SearchScreen(
                     ) { target ->
                         when (target) {
                             0 -> { // LOCAL GALLERY
-                                if (state.localImages.isEmpty()) {
-                                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                        Text(stringResource(R.string.no_images_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
-                                } else {
-                                    LazyVerticalGrid(
-                                        columns = GridCells.Fixed(3),
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentPadding = PaddingValues(8.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        items(state.localImages) { image ->
-                                            Box(
-                                                modifier = Modifier
-                                                    .aspectRatio(0.7f)
-                                                    .clip(RoundedCornerShape(12.dp))
-                                                    .clickable { 
-                                                        viewModel.selectImage(image)
-                                                    }
-                                            ) {
-                                                LocalImageThumbnail(
-                                                    image = image,
-                                                    isFavorite = state.favorites.any { it.uri == image.urlFull },
-                                                    onToggleFavorite = { viewModel.toggleFavorite(image) }
-                                                )
+                                Column(modifier = Modifier.fillMaxSize()) {
+                                    LocalVideosSection(
+                                        onError = { msg -> scope.launch { snackbarHostState.showSnackbar(msg) } },
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                                    )
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                                    if (state.localImages.isEmpty()) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(stringResource(R.string.no_images_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    } else {
+                                        LazyVerticalGrid(
+                                            columns = GridCells.Fixed(3),
+                                            modifier = Modifier.fillMaxSize().weight(1f),
+                                            contentPadding = PaddingValues(8.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            items(state.localImages) { image ->
+                                                Box(
+                                                    modifier = Modifier
+                                                        .aspectRatio(0.7f)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                        .clickable {
+                                                            if (image.isVideo) {
+                                                                viewModel.applyLocalVideo(image, context)
+                                                            } else {
+                                                                viewModel.selectImage(image)
+                                                            }
+                                                        }
+                                                ) {
+                                                    LocalImageThumbnail(
+                                                        image = image,
+                                                        isFavorite = state.favorites.any { it.uri == image.urlFull },
+                                                        onToggleFavorite = { viewModel.toggleFavorite(image) }
+                                                    )
+                                                }
                                             }
                                         }
                                     }

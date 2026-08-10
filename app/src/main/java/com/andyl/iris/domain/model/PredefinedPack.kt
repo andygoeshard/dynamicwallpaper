@@ -29,6 +29,7 @@ data class PredefinedPack(
     val type: PackType = PackType.WEATHER,
     val isTimeBased: Boolean = false,
     val isFullRandom: Boolean = false,
+    val isGallery: Boolean = false,
     val isPremium: Boolean = false,
     val season: SeasonalWindow? = null
 )
@@ -1093,7 +1094,18 @@ object PredefinedPacks {
         )
     )
 
-    val packs = weatherPacks + weeklyPacks + timePacks + randomPacks + temperaturePacks + seasonalPacks
+    val galleryPacks = listOf(
+        PredefinedPack(
+            id = "my_gallery",
+            name = "My Gallery",
+            description = "Rotate random photos straight from your gallery.",
+            previewUrl = "",
+            categoryQuery = "",
+            isGallery = true
+        )
+    )
+
+    val packs = weatherPacks + weeklyPacks + timePacks + randomPacks + temperaturePacks + seasonalPacks + galleryPacks
 
     fun currentSeasonalPacks(date: LocalDate = LocalDate.now()): List<PredefinedPack> =
         seasonalPacks.filter { it.season?.contains(date) == true }

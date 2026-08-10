@@ -54,6 +54,10 @@
     <string name="loading">Cargando...</string>
     <string name="pack_selector_save_changes">Guardar Cambios</string>
     <string name="btn_close">Cerrar</string>
+    <string name="local_videos_title">Mis Videos</string>
+    <string name="local_videos_subtitle">Videos en tu dispositivo y descargados por Iris.</string>
+    <string name="local_videos_pick">Elegir video</string>
+    <string name="local_videos_error">No se pudo cargar el video.</string>
 
     <string name="mon">LUN</string>
     <string name="tue">MAR</string>
@@ -162,8 +166,10 @@
     <string name="cfg_battery_title">Batería y Rendimiento</string>
     <string name="cfg_battery_desc">Android puede detener las actualizaciones en segundo plano para ahorrar batería. Para mejores resultados, permití que Iris corra sin restricciones.</string>
     <string name="cfg_battery_button">Configurar Batería</string>
+    <string name="cfg_battery_saver_title">Ahorro de batería</string>
+    <string name="cfg_battery_saver_desc">Omitir actualizaciones por clima con batería baja (menos de 20%)</string>
     <string name="cfg_about_title">Acerca de Iris</string>
-    <string name="cfg_about_version">Versión 2.3</string>
+    <string name="cfg_about_version">Versión 2.8</string>
     <string name="cfg_about_feedback">Enviar Comentarios</string>
     <string name="cfg_about_privacy">Política de Privacidad</string>
 
@@ -276,6 +282,7 @@
     <string name="stats_total_changes">Cambios totales</string>
     <string name="stats_last_7_days">Últimos 7 días</string>
     <string name="stats_by_weather">Por clima</string>
+    <string name="stats_by_pack">Por pack</string>
     <string name="stats_config">Configuración actual</string>
     <string name="stats_no_data">Aún no hay datos</string>
     <string name="stats_rules">%1$d reglas activas</string>
@@ -318,4 +325,75 @@
     <!-- Vista previa en vivo -->
     <string name="live_preview_title">Vista previa en vivo</string>
     <string name="live_preview_subtitle">Así se ve tu fondo ahora mismo.</string>
+
+    <!-- Fondos de video en vivo -->
+    <string name="live_wallpaper_label">Fondo en vivo Iris</string>
+
+    <!-- Logros -->
+    <string name="ach_title">Logros</string>
+    <string name="ach_section_desc">Tus hitos con Iris. Solo para presumir.</string>
+    <string name="ach_progress">%1$d / %2$d desbloqueados</string>
+    <string name="ach_progress_value">%1$d / %2$d</string>
+    <string name="ach_unlocked_badge">DESBLOQUEADO</string>
+    <string name="ach_loading">Cargando logros…</string>
+    <string name="ach_first_change_title">Primer cambio</string>
+    <string name="ach_first_change_desc">Aplicá tu primer fondo</string>
+    <string name="ach_changes_10_title">Empezando</string>
+    <string name="ach_changes_10_desc">Aplicá 10 fondos</string>
+    <string name="ach_changes_50_title">Power user</string>
+    <string name="ach_changes_50_desc">Aplicá 50 fondos</string>
+    <string name="ach_changes_100_title">Club del centenar</string>
+    <string name="ach_changes_100_desc">Aplicá 100 fondos</string>
+    <string name="ach_days_7_title">Primera semana</string>
+    <string name="ach_days_7_desc">Estar activo en 7 días distintos</string>
+    <string name="ach_days_30_title">Un mes de fuerza</string>
+    <string name="ach_days_30_desc">Estar activo en 30 días distintos</string>
+    <string name="ach_weather_3_title">Explorador del clima</string>
+    <string name="ach_weather_3_desc">Usar 3 climas distintos</string>
+    <string name="ach_weather_all_title">Maestro del clima</string>
+    <string name="ach_weather_all_desc">Usar los 6 climas</string>
+    <string name="ach_packs_5_title">Coleccionista de packs</string>
+    <string name="ach_packs_5_desc">Crear 5 packs</string>
+    <string name="ach_rules_10_title">El arquitecto</string>
+    <string name="ach_rules_10_desc">Configurar 10+ reglas en un pack</string>
+    <string name="ach_streak">%1$d días seguidos</string>
+    <string name="apply_feedback_done">Aplicado</string>
+    <string name="undo_message">Fondo aplicado</string>
+    <string name="undo_action">Deshacer</string>
+
+    <!-- Texto en el fondo -->
+    <string name="overlay_title">Texto en el fondo</string>
+    <string name="overlay_desc">Dibujá tu propio texto en cada fondo aplicado.</string>
+    <string name="overlay_enable">Mostrar texto en el fondo</string>
+    <string name="overlay_enable_desc">Dibuja el texto abajo del fondo, siempre legible.</string>
+    <string name="overlay_text_label">Tu texto</string>
+    <string name="overlay_note">Tip: aplicá un fondo de nuevo para ver el texto.</string>
+
+    <!-- Geocercas -->
+    <string name="places_title">Geocercas</string>
+    <string name="places_desc">Cambiá de pack automáticamente al entrar a un lugar.</string>
+    <string name="places_empty">Todavía no hay lugares. Agregá tu ubicación actual para empezar.</string>
+    <string name="places_meta">%1$s · radio %2$d km</string>
+    <string name="places_default_name">Lugar %1$d</string>
+    <string name="places_add">Agregar ubicación actual</string>
+    <string name="places_note">Usa tu última ubicación conocida. El monitoreo corre en las actualizaciones programadas.</string>
+    <string name="places_location_error">No se pudo obtener tu ubicación.</string>
+    <string name="places_inverted">Zona invertida</string>
+    <string name="places_radius_label">Radio</string>
+    <string name="places_invert_title">Invertir zona</string>
+    <string name="places_invert_desc">Aplicar el pack cuando estés FUERA de esta área</string>
+    <string name="places_dialog_add">Agregar lugar</string>
+    <string name="places_dialog_edit">Editar lugar</string>
+    <string name="btn_save">Guardar</string>
+    <string name="btn_edit">Editar</string>
+
+    <!-- Galería aleatoria -->
+    <string name="gallery_random_title">Fuente de galería aleatoria</string>
+    <string name="gallery_random_desc">Elegí un álbum para los packs de \"galería\". El random elige de ahí en vez de todas tus fotos.</string>
+    <string name="gallery_random_all">Todas las fotos</string>
+    <string name="gallery_random_current">Fuente aleatoria para packs de galería</string>
+    <string name="gallery_random_choose">Elegir álbum</string>
+    <string name="gallery_random_reset">Restablecer</string>
+    <string name="gallery_random_picker_title">Seleccionar álbum</string>
+    <string name="btn_cancel">Cancelar</string>
 </resources>

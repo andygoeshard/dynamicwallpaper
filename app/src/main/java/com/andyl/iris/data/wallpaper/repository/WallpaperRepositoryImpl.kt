@@ -1,12 +1,15 @@
 package com.andyl.iris.data.wallpaper.repository
 
 import android.app.WallpaperManager
+import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.Typeface
+import android.provider.MediaStore
 import android.util.Log
 import com.andyl.iris.domain.model.WallpaperId
 import com.andyl.iris.domain.repository.WallpaperRepository
@@ -22,6 +25,41 @@ class WallpaperRepositoryImpl(
     private val context: Context
 ) : WallpaperRepository {
 
+    private val overlayPrefs = context.getSharedPreferences("user_preferences", Context.MODE_PRIVATE)
+
+    private fun resolveGalleryUri(path: String): String {
+        if (!path.startsWith("gallery://")) return path
+        val bucketId = overlayPrefs.getString("random_gallery_bucket", null)
+        val uris = mutableListOf<String>()
+        val projection = arrayOf(MediaStore.Images.Media._ID)
+
+        fun queryUris(selection: String?, selectionArgs: Array<String>?) {
+            context.contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )?.use { cursor ->
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                while (cursor.moveToNext()) {
+                    uris.add(
+                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cursor.getLong(idColumn)).toString()
+                    )
+                }
+            }
+        }
+
+        if (!bucketId.isNullOrBlank()) {
+            queryUris("${MediaStore.Images.Media.BUCKET_ID} = ?", arrayOf(bucketId))
+        }
+        if (uris.isEmpty()) {
+            // Empty or unavailable album: fall back to all photos.
+            queryUris(null, null)
+        }
+        return if (uris.isEmpty()) path else uris.random()
+    }
+
     override suspend fun applyWallpaper(
         wallpaperId: WallpaperId,
         scaleMode: ScaleMode,
@@ -29,9 +67,9 @@ class WallpaperRepositoryImpl(
         cropX: Float?,
         cropY: Float?,
         cropScale: Float?
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    ): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
-            val path = wallpaperId.value
+            val path = resolveGalleryUri(wallpaperId.value)
             Log.d("IRIS_WALLPAPER", ">>> START APPLYING: $path | Mode: $scaleMode | Crop: $cropX, $cropY, $cropScale")
             
             val wallpaperManager = WallpaperManager.getInstance(context)
@@ -90,19 +128,62 @@ class WallpaperRepositoryImpl(
                     }
                 }
 
+                val bitmapWithOverlay = if (overlayPrefs.getBoolean("overlay_text_enabled", false)) {
+                    val text = overlayPrefs.getString("overlay_text", null)
+                    if (!text.isNullOrBlank()) {
+                        drawTextOverlay(finalBitmap, text)
+                    } else {
+                        finalBitmap
+                    }
+                } else {
+                    finalBitmap
+                }
+
                 // 4. APPLY TO SYSTEM
-                wallpaperManager.setBitmap(finalBitmap, null, true, androidFlags)
+                wallpaperManager.setBitmap(bitmapWithOverlay, null, true, androidFlags)
                 Log.d("IRIS_WALLPAPER", ">>> SUCCESS applying to target $androidFlags")
 
                 // 5. CLEANUP
-                if (finalBitmap != originalBitmap) {
+                if (bitmapWithOverlay != originalBitmap) {
                     originalBitmap.recycle()
                 }
-                finalBitmap.recycle() // Recycle the final one too after sending to manager
+                if (bitmapWithOverlay != finalBitmap) {
+                    finalBitmap.recycle()
+                }
+                bitmapWithOverlay.recycle()
+
+                path
             }
         }.onFailure { e ->
             Log.e("IRIS_WALLPAPER", ">>> FATAL ERROR: ${e.message}", e)
         }
+    }
+
+    private fun drawTextOverlay(bitmap: Bitmap, text: String): Bitmap {
+        val result = createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        canvas.drawBitmap(bitmap, 0f, 0f, highQualityPaint)
+
+        val fontSize = bitmap.width * 0.045f
+        val textPaint = Paint().apply {
+            isAntiAlias = true
+            color = android.graphics.Color.WHITE
+            textSize = fontSize
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+            setShadowLayer(8f, 0f, 4f, android.graphics.Color.BLACK)
+        }
+
+        val scrimPaint = Paint().apply {
+            color = android.graphics.Color.argb(140, 0, 0, 0)
+        }
+
+        val scrimHeight = fontSize * 2.6f
+        val scrimTop = bitmap.height * 0.82f
+        canvas.drawRect(0f, scrimTop - scrimHeight, bitmap.width.toFloat(), bitmap.height * 0.92f, scrimPaint)
+        canvas.drawText(text, bitmap.width / 2f, scrimTop, textPaint)
+
+        return result
     }
 
     override suspend fun cropAndSaveWallpaper(

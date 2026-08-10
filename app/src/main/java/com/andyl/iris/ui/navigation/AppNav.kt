@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import com.andyl.iris.domain.mapper.*
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
+import com.andyl.iris.ui.screen.AchievementsScreen
 import com.andyl.iris.ui.screen.DynamicWallpaperScreen
 import com.andyl.iris.ui.screen.StatsScreen
 import com.andyl.iris.ui.screen.WallpaperConfigScreen
@@ -103,7 +104,14 @@ fun AppNav() {
                 viewModel,
                 onBack = { navController.popBackStack() },
                 onOpenStats = { navController.navigate("stats") },
-                onOpenWeather = { navController.navigate("weather") }
+                onOpenWeather = { navController.navigate("weather") },
+                onOpenAchievements = { navController.navigate("achievements") }
+            )
+        }
+
+        composable("achievements") {
+            AchievementsScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 

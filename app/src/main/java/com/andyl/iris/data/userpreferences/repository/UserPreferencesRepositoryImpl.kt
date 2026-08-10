@@ -390,6 +390,14 @@ class UserPreferencesRepositoryImpl(
         }
     }
 
+    override suspend fun getBatterySaverEnabled(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_BATTERY_SAVER, false)
+    }
+
+    override suspend fun setBatterySaverEnabled(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_BATTERY_SAVER, enabled) }
+    }
+
     override suspend fun recordChange(weather: Weather?) = withContext(ioDispatcher) {
         val today = java.time.LocalDate.now().toString()
         val daily = jsonToIntMap(prefs.getString(KEY_STATS_HISTORY, null)).toMutableMap()
@@ -412,6 +420,16 @@ class UserPreferencesRepositoryImpl(
         jsonToIntMap(prefs.getString(KEY_STATS_WEATHER, null))
     }
 
+    override suspend fun recordPackChange(packId: String) = withContext(ioDispatcher) {
+        val packMap = jsonToIntMap(prefs.getString(KEY_STATS_PACKS, null)).toMutableMap()
+        packMap[packId] = (packMap[packId] ?: 0) + 1
+        prefs.edit { putString(KEY_STATS_PACKS, json.encodeToString(packMap)) }
+    }
+
+    override suspend fun getPackChanges(): Map<String, Int> = withContext(ioDispatcher) {
+        jsonToIntMap(prefs.getString(KEY_STATS_PACKS, null))
+    }
+
     override suspend fun getWallpaperHistory(): List<WallpaperHistoryEntry> = withContext(ioDispatcher) {
         val raw = prefs.getString(KEY_WALLPAPER_HISTORY, null)
         if (raw.isNullOrBlank()) emptyList()
@@ -430,6 +448,78 @@ class UserPreferencesRepositoryImpl(
 
     override suspend fun clearWallpaperHistory() = withContext(ioDispatcher) {
         prefs.edit { remove(KEY_WALLPAPER_HISTORY) }
+    }
+
+    override suspend fun getWallpaperOverlayText(): String? = withContext(ioDispatcher) {
+        prefs.getString(KEY_OVERLAY_TEXT, null)
+    }
+
+    override suspend fun setWallpaperOverlayText(text: String?) = withContext(ioDispatcher) {
+        prefs.edit {
+            if (text.isNullOrBlank()) remove(KEY_OVERLAY_TEXT) else putString(KEY_OVERLAY_TEXT, text.trim())
+        }
+    }
+
+    override suspend fun getOverlayTextEnabled(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_OVERLAY_ENABLED, false)
+    }
+
+    override suspend fun setOverlayTextEnabled(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_OVERLAY_ENABLED, enabled) }
+    }
+
+    override suspend fun getPlaces(): List<com.andyl.iris.domain.model.GeoPlace> = withContext(ioDispatcher) {
+        val raw = prefs.getString(KEY_PLACES, null)
+        if (raw.isNullOrBlank()) emptyList() else runCatching {
+            json.decodeFromString<List<com.andyl.iris.domain.model.GeoPlace>>(raw)
+        }.getOrDefault(emptyList())
+    }
+
+    override suspend fun setPlaces(places: List<com.andyl.iris.domain.model.GeoPlace>) = withContext(ioDispatcher) {
+        prefs.edit { putString(KEY_PLACES, json.encodeToString(places)) }
+    }
+
+    override suspend fun getRandomGalleryBucketId(): String? = withContext(ioDispatcher) {
+        prefs.getString(KEY_GALLERY_BUCKET, null)
+    }
+
+    override suspend fun setRandomGalleryBucketId(bucketId: String?) = withContext(ioDispatcher) {
+        prefs.edit {
+            if (bucketId.isNullOrBlank()) remove(KEY_GALLERY_BUCKET) else putString(KEY_GALLERY_BUCKET, bucketId)
+        }
+    }
+
+    override suspend fun getLiveVideoPath(): String? = withContext(ioDispatcher) {
+        prefs.getString(KEY_LIVE_VIDEO_PATH, null)
+    }
+
+    override suspend fun setLiveVideoPath(path: String?) = withContext(ioDispatcher) {
+        prefs.edit {
+            if (path.isNullOrBlank()) remove(KEY_LIVE_VIDEO_PATH) else putString(KEY_LIVE_VIDEO_PATH, path)
+        }
+    }
+
+    override suspend fun setLiveVideoEnabled(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_LIVE_VIDEO_ENABLED, enabled) }
+    }
+
+    override suspend fun setActiveVideoPackId(packId: String?) = withContext(ioDispatcher) {
+        prefs.edit {
+            if (packId.isNullOrBlank()) remove(KEY_ACTIVE_VIDEO_PACK) else putString(KEY_ACTIVE_VIDEO_PACK, packId)
+        }
+    }
+
+    override suspend fun getHomeSectionsOrder(): List<String> = withContext(ioDispatcher) {
+        prefs.getString(KEY_HOME_SECTIONS, null)
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotBlank() }
+            ?.takeIf { it.size == 4 }
+            ?: DEFAULT_HOME_SECTIONS
+    }
+
+    override suspend fun setHomeSectionsOrder(order: List<String>) = withContext(ioDispatcher) {
+        prefs.edit { putString(KEY_HOME_SECTIONS, order.joinToString(",")) }
     }
 
     private fun jsonToIntMap(raw: String?): Map<String, Int> {
@@ -464,9 +554,20 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_SOUND = "sound_enabled"
         private const val KEY_APP_BACKGROUND = "app_background_enabled"
         private const val KEY_LAST_WALLPAPER = "last_applied_wallpaper"
+        private const val KEY_BATTERY_SAVER = "battery_saver_enabled"
         private const val KEY_STATS_HISTORY = "stats_changes_history"
         private const val KEY_STATS_WEATHER = "stats_weather_changes"
+        private const val KEY_STATS_PACKS = "stats_pack_changes"
         private const val KEY_WALLPAPER_HISTORY = "wallpaper_history"
+        private const val KEY_OVERLAY_TEXT = "overlay_text"
+        private const val KEY_OVERLAY_ENABLED = "overlay_text_enabled"
+        private const val KEY_PLACES = "geofence_places"
+        private const val KEY_GALLERY_BUCKET = "random_gallery_bucket"
+        private const val KEY_LIVE_VIDEO_PATH = "live_video_path"
+        private const val KEY_LIVE_VIDEO_ENABLED = "live_video_enabled"
+        private const val KEY_ACTIVE_VIDEO_PACK = "active_video_pack_id"
+        private const val KEY_HOME_SECTIONS = "home_sections_order"
+        private val DEFAULT_HOME_SECTIONS = listOf("day", "weather", "fixed", "temperature")
     }
 }
 

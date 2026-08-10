@@ -1,5 +1,7 @@
 package com.andyl.iris.domain.usecase.impl
 
+import android.content.Context
+import android.os.BatteryManager
 import android.util.Log
 import com.andyl.iris.domain.repository.LocationRepository
 import com.andyl.iris.domain.repository.UserPreferencesRepository
@@ -18,9 +20,17 @@ class ApplyDynamicWallpaperUseCaseImpl(
     private val detectTimeOfDayUseCase: DetectTimeOfDayUseCase,
     private val resolveWallpaperUseCase: ResolveWallpaperUseCase,
     private val wallpaperRepository: WallpaperRepository,
+    private val context: Context,
 ) : ApplyDynamicWallpaperUseCase {
 
     private val mutex = Mutex()
+
+    private fun isBatteryLow(threshold: Int = 20): Boolean {
+        val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+            ?: return false
+        val level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        return level >= 0 && level < threshold
+    }
 
     override suspend operator fun invoke(packId: String?) {
         if (mutex.isLocked) {
@@ -31,7 +41,31 @@ class ApplyDynamicWallpaperUseCaseImpl(
         mutex.withLock {
             Log.d("IRIS_WORKER", "🚀 Starting ApplyDynamicWallpaper process...")
             preferencesRepository.refreshFeaturedPacks()
-            val config = preferencesRepository.getWallpaperConfig(packId)
+
+            var effectivePackId = packId
+            runCatching {
+                val places = preferencesRepository.getPlaces()
+                if (places.isNotEmpty()) {
+                    val loc = locationRepository.getCurrentLocation()
+                    // Priority: place with the smallest radius among those that match
+                    // (inside a normal zone, or outside an inverted zone).
+                    val matched = places.filter { place ->
+                        val inside = place.contains(loc.latitude, loc.longitude)
+                        if (place.invert) !inside else inside
+                    }
+                    val place = matched.minByOrNull { it.radiusMeters }
+                    if (place != null && place.packId != null) {
+                        Log.d("IRIS_WORKER", "📍 Geofence hit: '${place.name}' -> pack ${place.packId}" +
+                            " | invert=${place.invert} radius=${place.radiusMeters}")
+                        effectivePackId = place.packId
+                    }
+                }
+            }
+
+            val isVideoConfig = effectivePackId?.startsWith("video_") == true
+
+            if (!isVideoConfig) {
+            val config = preferencesRepository.getWallpaperConfig(effectivePackId)
             
             // OPTIMIZATION: Check for weather-independent rules FIRST
             val now = java.time.LocalDateTime.now()
@@ -45,6 +79,12 @@ class ApplyDynamicWallpaperUseCaseImpl(
             val hasDailyMatch = config.dailyRules.containsKey(dayName) || 
                                config.dailyRules.containsKey("$dayName-1") || 
                                config.dailyRules.containsKey("$dayName-2")
+
+            val batterySaver = preferencesRepository.getBatterySaverEnabled()
+            if (batterySaver && !hasFixedTime && !hasDailyMatch && isBatteryLow()) {
+                Log.d("IRIS_WORKER", "🔋 Battery saver active + low battery: skipping weather-based update to save power.")
+                return
+            }
 
             var detectedWeather: com.andyl.iris.domain.model.Weather? = null
             var currentSunrise: String? = null
@@ -84,28 +124,35 @@ class ApplyDynamicWallpaperUseCaseImpl(
             Log.d("IRIS_WORKER", "4. Rules to apply: ${rulesToApply.size}")
 
             if (rulesToApply.isNotEmpty()) {
-                val stored = rulesToApply.firstOrNull { it.target == 3 }
+                val systemRule = rulesToApply.firstOrNull { it.target == 3 }
                     ?: rulesToApply.firstOrNull { it.target == 1 }
                     ?: rulesToApply.firstOrNull { it.target == 2 }
-                preferencesRepository.saveLastAppliedWallpaper(stored?.wallpaperId?.value)
-                preferencesRepository.addWallpaperHistoryEntry(
-                    uri = stored?.wallpaperId?.value.orEmpty(),
-                    weather = finalWeather,
-                    timestamp = System.currentTimeMillis()
-                )
 
+                var appliedSystemUri: String? = null
                 rulesToApply.forEach { rule ->
                     if (rule.wallpaperId.value.isNotEmpty()) {
-                        wallpaperRepository.applyWallpaper(
+                        val resolved = wallpaperRepository.applyWallpaper(
                             wallpaperId = rule.wallpaperId,
                             scaleMode = rule.scaleMode,
                             target = rule.target,
                             cropX = rule.cropX,
                             cropY = rule.cropY,
                             cropScale = rule.cropScale
-                        )
+                        ).getOrNull()
+                        if (rule.target != 2 && appliedSystemUri == null && !resolved.isNullOrEmpty()) {
+                            appliedSystemUri = resolved
+                        }
                     }
                 }
+
+                val storedUri = appliedSystemUri ?: systemRule?.wallpaperId?.value
+                preferencesRepository.saveLastAppliedWallpaper(storedUri)
+                preferencesRepository.addWallpaperHistoryEntry(
+                    uri = storedUri.orEmpty(),
+                    weather = finalWeather,
+                    timestamp = System.currentTimeMillis()
+                )
+            }
             }
         }
     }
