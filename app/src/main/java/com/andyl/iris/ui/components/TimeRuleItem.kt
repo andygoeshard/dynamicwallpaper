@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.andyl.iris.R
+import com.andyl.iris.domain.helper.isVideoUri
 
 @Composable
 fun TimeRuleItem(
@@ -158,16 +159,20 @@ fun AsyncImageWrapperTimeRuleItem(
         ) {
             when {
                 uri != null -> {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(uri)
-                            .crossfade(200)
-                            .size(240, 240)
-                            .build(),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                    if (isVideoUri(uri)) {
+                        VideoWallpaperThumbnail(uri = uri, modifier = Modifier.fillMaxSize())
+                    } else {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(uri)
+                                .crossfade(200)
+                                .size(240, 240)
+                                .build(),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
                 showTargetIcon -> {
                     Box(

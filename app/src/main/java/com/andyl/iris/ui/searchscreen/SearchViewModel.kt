@@ -333,12 +333,24 @@ class SearchViewModel(
                 preferencesRepository.setLiveVideoPath(videoPath)
                 preferencesRepository.setLiveVideoEnabled(true)
                 preferencesRepository.setActiveVideoPackId(null)
+
+                _uiState.value.activeSlot?.let { slot ->
+                    processDownloadedFile(context, videoPath, 3, slot, com.andyl.iris.domain.model.ScaleMode.CROP)
+                }
+
                 com.andyl.iris.ui.components.openLiveWallpaperPicker(context)
             }.onSuccess {
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update { it.copy(isLoading = false, activeSlot = null) }
             }.onFailure { e ->
                 _uiState.update { it.copy(isLoading = false, error = e.message ?: "Error al aplicar el video") }
             }
+        }
+    }
+
+    fun applyVideoToActiveSlot(context: android.content.Context, videoPath: String) {
+        _uiState.value.activeSlot?.let { slot ->
+            processDownloadedFile(context, videoPath, 3, slot, com.andyl.iris.domain.model.ScaleMode.CROP)
+            _uiState.update { it.copy(activeSlot = null) }
         }
     }
 

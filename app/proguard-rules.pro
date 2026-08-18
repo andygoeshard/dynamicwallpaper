@@ -22,10 +22,20 @@
 
 # Reglas para Iris
 # No tocar los DTOs porque se rompe la serialización JSON
--keepclassmembers class com.andyl.iris.data.userpreferences.dto.** {
-    *** *;
-}
 -keepattributes *Annotation*, InnerClasses, EnclosingMethod, Signature
+
+# kotlinx.serialization: mantener todos los DTOs @Serializable y sus serializers
+# (weather, images, location, userpreferences y domain.model)
+-keep,includedescriptorclasses class com.andyl.iris.**$$serializer { *; }
+-keepclasseswithmembers class com.andyl.iris.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keepclasseswithmembers class com.andyl.iris.data.weather.dto.** { *; }
+-keepclasseswithmembers class com.andyl.iris.data.imagesprovider.dto.** { *; }
+-keepclasseswithmembers class com.andyl.iris.data.location.dto.** { *; }
+-keepclasseswithmembers class com.andyl.iris.data.userpreferences.dto.** { *; }
+-keepclasseswithmembers class com.andyl.iris.domain.model.GeoPlace { *; }
+-keepclasseswithmembers class com.andyl.iris.domain.model.WallpaperHistoryEntry { *; }
 
 # Reglas para Ktor
 -keep class io.ktor.** { *; }

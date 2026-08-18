@@ -38,6 +38,9 @@ interface UserPreferencesRepository {
     suspend fun isOnboardingCompleted(): Boolean
     suspend fun setOnboardingCompleted()
 
+    suspend fun hasBackgroundLocationDisclosureAcknowledged(): Boolean
+    suspend fun setBackgroundLocationDisclosureAcknowledged()
+
     suspend fun refreshFeaturedPacks()
     suspend fun getFeaturedPackId(type: String): String?
 
@@ -66,6 +69,9 @@ interface UserPreferencesRepository {
     suspend fun getBatterySaverEnabled(): Boolean
     suspend fun setBatterySaverEnabled(enabled: Boolean)
 
+    suspend fun getUpdateIntervalMinutes(): Int
+    suspend fun setUpdateIntervalMinutes(minutes: Int)
+
     suspend fun recordChange(weather: Weather?)
     suspend fun getChangesHistory(): Map<String, Int>
     suspend fun getWeatherChanges(): Map<String, Int>
@@ -89,6 +95,7 @@ interface UserPreferencesRepository {
 
     suspend fun getLiveVideoPath(): String?
     suspend fun setLiveVideoPath(path: String?)
+    suspend fun getLiveVideoEnabled(): Boolean
     suspend fun setLiveVideoEnabled(enabled: Boolean)
     suspend fun setActiveVideoPackId(packId: String?)
 

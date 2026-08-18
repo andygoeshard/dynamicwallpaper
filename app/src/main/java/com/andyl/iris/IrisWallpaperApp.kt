@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.work.Configuration
 import com.andyl.iris.billing.BillingManager
 import com.andyl.iris.di.appModules
-import com.andyl.iris.worker.IrisWallpaperScheduler
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.workmanager.factory.KoinWorkerFactory
 import org.koin.androidx.workmanager.koin.workManagerFactory
@@ -28,7 +27,6 @@ class IrisWallpaperApp : Application(), Configuration.Provider {
         billingManager = get()
         billingManager.startConnection()
 
-        IrisWallpaperScheduler.schedule(this)
         com.andyl.iris.domain.helper.AlarmHelper.scheduleMidnightRefresh(this)
     }
 

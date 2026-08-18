@@ -24,8 +24,19 @@ class BootReceiver : BroadcastReceiver() {
         if (action == Intent.ACTION_BOOT_COMPLETED || action == "android.intent.action.QUICKBOOT_POWERON") {
             Log.i("BootReceiver", ">>> Sistema reiniciado. Reprogramando TODO...")
 
-            IrisWallpaperScheduler.schedule(context)
-            reScheduleAllAlarms(context)
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    if (preferencesRepository.isOnboardingCompleted()) {
+                        IrisWallpaperScheduler.schedule(
+                            context,
+                            preferencesRepository.getUpdateIntervalMinutes()
+                        )
+                    }
+                } catch (e: Exception) {
+                    Log.e("BootReceiver", "Error reprogramando worker: ${e.message}")
+                }
+                reScheduleAllAlarms(context)
+            }
         }
         else {
             Log.i("BootReceiver", ">>> Alarma de horario fijo detectada. Ejecutando Worker inmediato.")

@@ -10,14 +10,20 @@ import java.util.concurrent.TimeUnit
 object IrisWallpaperScheduler {
     private const val WORK_NAME = "dynamic_wallpaper_worker"
 
-    fun schedule(context: Context) {
+    /** Interval <= 0 means "off": the periodic worker is cancelled. */
+    fun schedule(context: Context, intervalMinutes: Int = 60) {
+        if (intervalMinutes <= 0) {
+            cancel(context)
+            return
+        }
         val request = PeriodicWorkRequestBuilder<IrisWallpaperWorker>(
-            15, TimeUnit.MINUTES,
-            5, TimeUnit.MINUTES
+            intervalMinutes.toLong(), TimeUnit.MINUTES,
+            15, TimeUnit.MINUTES
         )
             .setConstraints(
                 Constraints.Builder()
-                    .build() // Removed setRequiresBatteryNotLow to be more aggressive
+                    .setRequiresBatteryNotLow(true)
+                    .build()
             )
             .addTag(WORK_NAME)
             .build()
@@ -27,5 +33,9 @@ object IrisWallpaperScheduler {
             ExistingPeriodicWorkPolicy.UPDATE, // Better to UPDATE than KEEP to ensure new constraints/intervals apply
             request
         )
+    }
+
+    fun cancel(context: Context) {
+        WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
     }
 }

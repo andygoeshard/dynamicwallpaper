@@ -78,7 +78,9 @@ import com.andyl.iris.ui.components.EmptyState
 import com.andyl.iris.ui.components.PremiumUpsellSheet
 import com.andyl.iris.ui.components.RatingDialog
 import com.andyl.iris.ui.components.ScaleModeSelector
+import com.andyl.iris.ui.components.VideoWallpaperThumbnail
 import com.andyl.iris.ui.components.WallpaperPreviewImage
+import com.andyl.iris.ui.components.rememberBackgroundLocationConsent
 import com.andyl.iris.ui.event.WallpaperEvent
 import com.andyl.iris.ui.state.DynamicWallpaperUiState
 import com.andyl.iris.ui.theme.AccentOptions
@@ -88,6 +90,7 @@ import com.andyl.iris.ui.theme.CyberGreen
 import com.andyl.iris.ui.theme.CyberGreenLight
 import com.andyl.iris.ui.theme.LocalReduceAnimations
 import com.andyl.iris.ui.viewmodel.DynamicWallpaperViewModel
+import com.andyl.iris.worker.IrisWallpaperScheduler
 import org.koin.compose.koinInject
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -124,6 +127,8 @@ fun WallpaperConfigScreen(
     var overlayText by remember { mutableStateOf("") }
     var overlayEnabled by remember { mutableStateOf(false) }
     var batterySaverEnabled by remember { mutableStateOf(false) }
+    var updateIntervalMinutes by remember { mutableIntStateOf(60) }
+    var showUpdateIntervalDialog by remember { mutableStateOf(false) }
     var galleryBucketId by remember { mutableStateOf<String?>(null) }
     var galleryAlbums by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
     var showAlbumPicker by remember { mutableStateOf(false) }
@@ -141,6 +146,7 @@ fun WallpaperConfigScreen(
         overlayText = userPreferencesRepository.getWallpaperOverlayText() ?: ""
         overlayEnabled = userPreferencesRepository.getOverlayTextEnabled()
         batterySaverEnabled = userPreferencesRepository.getBatterySaverEnabled()
+        updateIntervalMinutes = userPreferencesRepository.getUpdateIntervalMinutes()
         galleryBucketId = userPreferencesRepository.getRandomGalleryBucketId()
         places = userPreferencesRepository.getPlaces()
         packs = userPreferencesRepository.getAllPacks()
@@ -172,6 +178,12 @@ fun WallpaperConfigScreen(
         }
     }
 
+    val requestBackgroundLocation = rememberBackgroundLocationConsent(userPreferencesRepository) { isGranted ->
+        if (isGranted) {
+            viewModel.onEvent(WallpaperEvent.OnManualRefresh)
+        }
+    }
+
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -179,6 +191,9 @@ fun WallpaperConfigScreen(
         if (granted) {
             viewModel.onEvent(WallpaperEvent.OnManualRefresh)
         }
+        // If foreground location was (already) granted, re-trigger the
+        // background location flow (disclosure -> permission).
+        requestBackgroundLocation(true)
     }
 
     if (uiState.showRatingDialog) {
@@ -688,6 +703,9 @@ fun WallpaperConfigScreen(
                         onSelectCity = { viewModel.onEvent(WallpaperEvent.OnSelectCity(it)) },
                         onRequestGps = {
                             locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+                        },
+                        onOpenSystemSettings = {
+                            openAppPermissionSettings(context)
                         }
                     )
                 }
@@ -709,6 +727,30 @@ fun WallpaperConfigScreen(
                             scope.launch { userPreferencesRepository.setBatterySaverEnabled(enabled) }
                         }
                     )
+
+                    SettingValueRow(
+                        icon = Icons.Default.Schedule,
+                        title = stringResource(R.string.cfg_update_interval_title),
+                        description = stringResource(R.string.cfg_update_interval_desc),
+                        value = stringResource(updateIntervalLabelRes(updateIntervalMinutes)),
+                        onClick = { showUpdateIntervalDialog = true }
+                    )
+
+                    if (showUpdateIntervalDialog) {
+                        UpdateIntervalDialog(
+                            currentMinutes = updateIntervalMinutes,
+                            onSelect = { minutes ->
+                                showUpdateIntervalDialog = false
+                                updateIntervalMinutes = minutes
+                                scope.launch {
+                                    userPreferencesRepository.setUpdateIntervalMinutes(minutes)
+                                    IrisWallpaperScheduler.schedule(context, minutes)
+                                }
+                            },
+                            onDismiss = { showUpdateIntervalDialog = false }
+                        )
+                    }
+
                     Button(
                         onClick = { openBatterySettings(context) },
                         modifier = Modifier.fillMaxWidth(),
@@ -1467,15 +1509,19 @@ fun WeatherSimulatorSection(
             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
         ) {
             if (previewUri != null) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(previewUri)
-                        .crossfade(200)
-                        .build(),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                if (com.andyl.iris.domain.helper.isVideoUri(previewUri)) {
+                    VideoWallpaperThumbnail(uri = previewUri, modifier = Modifier.fillMaxSize())
+                } else {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(previewUri)
+                            .crossfade(200)
+                            .build(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             } else {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -2138,6 +2184,118 @@ fun SettingToggleRow(
     }
 }
 
+private data class UpdateIntervalOption(val minutes: Int, val labelRes: Int)
+
+private val updateIntervalOptions = listOf(
+    UpdateIntervalOption(0, R.string.cfg_update_interval_off),
+    UpdateIntervalOption(30, R.string.cfg_update_interval_30),
+    UpdateIntervalOption(60, R.string.cfg_update_interval_60),
+    UpdateIntervalOption(120, R.string.cfg_update_interval_120),
+    UpdateIntervalOption(180, R.string.cfg_update_interval_180),
+    UpdateIntervalOption(360, R.string.cfg_update_interval_360)
+)
+
+private fun updateIntervalLabelRes(minutes: Int): Int =
+    updateIntervalOptions.find { it.minutes == minutes }?.labelRes ?: R.string.cfg_update_interval_60
+
+@Composable
+fun SettingValueRow(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    value: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun UpdateIntervalDialog(
+    currentMinutes: Int,
+    onSelect: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.cfg_update_interval_dialog_title),
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column {
+                updateIntervalOptions.forEach { option ->
+                    val selected = option.minutes == currentMinutes
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(option.minutes) }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(option.labelRes),
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (selected) {
+                            Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.btn_close))
+            }
+        }
+    )
+}
+
 @Composable
 fun ThemePreview(
     darkTheme: Boolean,
@@ -2391,7 +2549,8 @@ fun LocationSettings(
     onToggleGps: (Boolean) -> Unit,
     onQueryChange: (String) -> Unit,
     onSelectCity: (com.andyl.iris.domain.model.CityResult) -> Unit,
-    onRequestGps: () -> Unit
+    onRequestGps: () -> Unit,
+    onOpenSystemSettings: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     
@@ -2436,6 +2595,15 @@ fun LocationSettings(
                 Icon(Icons.Default.LocationOn, null)
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.refresh_gps))
+            }
+
+            TextButton(
+                onClick = onOpenSystemSettings,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Settings, null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.bg_location_system_settings))
             }
         } else {
             Column {
@@ -2489,6 +2657,18 @@ fun LocationSettings(
 private fun openBatterySettings(context: Context) {
     try {
         val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        val intent = Intent(Settings.ACTION_SETTINGS)
+        context.startActivity(intent)
+    }
+}
+
+private fun openAppPermissionSettings(context: Context) {
+    try {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.parse("package:${context.packageName}")
+        }
         context.startActivity(intent)
     } catch (e: Exception) {
         val intent = Intent(Settings.ACTION_SETTINGS)

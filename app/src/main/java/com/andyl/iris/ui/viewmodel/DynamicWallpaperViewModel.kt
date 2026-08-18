@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.andyl.iris.domain.helper.AlarmHelper
+import com.andyl.iris.domain.helper.isVideoUri
 import com.andyl.iris.domain.mapper.toKey
 import com.andyl.iris.domain.mapper.weatherFromKey
 import com.andyl.iris.domain.model.CityResult
@@ -716,6 +717,7 @@ class DynamicWallpaperViewModel(
 
             currentState.copy(dailyRules = newDailyRules)
         }
+        syncLiveVideoState(uri)
         saveCurrentConfigToRepo()
         
         // Ensure midnight refresh is scheduled if we have daily rules
@@ -743,6 +745,7 @@ class DynamicWallpaperViewModel(
             currentState.copy(fixedRules = newFixedRules)
         }
 
+        syncLiveVideoState(uri)
         saveCurrentConfigToRepo()
 
         AlarmHelper.scheduleFixedTimeAlarm(context, timeBase)
@@ -770,6 +773,7 @@ class DynamicWallpaperViewModel(
             currentState.copy(temperatureRules = newTempRules)
         }
 
+        syncLiveVideoState(uri)
         saveCurrentConfigToRepo()
 
         val state = _uiState.value
@@ -836,11 +840,22 @@ class DynamicWallpaperViewModel(
                 scaleMode = scaleMode ?: currentState.scaleMode
             )
         }
+        syncLiveVideoState(wallpaperUri)
         saveCurrentConfigToRepo()
         
         val state = _uiState.value
         if (state.editingPackId == state.activePackId) {
             applyWallpaper()
+        }
+    }
+
+    private fun syncLiveVideoState(uri: String) {
+        viewModelScope.launch {
+            if (isVideoUri(uri)) {
+                preferencesRepository.setLiveVideoEnabled(true)
+            } else {
+                preferencesRepository.setLiveVideoEnabled(false)
+            }
         }
     }
 

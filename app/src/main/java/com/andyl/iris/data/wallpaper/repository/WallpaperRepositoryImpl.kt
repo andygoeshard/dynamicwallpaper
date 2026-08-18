@@ -11,6 +11,7 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.provider.MediaStore
 import android.util.Log
+import com.andyl.iris.domain.helper.isVideoUri
 import com.andyl.iris.domain.model.WallpaperId
 import com.andyl.iris.domain.repository.WallpaperRepository
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +72,16 @@ class WallpaperRepositoryImpl(
         runCatching {
             val path = resolveGalleryUri(wallpaperId.value)
             Log.d("IRIS_WALLPAPER", ">>> START APPLYING: $path | Mode: $scaleMode | Crop: $cropX, $cropY, $cropScale")
-            
+
+            if (isVideoUri(path)) {
+                Log.d("IRIS_WALLPAPER", ">>> Video detected, enabling live video: $path")
+                overlayPrefs.edit()
+                    .putString("live_video_path", path)
+                    .putBoolean("live_video_enabled", true)
+                    .apply()
+                return@runCatching path
+            }
+
             val wallpaperManager = WallpaperManager.getInstance(context)
 
             val androidFlags = when (target) {

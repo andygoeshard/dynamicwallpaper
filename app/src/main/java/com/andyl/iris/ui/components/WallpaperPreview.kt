@@ -1,5 +1,6 @@
 package com.andyl.iris.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -9,9 +10,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -20,7 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.andyl.iris.domain.helper.isVideoUri
 import com.andyl.iris.domain.model.ScaleMode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun WallpaperPreviewImage(
@@ -38,15 +48,19 @@ fun WallpaperPreviewImage(
 
     Box(modifier = modifier) {
         if (uri != null) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(uri)
-                    .crossfade(200)
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = contentScale
-            )
+            if (isVideoUri(uri)) {
+                VideoWallpaperThumbnail(uri = uri, modifier = Modifier.fillMaxSize(), contentScale = contentScale)
+            } else {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(uri)
+                        .crossfade(200)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = contentScale
+                )
+            }
         } else {
             Box(
                 modifier = Modifier
@@ -59,6 +73,41 @@ fun WallpaperPreviewImage(
             WallpaperOverlayPreview(
                 text = overlayText,
                 modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Composable
+fun VideoWallpaperThumbnail(
+    uri: String,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Crop
+) {
+    var frame by remember(uri) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    val context = LocalContext.current
+    LaunchedEffect(uri) {
+        frame = withContext(Dispatchers.IO) {
+            runCatching {
+                val retriever = android.media.MediaMetadataRetriever()
+                if (uri.startsWith("content://")) {
+                    retriever.setDataSource(context, android.net.Uri.parse(uri))
+                } else {
+                    retriever.setDataSource(uri)
+                }
+                val bmp = retriever.getFrameAtTime(1_000_000, android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                retriever.release()
+                bmp
+            }.getOrNull()
+        }
+    }
+    Box(modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant)) {
+        frame?.let { bmp ->
+            Image(
+                bitmap = bmp.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = contentScale
             )
         }
     }

@@ -345,6 +345,9 @@ fun SearchScreen(
                                 Column(modifier = Modifier.fillMaxSize()) {
                                     LocalVideosSection(
                                         onError = { msg -> scope.launch { snackbarHostState.showSnackbar(msg) } },
+                                        onVideoApplied = { videoPath ->
+                                            viewModel.applyVideoToActiveSlot(context, videoPath)
+                                        },
                                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                                     )
                                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))

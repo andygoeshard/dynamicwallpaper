@@ -47,6 +47,7 @@ import coil.request.ImageRequest
 import coil.size.Precision
 import coil.size.Size
 import com.andyl.iris.R
+import com.andyl.iris.domain.helper.isVideoUri
 import com.andyl.iris.domain.mapper.toKey
 import com.andyl.iris.domain.model.TimeOfDay
 import com.andyl.iris.domain.model.Weather
@@ -192,16 +193,20 @@ private fun WallpaperPreviewImage(
     uri: String?,
     modifier: Modifier = Modifier
 ) {
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(uri)
-            .crossfade(300)
-            .size(200, 300)
-            .precision(Precision.EXACT)
-            .bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
-            .build(),
-        contentDescription = null,
-        modifier = modifier,
-        contentScale = ContentScale.Crop
-    )
+    if (uri != null && isVideoUri(uri)) {
+        VideoWallpaperThumbnail(uri = uri, modifier = modifier)
+    } else {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(uri)
+                .crossfade(300)
+                .size(200, 300)
+                .precision(Precision.EXACT)
+                .bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
+                .build(),
+            contentDescription = null,
+            modifier = modifier,
+            contentScale = ContentScale.Crop
+        )
+    }
 }

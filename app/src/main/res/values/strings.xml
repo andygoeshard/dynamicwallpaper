@@ -163,8 +163,17 @@
     <string name="cfg_battery_button">Optimize Battery</string>
     <string name="cfg_battery_saver_title">Battery Saver</string>
     <string name="cfg_battery_saver_desc">Skip weather updates while battery is below 20%</string>
+    <string name="cfg_update_interval_title">Background Update Frequency</string>
+    <string name="cfg_update_interval_desc">How often Iris checks weather and refreshes your wallpaper in the background.</string>
+    <string name="cfg_update_interval_dialog_title">Update frequency</string>
+    <string name="cfg_update_interval_off">Off (manual only)</string>
+    <string name="cfg_update_interval_30">Every 30 minutes</string>
+    <string name="cfg_update_interval_60">Every hour</string>
+    <string name="cfg_update_interval_120">Every 2 hours</string>
+    <string name="cfg_update_interval_180">Every 3 hours</string>
+    <string name="cfg_update_interval_360">Every 6 hours</string>
     <string name="cfg_about_title">About Iris</string>
-    <string name="cfg_about_version">Version 2.8</string>
+    <string name="cfg_about_version">Version 3.0</string>
     <string name="cfg_about_feedback">Send Feedback</string>
     <string name="cfg_about_privacy">Privacy Policy</string>
 
@@ -363,6 +372,19 @@
     <string name="overlay_enable_desc">Draws the text below the wallpaper, always readable.</string>
     <string name="overlay_text_label">Your text</string>
     <string name="overlay_note">Tip: apply a wallpaper again to see the text.</string>
+
+    <!-- Background location disclosure -->
+    <string name="bg_location_disclosure_title">Let Iris access your location in the background?</string>
+    <string name="bg_location_disclosure_body">To keep your wallpaper in sync with your surroundings, Iris needs to access your approximate location from time to time, even when the app is not open.</string>
+    <string name="bg_location_disclosure_what">What is accessed</string>
+    <string name="bg_location_disclosure_what_desc">Your approximate location, checked periodically in the background. It is sent to our weather provider (Open-Meteo) to fetch local conditions. It is never used for advertising or sold to anyone.</string>
+    <string name="bg_location_disclosure_why">Why</string>
+    <string name="bg_location_disclosure_why_desc">To automatically update your wallpaper based on your local weather and the geofences you set up.</string>
+    <string name="bg_location_disclosure_how">How to turn it off</string>
+    <string name="bg_location_disclosure_how_desc">You can disable it anytime: turn off \"Use GPS\" in Iris settings, or revoke the location permission in your device settings.</string>
+    <string name="bg_location_disclosure_accept">Allow</string>
+    <string name="bg_location_disclosure_deny">Not now</string>
+    <string name="bg_location_system_settings">Manage location in system settings</string>
 
     <!-- Geofences -->
     <string name="places_title">Geofences</string>

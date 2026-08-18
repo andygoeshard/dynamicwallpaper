@@ -44,6 +44,7 @@ import java.io.File
 @Composable
 fun LocalVideosSection(
     onError: (String) -> Unit = {},
+    onVideoApplied: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -64,6 +65,7 @@ fun LocalVideosSection(
                     preferencesRepository.setLiveVideoPath(out.absolutePath)
                     preferencesRepository.setLiveVideoEnabled(true)
                     preferencesRepository.setActiveVideoPackId(null)
+                    onVideoApplied?.invoke(out.absolutePath)
                     openLiveWallpaperPicker(context)
                 }.onFailure { e ->
                     onError(e.message ?: context.getString(R.string.local_videos_error))

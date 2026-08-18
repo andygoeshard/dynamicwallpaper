@@ -3,6 +3,7 @@ package com.andyl.iris.domain.usecase.impl
 import android.content.Context
 import android.os.BatteryManager
 import android.util.Log
+import com.andyl.iris.domain.helper.isVideoUri
 import com.andyl.iris.domain.repository.LocationRepository
 import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.domain.repository.WallpaperRepository
@@ -24,6 +25,24 @@ class ApplyDynamicWallpaperUseCaseImpl(
 ) : ApplyDynamicWallpaperUseCase {
 
     private val mutex = Mutex()
+
+    // If the video rule references a content:// URI (e.g. picked via the
+    // document picker), copy it to internal storage so IrisLiveWallpaperService
+    // (which only knows how to play local files) can actually play it.
+    private fun ensureLocalVideo(rawUri: String): String {
+        if (!rawUri.startsWith("content://")) return rawUri
+        return try {
+            val dir = java.io.File(context.filesDir, "live_video").apply { mkdirs() }
+            val out = java.io.File(dir, "rule_${System.currentTimeMillis()}.mp4")
+            context.contentResolver.openInputStream(android.net.Uri.parse(rawUri))?.use { input ->
+                out.outputStream().use { o -> input.copyTo(o) }
+            }
+            out.absolutePath
+        } catch (e: Exception) {
+            Log.e("IRIS_WORKER", "ensureLocalVideo failed", e)
+            rawUri
+        }
+    }
 
     private fun isBatteryLow(threshold: Int = 20): Boolean {
         val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
@@ -128,24 +147,44 @@ class ApplyDynamicWallpaperUseCaseImpl(
                     ?: rulesToApply.firstOrNull { it.target == 1 }
                     ?: rulesToApply.firstOrNull { it.target == 2 }
 
+                val liveVideoEnabled = preferencesRepository.getLiveVideoEnabled()
+                val activeVideoPath = preferencesRepository.getLiveVideoPath()
                 var appliedSystemUri: String? = null
                 rulesToApply.forEach { rule ->
                     if (rule.wallpaperId.value.isNotEmpty()) {
-                        val resolved = wallpaperRepository.applyWallpaper(
-                            wallpaperId = rule.wallpaperId,
-                            scaleMode = rule.scaleMode,
-                            target = rule.target,
-                            cropX = rule.cropX,
-                            cropY = rule.cropY,
-                            cropScale = rule.cropScale
-                        ).getOrNull()
-                        if (rule.target != 2 && appliedSystemUri == null && !resolved.isNullOrEmpty()) {
-                            appliedSystemUri = resolved
+                        if (isVideoUri(rule.wallpaperId.value)) {
+                            val videoPath = ensureLocalVideo(rule.wallpaperId.value)
+                            Log.d("IRIS_WORKER", "🎬 Video rule active, switching live video to $videoPath")
+                            preferencesRepository.setLiveVideoPath(videoPath)
+                            preferencesRepository.setLiveVideoEnabled(true)
+                            if (rule.target != 2 && appliedSystemUri == null) {
+                                appliedSystemUri = videoPath
+                            }
+                        } else if (!liveVideoEnabled) {
+                            val resolved = wallpaperRepository.applyWallpaper(
+                                wallpaperId = rule.wallpaperId,
+                                scaleMode = rule.scaleMode,
+                                target = rule.target,
+                                cropX = rule.cropX,
+                                cropY = rule.cropY,
+                                cropScale = rule.cropScale
+                            ).getOrNull()
+                            if (rule.target != 2 && appliedSystemUri == null && !resolved.isNullOrEmpty()) {
+                                appliedSystemUri = resolved
+                            }
                         }
                     }
                 }
 
-                val storedUri = appliedSystemUri ?: systemRule?.wallpaperId?.value
+                // If a live video is the active wallpaper, do NOT let an image
+                // rule's URI overwrite the "last applied" used by the home
+                // preview. Keep pointing to the live video so the UI matches
+                // what the user actually sees.
+                val storedUri = if (liveVideoEnabled) {
+                    appliedSystemUri ?: activeVideoPath
+                } else {
+                    appliedSystemUri ?: systemRule?.wallpaperId?.value
+                }
                 preferencesRepository.saveLastAppliedWallpaper(storedUri)
                 preferencesRepository.addWallpaperHistoryEntry(
                     uri = storedUri.orEmpty(),

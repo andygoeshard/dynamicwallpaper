@@ -168,8 +168,17 @@
     <string name="cfg_battery_button">Configurar Batería</string>
     <string name="cfg_battery_saver_title">Ahorro de batería</string>
     <string name="cfg_battery_saver_desc">Omitir actualizaciones por clima con batería baja (menos de 20%)</string>
+    <string name="cfg_update_interval_title">Frecuencia de actualización en segundo plano</string>
+    <string name="cfg_update_interval_desc">Con qué frecuencia Iris verifica el clima y actualiza tu fondo en segundo plano.</string>
+    <string name="cfg_update_interval_dialog_title">Frecuencia de actualización</string>
+    <string name="cfg_update_interval_off">Apagado (solo manual)</string>
+    <string name="cfg_update_interval_30">Cada 30 minutos</string>
+    <string name="cfg_update_interval_60">Cada hora</string>
+    <string name="cfg_update_interval_120">Cada 2 horas</string>
+    <string name="cfg_update_interval_180">Cada 3 horas</string>
+    <string name="cfg_update_interval_360">Cada 6 horas</string>
     <string name="cfg_about_title">Acerca de Iris</string>
-    <string name="cfg_about_version">Versión 2.8</string>
+    <string name="cfg_about_version">Versión 3.0</string>
     <string name="cfg_about_feedback">Enviar Comentarios</string>
     <string name="cfg_about_privacy">Política de Privacidad</string>
 
@@ -368,6 +377,19 @@
     <string name="overlay_enable_desc">Dibuja el texto abajo del fondo, siempre legible.</string>
     <string name="overlay_text_label">Tu texto</string>
     <string name="overlay_note">Tip: aplicá un fondo de nuevo para ver el texto.</string>
+
+    <!-- Divulgación de ubicación en segundo plano -->
+    <string name="bg_location_disclosure_title">¿Permitir que Iris acceda a tu ubicación en segundo plano?</string>
+    <string name="bg_location_disclosure_body">Para mantener tu fondo sincronizado con tu entorno, Iris necesita acceder a tu ubicación aproximada de vez en cuando, incluso cuando la app no está abierta.</string>
+    <string name="bg_location_disclosure_what">Qué se accede</string>
+    <string name="bg_location_disclosure_what_desc">Tu ubicación aproximada, consultada periódicamente en segundo plano. Se envía a nuestro proveedor de clima (Open-Meteo) para obtener las condiciones locales. Nunca se usa para publicidad ni se vende a nadie.</string>
+    <string name="bg_location_disclosure_why">Por qué</string>
+    <string name="bg_location_disclosure_why_desc">Para actualizar automáticamente tu fondo según el clima local y las geocercas que configures.</string>
+    <string name="bg_location_disclosure_how">Cómo desactivarlo</string>
+    <string name="bg_location_disclosure_how_desc">Podés desactivarlo cuando quieras: apagando \"Usar GPS\" en los ajustes de Iris, o revocando el permiso de ubicación en los ajustes del dispositivo.</string>
+    <string name="bg_location_disclosure_accept">Permitir</string>
+    <string name="bg_location_disclosure_deny">Ahora no</string>
+    <string name="bg_location_system_settings">Administrar ubicación en ajustes del sistema</string>
 
     <!-- Geocercas -->
     <string name="places_title">Geocercas</string>

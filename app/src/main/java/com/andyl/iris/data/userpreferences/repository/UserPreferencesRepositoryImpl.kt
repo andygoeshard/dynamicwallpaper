@@ -289,6 +289,14 @@ class UserPreferencesRepositoryImpl(
         prefs.edit { putBoolean(KEY_ONBOARDING_COMPLETED, true) }
     }
 
+    override suspend fun hasBackgroundLocationDisclosureAcknowledged(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_BACKGROUND_LOCATION_DISCLOSURE, false)
+    }
+
+    override suspend fun setBackgroundLocationDisclosureAcknowledged() = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_BACKGROUND_LOCATION_DISCLOSURE, true) }
+    }
+
     override suspend fun refreshFeaturedPacks() = withContext(ioDispatcher) {
         val freePacks = PredefinedPacks.packs.filter { !it.isPremium && it.season == null }
         if (freePacks.isEmpty()) return@withContext
@@ -398,6 +406,14 @@ class UserPreferencesRepositoryImpl(
         prefs.edit { putBoolean(KEY_BATTERY_SAVER, enabled) }
     }
 
+    override suspend fun getUpdateIntervalMinutes(): Int = withContext(ioDispatcher) {
+        prefs.getInt(KEY_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL_MINUTES)
+    }
+
+    override suspend fun setUpdateIntervalMinutes(minutes: Int) = withContext(ioDispatcher) {
+        prefs.edit { putInt(KEY_UPDATE_INTERVAL, minutes) }
+    }
+
     override suspend fun recordChange(weather: Weather?) = withContext(ioDispatcher) {
         val today = java.time.LocalDate.now().toString()
         val daily = jsonToIntMap(prefs.getString(KEY_STATS_HISTORY, null)).toMutableMap()
@@ -499,6 +515,10 @@ class UserPreferencesRepositoryImpl(
         }
     }
 
+    override suspend fun getLiveVideoEnabled(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_LIVE_VIDEO_ENABLED, false)
+    }
+
     override suspend fun setLiveVideoEnabled(enabled: Boolean) = withContext(ioDispatcher) {
         prefs.edit { putBoolean(KEY_LIVE_VIDEO_ENABLED, enabled) }
     }
@@ -543,6 +563,7 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_SUCCESS_COUNT = "app_success_count"
         private const val KEY_HAS_RATED = "has_rated"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        private const val KEY_BACKGROUND_LOCATION_DISCLOSURE = "background_location_disclosure_accepted"
         private const val KEY_FEATURED_DAY = "featured_pack_day"
         private const val KEY_FEATURED_MONTH = "featured_pack_month"
         private const val KEY_FEATURED_YEAR = "featured_pack_year"
@@ -555,6 +576,7 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_APP_BACKGROUND = "app_background_enabled"
         private const val KEY_LAST_WALLPAPER = "last_applied_wallpaper"
         private const val KEY_BATTERY_SAVER = "battery_saver_enabled"
+        private const val KEY_UPDATE_INTERVAL = "update_interval_minutes"
         private const val KEY_STATS_HISTORY = "stats_changes_history"
         private const val KEY_STATS_WEATHER = "stats_weather_changes"
         private const val KEY_STATS_PACKS = "stats_pack_changes"
@@ -568,6 +590,7 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_ACTIVE_VIDEO_PACK = "active_video_pack_id"
         private const val KEY_HOME_SECTIONS = "home_sections_order"
         private val DEFAULT_HOME_SECTIONS = listOf("day", "weather", "fixed", "temperature")
+        private const val DEFAULT_UPDATE_INTERVAL_MINUTES = 60
     }
 }
 
