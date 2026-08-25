@@ -14,8 +14,8 @@ android {
         applicationId = "com.andyl.iris"
         minSdk = 26
         targetSdk = 36
-        versionCode = 30
-        versionName = "3.0"
+        versionCode = 33
+        versionName = "3.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

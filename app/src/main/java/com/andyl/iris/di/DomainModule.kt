@@ -100,5 +100,5 @@ val domainModule = module {
 
     single{ DownloadWallpaperUseCase(get(), get()) }
 
-    worker { IrisWallpaperWorker(get(), get(), get()) }
+    worker { IrisWallpaperWorker(get(), get(), get(), get()) }
 }

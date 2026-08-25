@@ -1,8 +1,11 @@
 package com.andyl.iris.domain.usecase.impl
 
+import android.app.WallpaperManager
 import android.content.Context
 import android.os.BatteryManager
 import android.util.Log
+import com.andyl.iris.domain.helper.LiveTarget
+import com.andyl.iris.domain.helper.LiveTargetStore
 import com.andyl.iris.domain.helper.isVideoUri
 import com.andyl.iris.domain.repository.LocationRepository
 import com.andyl.iris.domain.repository.UserPreferencesRepository
@@ -26,25 +29,89 @@ class ApplyDynamicWallpaperUseCaseImpl(
 
     private val mutex = Mutex()
 
-    // If the video rule references a content:// URI (e.g. picked via the
-    // document picker), copy it to internal storage so IrisLiveWallpaperService
-    // (which only knows how to play local files) can actually play it.
-    private fun ensureLocalVideo(rawUri: String): String {
-        if (!rawUri.startsWith("content://")) return rawUri
+    // Rules can reference videos as: a plain local path (already copied by the
+    // UI), a content:// URI (document/MediaStore picker), an https URL (remote
+    // pack) or a file:// URI. Normalize everything to a playable local path so
+    // IrisLiveWallpaperService can actually render it. Returns null when the
+    // video could not be materialized locally.
+    private suspend fun ensureLocalVideo(rawUri: String): String? {
         return try {
-            val dir = java.io.File(context.filesDir, "live_video").apply { mkdirs() }
-            val out = java.io.File(dir, "rule_${System.currentTimeMillis()}.mp4")
-            context.contentResolver.openInputStream(android.net.Uri.parse(rawUri))?.use { input ->
-                out.outputStream().use { o -> input.copyTo(o) }
+            when {
+                rawUri.startsWith("file://") -> rawUri.removePrefix("file://")
+                rawUri.startsWith("/") -> rawUri
+                else -> {
+                    val dir = java.io.File(context.filesDir, "live_video").apply { mkdirs() }
+                    // Protect the incoming file (when it is already local)
+                    // from being cleaned up as stale.
+                    cleanupOldLiveVideos(dir, keepBesidesActive = rawUri.takeIf { it.startsWith("/") })
+                    // Keep the original extension (gifs picked as "videos"
+                    // would otherwise be misnamed .mp4).
+                    val ext = if (rawUri.startsWith("content://")) {
+                        try {
+                            context.contentResolver.query(
+                                android.net.Uri.parse(rawUri),
+                                arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null
+                            )?.use { c ->
+                                if (c.moveToFirst()) {
+                                    c.getString(0)?.substringAfterLast('.', "")?.lowercase()?.take(5)
+                                } else null
+                            }
+                        } catch (_: Exception) {
+                            null
+                        }
+                    } else {
+                        rawUri.substringBefore('#').substringBefore('?').substringAfterLast('.', "").take(5)
+                    }
+                    val out = java.io.File(dir, "rule_${System.currentTimeMillis()}.${ext?.ifEmpty { null } ?: "mp4"}")
+                    val input = if (rawUri.startsWith("content://")) {
+                        context.contentResolver.openInputStream(android.net.Uri.parse(rawUri))
+                    } else {
+                        val connection = java.net.URL(rawUri).openConnection() as java.net.HttpURLConnection
+                        connection.connectTimeout = 15_000
+                        connection.readTimeout = 30_000
+                        connection.inputStream
+                    }
+                    if (input == null) return null
+                    input.use { stream ->
+                        out.outputStream().use { o -> stream.copyTo(o) }
+                    }
+                    out.absolutePath
+                }
             }
-            out.absolutePath
         } catch (e: Exception) {
             Log.e("IRIS_WORKER", "ensureLocalVideo failed", e)
-            rawUri
+            null
         }
     }
 
-    private fun isBatteryLow(threshold: Int = 20): Boolean {
+    // Old rule_/local_/custom_ files accumulate forever. Keep only files from
+    // the last MAX_VIDEO_AGE_MS and free the rest.
+    private suspend fun cleanupOldLiveVideos(dir: java.io.File, keepBesidesActive: String? = null) {
+        try {
+            val now = System.currentTimeMillis()
+            val activeVideo = preferencesRepository.getLiveVideoPath()
+            dir.listFiles()?.forEach { f ->
+                val stale = (now - f.lastModified()) > MAX_VIDEO_AGE_MS
+                if (stale && f.absolutePath != activeVideo && f.absolutePath != keepBesidesActive) {
+                    f.delete()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("IRIS_WORKER", "cleanupOldLiveVideos failed", e)
+        }
+    }
+
+    private fun isLiveWallpaperActive(): Boolean {
+        return try {
+            val info = WallpaperManager.getInstance(context).wallpaperInfo
+            info?.packageName == context.packageName
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private suspend fun isBatteryLow(): Boolean {
+        val threshold = preferencesRepository.getBatterySaverThreshold()
         val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
             ?: return false
         val level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
@@ -147,20 +214,45 @@ class ApplyDynamicWallpaperUseCaseImpl(
                     ?: rulesToApply.firstOrNull { it.target == 1 }
                     ?: rulesToApply.firstOrNull { it.target == 2 }
 
-                val liveVideoEnabled = preferencesRepository.getLiveVideoEnabled()
                 val activeVideoPath = preferencesRepository.getLiveVideoPath()
                 var appliedSystemUri: String? = null
+                var homeIsVideo = false
+                val liveWallpaperActive = isLiveWallpaperActive()
                 rulesToApply.forEach { rule ->
                     if (rule.wallpaperId.value.isNotEmpty()) {
                         if (isVideoUri(rule.wallpaperId.value)) {
                             val videoPath = ensureLocalVideo(rule.wallpaperId.value)
+                            if (videoPath == null) {
+                                Log.e("IRIS_WORKER", "⚠️ Video rule could not be materialized, skipping: ${rule.wallpaperId.value}")
+                                return@forEach
+                            }
                             Log.d("IRIS_WORKER", "🎬 Video rule active, switching live video to $videoPath")
                             preferencesRepository.setLiveVideoPath(videoPath)
                             preferencesRepository.setLiveVideoEnabled(true)
+                            preferencesRepository.setLiveStaticPath(null)
+                            LiveTargetStore.write(context, LiveTarget(isVideo = true, path = videoPath))
                             if (rule.target != 2 && appliedSystemUri == null) {
                                 appliedSystemUri = videoPath
+                                homeIsVideo = true
                             }
-                        } else if (!liveVideoEnabled) {
+                        } else if (liveWallpaperActive) {
+                            // The live wallpaper service is the active wallpaper.
+                            // Applying a static bitmap via WallpaperManager would
+                            // replace the live wallpaper and kill the video.
+                            // Instead, hand the photo to the service so it paints
+                            // it as a static frame.
+                            val resolved = wallpaperRepository.resolvePhotoPath(rule.wallpaperId).getOrNull()
+                            Log.d("IRIS_WORKER", "🖼️ Live wallpaper active, routing photo to service: $resolved")
+                            if (!resolved.isNullOrEmpty()) {
+                                preferencesRepository.setLiveStaticPath(resolved)
+                                preferencesRepository.setLiveVideoEnabled(false)
+                                preferencesRepository.setLiveVideoPath(null)
+                                LiveTargetStore.write(context, LiveTarget(isVideo = false, path = resolved))
+                                if (rule.target != 2 && appliedSystemUri == null) {
+                                    appliedSystemUri = resolved
+                                }
+                            }
+                        } else {
                             val resolved = wallpaperRepository.applyWallpaper(
                                 wallpaperId = rule.wallpaperId,
                                 scaleMode = rule.scaleMode,
@@ -169,6 +261,9 @@ class ApplyDynamicWallpaperUseCaseImpl(
                                 cropY = rule.cropY,
                                 cropScale = rule.cropScale
                             ).getOrNull()
+                            if (!resolved.isNullOrEmpty()) {
+                                LiveTargetStore.write(context, LiveTarget(isVideo = false, path = resolved))
+                            }
                             if (rule.target != 2 && appliedSystemUri == null && !resolved.isNullOrEmpty()) {
                                 appliedSystemUri = resolved
                             }
@@ -176,11 +271,18 @@ class ApplyDynamicWallpaperUseCaseImpl(
                     }
                 }
 
+                // A photo rule took over the home screen: leave live video mode
+                // so the next rule (photo or video) can be applied too.
+                // Otherwise a single video would lock the wallpaper forever.
+                if (appliedSystemUri != null && !homeIsVideo) {
+                    preferencesRepository.setLiveVideoEnabled(false)
+                }
+
                 // If a live video is the active wallpaper, do NOT let an image
                 // rule's URI overwrite the "last applied" used by the home
                 // preview. Keep pointing to the live video so the UI matches
                 // what the user actually sees.
-                val storedUri = if (liveVideoEnabled) {
+                val storedUri = if (homeIsVideo) {
                     appliedSystemUri ?: activeVideoPath
                 } else {
                     appliedSystemUri ?: systemRule?.wallpaperId?.value
@@ -196,3 +298,5 @@ class ApplyDynamicWallpaperUseCaseImpl(
         }
     }
 }
+
+private const val MAX_VIDEO_AGE_MS = 14L * 24 * 60 * 60 * 1000

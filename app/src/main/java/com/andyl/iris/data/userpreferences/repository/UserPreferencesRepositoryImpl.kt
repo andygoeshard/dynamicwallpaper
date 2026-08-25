@@ -406,6 +406,22 @@ class UserPreferencesRepositoryImpl(
         prefs.edit { putBoolean(KEY_BATTERY_SAVER, enabled) }
     }
 
+    override suspend fun getBatterySaverThreshold(): Int = withContext(ioDispatcher) {
+        prefs.getInt(KEY_BATTERY_SAVER_THRESHOLD, DEFAULT_BATTERY_SAVER_THRESHOLD)
+    }
+
+    override suspend fun setBatterySaverThreshold(threshold: Int) = withContext(ioDispatcher) {
+        prefs.edit { putInt(KEY_BATTERY_SAVER_THRESHOLD, threshold.coerceIn(10, 50)) }
+    }
+
+    override suspend fun getNotificationsEnabled(): Boolean = withContext(ioDispatcher) {
+        prefs.getBoolean(KEY_NOTIFICATIONS_ENABLED, true)
+    }
+
+    override suspend fun setNotificationsEnabled(enabled: Boolean) = withContext(ioDispatcher) {
+        prefs.edit { putBoolean(KEY_NOTIFICATIONS_ENABLED, enabled) }
+    }
+
     override suspend fun getUpdateIntervalMinutes(): Int = withContext(ioDispatcher) {
         prefs.getInt(KEY_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL_MINUTES)
     }
@@ -523,6 +539,16 @@ class UserPreferencesRepositoryImpl(
         prefs.edit { putBoolean(KEY_LIVE_VIDEO_ENABLED, enabled) }
     }
 
+    override suspend fun getLiveStaticPath(): String? = withContext(ioDispatcher) {
+        prefs.getString(KEY_LIVE_STATIC_PATH, null)
+    }
+
+    override suspend fun setLiveStaticPath(path: String?) = withContext(ioDispatcher) {
+        prefs.edit {
+            if (path.isNullOrBlank()) remove(KEY_LIVE_STATIC_PATH) else putString(KEY_LIVE_STATIC_PATH, path)
+        }
+    }
+
     override suspend fun setActiveVideoPackId(packId: String?) = withContext(ioDispatcher) {
         prefs.edit {
             if (packId.isNullOrBlank()) remove(KEY_ACTIVE_VIDEO_PACK) else putString(KEY_ACTIVE_VIDEO_PACK, packId)
@@ -576,6 +602,8 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_APP_BACKGROUND = "app_background_enabled"
         private const val KEY_LAST_WALLPAPER = "last_applied_wallpaper"
         private const val KEY_BATTERY_SAVER = "battery_saver_enabled"
+        private const val KEY_BATTERY_SAVER_THRESHOLD = "battery_saver_threshold"
+        private const val KEY_NOTIFICATIONS_ENABLED = "notifications_enabled"
         private const val KEY_UPDATE_INTERVAL = "update_interval_minutes"
         private const val KEY_STATS_HISTORY = "stats_changes_history"
         private const val KEY_STATS_WEATHER = "stats_weather_changes"
@@ -587,10 +615,12 @@ class UserPreferencesRepositoryImpl(
         private const val KEY_GALLERY_BUCKET = "random_gallery_bucket"
         private const val KEY_LIVE_VIDEO_PATH = "live_video_path"
         private const val KEY_LIVE_VIDEO_ENABLED = "live_video_enabled"
+        private const val KEY_LIVE_STATIC_PATH = "live_static_path"
         private const val KEY_ACTIVE_VIDEO_PACK = "active_video_pack_id"
         private const val KEY_HOME_SECTIONS = "home_sections_order"
         private val DEFAULT_HOME_SECTIONS = listOf("day", "weather", "fixed", "temperature")
         private const val DEFAULT_UPDATE_INTERVAL_MINUTES = 60
+        private const val DEFAULT_BATTERY_SAVER_THRESHOLD = 20
     }
 }
 

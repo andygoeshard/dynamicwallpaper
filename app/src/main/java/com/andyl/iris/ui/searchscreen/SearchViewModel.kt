@@ -32,6 +32,8 @@ import com.andyl.iris.domain.repository.DownloadRepository
 import com.andyl.iris.domain.repository.FavoriteRepository
 import com.andyl.iris.domain.repository.LocalImageRepository
 import com.andyl.iris.domain.repository.UserPreferencesRepository
+import com.andyl.iris.domain.helper.LiveTarget
+import com.andyl.iris.domain.helper.LiveTargetStore
 import com.andyl.iris.domain.repository.WallpaperRepository
 import com.andyl.iris.domain.model.WallpaperId
 
@@ -321,7 +323,17 @@ class SearchViewModel(
                 val isContentUri = image.urlFull.startsWith("content://")
                 val videoPath = if (isContentUri) {
                     val dir = java.io.File(context.filesDir, "live_video").apply { mkdirs() }
-                    val out = java.io.File(dir, "local_${System.currentTimeMillis()}.mp4")
+                    // Keep the original extension (gifs would otherwise be
+                    // misnamed .mp4).
+                    val ext = context.contentResolver.query(
+                        android.net.Uri.parse(image.urlFull),
+                        arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null
+                    )?.use { c ->
+                        if (c.moveToFirst()) {
+                            c.getString(0)?.substringAfterLast('.', "")?.lowercase()?.take(5)
+                        } else null
+                    }
+                    val out = java.io.File(dir, "local_${System.currentTimeMillis()}.${ext?.ifEmpty { null } ?: "mp4"}")
                     context.contentResolver.openInputStream(android.net.Uri.parse(image.urlFull))?.use { input ->
                         out.outputStream().use { o -> input.copyTo(o) }
                     } ?: throw Exception("No se pudo leer el video")
@@ -333,6 +345,7 @@ class SearchViewModel(
                 preferencesRepository.setLiveVideoPath(videoPath)
                 preferencesRepository.setLiveVideoEnabled(true)
                 preferencesRepository.setActiveVideoPackId(null)
+                LiveTargetStore.write(context, LiveTarget(isVideo = true, path = videoPath))
 
                 _uiState.value.activeSlot?.let { slot ->
                     processDownloadedFile(context, videoPath, 3, slot, com.andyl.iris.domain.model.ScaleMode.CROP)

@@ -68,6 +68,11 @@ interface UserPreferencesRepository {
     suspend fun saveLastAppliedWallpaper(uri: String?)
     suspend fun getBatterySaverEnabled(): Boolean
     suspend fun setBatterySaverEnabled(enabled: Boolean)
+    suspend fun getBatterySaverThreshold(): Int
+    suspend fun setBatterySaverThreshold(threshold: Int)
+
+    suspend fun getNotificationsEnabled(): Boolean
+    suspend fun setNotificationsEnabled(enabled: Boolean)
 
     suspend fun getUpdateIntervalMinutes(): Int
     suspend fun setUpdateIntervalMinutes(minutes: Int)
@@ -97,6 +102,8 @@ interface UserPreferencesRepository {
     suspend fun setLiveVideoPath(path: String?)
     suspend fun getLiveVideoEnabled(): Boolean
     suspend fun setLiveVideoEnabled(enabled: Boolean)
+    suspend fun getLiveStaticPath(): String?
+    suspend fun setLiveStaticPath(path: String?)
     suspend fun setActiveVideoPackId(packId: String?)
 
     suspend fun getHomeSectionsOrder(): List<String>

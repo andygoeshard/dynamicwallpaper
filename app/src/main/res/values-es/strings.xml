@@ -114,6 +114,13 @@
     <string name="notif_desc">Manteniendo tu fondo sincronizado con el clima y la hora.</string>
     <string name="notif_channel_name">Servicio de Fondo Iris</string>
     <string name="notif_channel_desc">Asegura las actualizaciones del fondo de pantalla</string>
+    <string name="notif_error_title">Falló la actualización del fondo</string>
+    <string name="notif_error_channel_name">Errores del Fondo Iris</string>
+    <string name="notif_error_channel_desc">Informa cuando una actualización del fondo falla</string>
+    <string name="cfg_notifications_title">Notificación de fondo</string>
+    <string name="cfg_notifications_desc">Mantén visible la notificación mientras Iris actualiza tu fondo. Si está apagada, se vuelve descartable.</string>
+    <string name="cfg_battery_threshold_title">Nivel de Ahorro de Batería</string>
+    <string name="cfg_battery_threshold_desc">Saltea actualizaciones cuando la batería baja de este nivel.</string>
     <string name="live_status">Estado en vivo</string>
     <string name="auto_gps">GPS Automático</string>
     <string name="search_city_placeholder">Buscar ciudad (ej. Londres)</string>

@@ -109,6 +109,13 @@
     <string name="notif_desc">Keeping your wallpaper in sync with weather and time.</string>
     <string name="notif_channel_name">Iris Wallpaper Service</string>
     <string name="notif_channel_desc">Ensures background wallpaper updates</string>
+    <string name="notif_error_title">Wallpaper update failed</string>
+    <string name="notif_error_channel_name">Iris Wallpaper Errors</string>
+    <string name="notif_error_channel_desc">Reports when a wallpaper update fails</string>
+    <string name="cfg_notifications_title">Background notification</string>
+    <string name="cfg_notifications_desc">Keep the notification visible while Iris updates your wallpaper. When off, it becomes dismissable.</string>
+    <string name="cfg_battery_threshold_title">Battery Saver Level</string>
+    <string name="cfg_battery_threshold_desc">Skip weather updates when battery drops below this level.</string>
     <string name="live_status">Live Status</string>
     <string name="auto_gps">Auto GPS</string>
     <string name="search_city_placeholder">Search city (e.g. London)</string>

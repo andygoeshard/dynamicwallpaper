@@ -35,6 +35,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.andyl.iris.R
+import com.andyl.iris.domain.helper.LiveTarget
+import com.andyl.iris.domain.helper.LiveTargetStore
 import com.andyl.iris.domain.repository.UserPreferencesRepository
 import com.andyl.iris.service.IrisLiveWallpaperService
 import kotlinx.coroutines.launch
@@ -51,20 +53,42 @@ fun LocalVideosSection(
     val scope = rememberCoroutineScope()
     val preferencesRepository = koinInject<UserPreferencesRepository>()
 
+    // Broad picker: every video container the device knows plus animated
+    // images, which "video/*" alone hides in most file managers.
     val pickLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
+        object : ActivityResultContracts.GetContent() {
+            override fun createIntent(context: Context, input: String): Intent {
+                return super.createIntent(context, input).apply {
+                    type = "*/*"
+                    putExtra(
+                        Intent.EXTRA_MIME_TYPES,
+                        arrayOf("video/*", "image/gif", "image/webp")
+                    )
+                }
+            }
+        }
     ) { uri ->
         uri?.let {
             scope.launch {
                 runCatching {
                     val dir = File(context.filesDir, "live_video").apply { mkdirs() }
-                    val out = File(dir, "custom_${System.currentTimeMillis()}.mp4")
+                    // Keep the original extension (gifs picked here would
+                    // otherwise be misnamed .mp4).
+                    val ext = context.contentResolver.query(
+                        it, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null
+                    )?.use { c ->
+                        if (c.moveToFirst()) {
+                            c.getString(0)?.substringAfterLast('.', "")?.lowercase()?.take(5)
+                        } else null
+                    }
+                    val out = File(dir, "custom_${System.currentTimeMillis()}.${ext?.ifEmpty { null } ?: "mp4"}")
                     context.contentResolver.openInputStream(it)?.use { input ->
                         out.outputStream().use { o -> input.copyTo(o) }
                     } ?: throw Exception(context.getString(R.string.local_videos_error))
                     preferencesRepository.setLiveVideoPath(out.absolutePath)
                     preferencesRepository.setLiveVideoEnabled(true)
                     preferencesRepository.setActiveVideoPackId(null)
+                    LiveTargetStore.write(context, LiveTarget(isVideo = true, path = out.absolutePath))
                     onVideoApplied?.invoke(out.absolutePath)
                     openLiveWallpaperPicker(context)
                 }.onFailure { e ->
@@ -113,7 +137,7 @@ fun LocalVideosSection(
                 )
             }
             Button(
-                onClick = { pickLauncher.launch("video/*") },
+                onClick = { pickLauncher.launch("*/*") },
                 shape = RoundedCornerShape(12.dp),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
                     horizontal = 14.dp, vertical = 10.dp

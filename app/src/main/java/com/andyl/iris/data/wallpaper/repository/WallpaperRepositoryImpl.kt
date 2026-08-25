@@ -11,6 +11,8 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.provider.MediaStore
 import android.util.Log
+import com.andyl.iris.domain.helper.LiveTarget
+import com.andyl.iris.domain.helper.LiveTargetStore
 import com.andyl.iris.domain.helper.isVideoUri
 import com.andyl.iris.domain.model.WallpaperId
 import com.andyl.iris.domain.repository.WallpaperRepository
@@ -79,6 +81,9 @@ class WallpaperRepositoryImpl(
                     .putString("live_video_path", path)
                     .putBoolean("live_video_enabled", true)
                     .apply()
+                // The service runs in a separate process with its own prefs
+                // cache; the dedicated file is what it actually reads.
+                LiveTargetStore.write(context, LiveTarget(isVideo = true, path = path))
                 return@runCatching path
             }
 
@@ -153,6 +158,11 @@ class WallpaperRepositoryImpl(
                 wallpaperManager.setBitmap(bitmapWithOverlay, null, true, androidFlags)
                 Log.d("IRIS_WALLPAPER", ">>> SUCCESS applying to target $androidFlags")
 
+                // setBitmap replaces any live wallpaper; keep the cross-process
+                // target file in sync so a later re-activation of the live
+                // wallpaper shows this image instead of stale content.
+                LiveTargetStore.write(context, LiveTarget(isVideo = false, path = path))
+
                 // 5. CLEANUP
                 if (bitmapWithOverlay != originalBitmap) {
                     originalBitmap.recycle()
@@ -194,6 +204,14 @@ class WallpaperRepositoryImpl(
         canvas.drawText(text, bitmap.width / 2f, scrimTop, textPaint)
 
         return result
+    }
+
+    override suspend fun resolvePhotoPath(wallpaperId: WallpaperId): Result<String> = withContext(Dispatchers.IO) {
+        runCatching {
+            val path = resolveGalleryUri(wallpaperId.value)
+            Log.d("IRIS_WALLPAPER", ">>> Resolved photo path: $path")
+            path
+        }
     }
 
     override suspend fun cropAndSaveWallpaper(

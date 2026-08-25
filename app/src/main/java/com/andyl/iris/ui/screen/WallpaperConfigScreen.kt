@@ -127,6 +127,9 @@ fun WallpaperConfigScreen(
     var overlayText by remember { mutableStateOf("") }
     var overlayEnabled by remember { mutableStateOf(false) }
     var batterySaverEnabled by remember { mutableStateOf(false) }
+    var batterySaverThreshold by remember { mutableIntStateOf(20) }
+    var showBatteryThresholdDialog by remember { mutableStateOf(false) }
+    var notificationsEnabled by remember { mutableStateOf(true) }
     var updateIntervalMinutes by remember { mutableIntStateOf(60) }
     var showUpdateIntervalDialog by remember { mutableStateOf(false) }
     var galleryBucketId by remember { mutableStateOf<String?>(null) }
@@ -146,6 +149,8 @@ fun WallpaperConfigScreen(
         overlayText = userPreferencesRepository.getWallpaperOverlayText() ?: ""
         overlayEnabled = userPreferencesRepository.getOverlayTextEnabled()
         batterySaverEnabled = userPreferencesRepository.getBatterySaverEnabled()
+        batterySaverThreshold = userPreferencesRepository.getBatterySaverThreshold()
+        notificationsEnabled = userPreferencesRepository.getNotificationsEnabled()
         updateIntervalMinutes = userPreferencesRepository.getUpdateIntervalMinutes()
         galleryBucketId = userPreferencesRepository.getRandomGalleryBucketId()
         places = userPreferencesRepository.getPlaces()
@@ -725,6 +730,37 @@ fun WallpaperConfigScreen(
                         onCheckedChange = { enabled ->
                             batterySaverEnabled = enabled
                             scope.launch { userPreferencesRepository.setBatterySaverEnabled(enabled) }
+                        }
+                    )
+
+                    SettingValueRow(
+                        icon = Icons.Default.BatterySaver,
+                        title = stringResource(R.string.cfg_battery_threshold_title),
+                        description = stringResource(R.string.cfg_battery_threshold_desc),
+                        value = "$batterySaverThreshold%",
+                        onClick = { showBatteryThresholdDialog = true }
+                    )
+
+                    if (showBatteryThresholdDialog) {
+                        BatteryThresholdDialog(
+                            currentThreshold = batterySaverThreshold,
+                            onSelect = { threshold ->
+                                showBatteryThresholdDialog = false
+                                batterySaverThreshold = threshold
+                                scope.launch { userPreferencesRepository.setBatterySaverThreshold(threshold) }
+                            },
+                            onDismiss = { showBatteryThresholdDialog = false }
+                        )
+                    }
+
+                    SettingToggleRow(
+                        icon = Icons.Default.Notifications,
+                        title = stringResource(R.string.cfg_notifications_title),
+                        description = stringResource(R.string.cfg_notifications_desc),
+                        checked = notificationsEnabled,
+                        onCheckedChange = { enabled ->
+                            notificationsEnabled = enabled
+                            scope.launch { userPreferencesRepository.setNotificationsEnabled(enabled) }
                         }
                     )
 
@@ -2278,6 +2314,52 @@ fun UpdateIntervalDialog(
                     ) {
                         Text(
                             text = stringResource(option.labelRes),
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (selected) {
+                            Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.btn_close))
+            }
+        }
+    )
+}
+
+@Composable
+fun BatteryThresholdDialog(
+    currentThreshold: Int,
+    onSelect: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val options = listOf(10, 15, 20, 25, 30, 40, 50)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.cfg_battery_threshold_title),
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column {
+                options.forEach { option ->
+                    val selected = option == currentThreshold
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(option) }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$option%",
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.weight(1f)
                         )

@@ -8,6 +8,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.andyl.iris.domain.helper.AlarmHelper
+import com.andyl.iris.domain.helper.LiveTarget
+import com.andyl.iris.domain.helper.LiveTargetStore
 import com.andyl.iris.domain.helper.isVideoUri
 import com.andyl.iris.domain.mapper.toKey
 import com.andyl.iris.domain.mapper.weatherFromKey
@@ -49,6 +51,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(FlowPreview::class)
 class DynamicWallpaperViewModel(
+    private val context: android.content.Context,
     private val applyDynamicWallpaperUseCase: ApplyDynamicWallpaperUseCase,
     private val setWallpaperRuleUseCase: SetWallpaperRuleUseCase,
     private val getWallpaperConfigUseCase: GetWallpaperConfigUseCase,
@@ -259,15 +262,32 @@ class DynamicWallpaperViewModel(
             _uiState.update { it.copy(isLoading = true, error = null, successMessage = null) }
 
             runCatching {
-                val resolved = wallpaperRepository.applyWallpaper(
-                    wallpaperId = WallpaperId(uri),
-                    scaleMode = state.scaleMode,
-                    target = 3
-                ).getOrThrow()
-                appliedUri = resolved
-                preferencesRepository.saveLastAppliedWallpaper(resolved)
-                preferencesRepository.addWallpaperHistoryEntry(resolved, state.currentWeather, System.currentTimeMillis())
-                preferencesRepository.recordPackChange(state.activePackId)
+                if (isVideoUri(uri)) {
+                    // Undo to a video: hand it to the live wallpaper service
+                    // instead of WallpaperManager (which would replace the live
+                    // wallpaper). Copy content:// sources to internal storage
+                    // first so the service can play them.
+                    val videoPath = ensureLocalVideoForUndo(uri)
+                    preferencesRepository.setLiveVideoPath(videoPath)
+                    preferencesRepository.setLiveVideoEnabled(true)
+                    preferencesRepository.setLiveStaticPath(null)
+                    LiveTargetStore.write(context, LiveTarget(isVideo = true, path = videoPath))
+                    appliedUri = videoPath
+                    preferencesRepository.saveLastAppliedWallpaper(videoPath)
+                    preferencesRepository.addWallpaperHistoryEntry(videoPath, state.currentWeather, System.currentTimeMillis())
+                    preferencesRepository.recordPackChange(state.activePackId)
+                    com.andyl.iris.ui.components.openLiveWallpaperPicker(context)
+                } else {
+                    val resolved = wallpaperRepository.applyWallpaper(
+                        wallpaperId = WallpaperId(uri),
+                        scaleMode = state.scaleMode,
+                        target = 3
+                    ).getOrThrow()
+                    appliedUri = resolved
+                    preferencesRepository.saveLastAppliedWallpaper(resolved)
+                    preferencesRepository.addWallpaperHistoryEntry(resolved, state.currentWeather, System.currentTimeMillis())
+                    preferencesRepository.recordPackChange(state.activePackId)
+                }
                 preferencesRepository.getWallpaperHistory()
             }.onSuccess { history ->
                 _uiState.update {
@@ -284,6 +304,21 @@ class DynamicWallpaperViewModel(
                     _uiState.update { it.copy(isLoading = false, error = t.message ?: "Failed to restore wallpaper") }
                 }
             }
+        }
+    }
+
+    private fun ensureLocalVideoForUndo(rawUri: String): String {
+        if (!rawUri.startsWith("content://")) return rawUri
+        return try {
+            val dir = java.io.File(context.filesDir, "live_video").apply { mkdirs() }
+            val out = java.io.File(dir, "rule_${System.currentTimeMillis()}.mp4")
+            context.contentResolver.openInputStream(android.net.Uri.parse(rawUri))?.use { input ->
+                out.outputStream().use { o -> input.copyTo(o) }
+            }
+            out.absolutePath
+        } catch (e: Exception) {
+            Log.e("SearchVM", "ensureLocalVideoForUndo failed", e)
+            rawUri
         }
     }
 

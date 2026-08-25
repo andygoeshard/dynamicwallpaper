@@ -9,6 +9,7 @@ val viewModelModule = module {
 
     viewModel {
         DynamicWallpaperViewModel(
+            context = get(),
             applyDynamicWallpaperUseCase = get(),
             setWallpaperRuleUseCase = get(),
             getWallpaperConfigUseCase = get(),

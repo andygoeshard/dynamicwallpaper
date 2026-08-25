@@ -14,6 +14,8 @@ interface WallpaperRepository {
         cropScale: Float? = null
     ): Result<String>
 
+    suspend fun resolvePhotoPath(wallpaperId: WallpaperId): Result<String>
+
     suspend fun cropAndSaveWallpaper(
         wallpaperId: WallpaperId,
         cropX: Float,
