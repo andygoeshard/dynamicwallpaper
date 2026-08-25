@@ -32,7 +32,7 @@ Your home screen that changes with the weather, the hour, the day... or plays yo
 
 ---
 
-## 🇬🇧 English
+## English
 
 ### What is IrisWallpaper?
 
